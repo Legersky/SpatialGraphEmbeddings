@@ -1,0 +1,12 @@
+*.log
+*.aux
+*.toc
+*.out
+*.bbl
+*.blg
+*.tex.bak
+*.dvi
+*.gz
+*.pdf
+*build*
+*.pyc
