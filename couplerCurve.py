@@ -1,14 +1,14 @@
 
 
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAction,  QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QErrorMessage, QAbstractSpinBox, QMessageBox, QPlainTextEdit, QDialog, QVBoxLayout, QDialogButtonBox
+#from PyQt5 import QtCore
+from PyQt5.QtWidgets import QAction,  QApplication, QInputDialog, QFileDialog, QErrorMessage, QAbstractSpinBox, QPlainTextEdit, QDialog, QVBoxLayout
 from PyQt5.QtGui import QIcon,  QKeySequence,  QTextCursor
 
 from PyQt5.uic import loadUiType
 
 import pickle
 import ast
-import time 
+#import time 
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -23,6 +23,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 from graphEmbedding import *
+from axel_vis import *
 
 UI_MainWindow, MainWindow = loadUiType("couplerCurve.ui")
 class MplWindow(UI_MainWindow, MainWindow):
@@ -149,6 +150,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.buttonRotateVertices.clicked.connect(self.rotateVertices)
         
         self.exportButton.clicked.connect(self.exportForVangelis)
+        
+        self.buttonAxelVisualisation.clicked.connect(self.axelVisualisation)
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -533,7 +536,7 @@ class MplWindow(UI_MainWindow, MainWindow):
             len_vect = []
             for r in tmp:
                 len_vect.append(r**2)
-        print len_vect
+#        print len_vect
         
         dialog = QDialog(self)
 #        dialog.buttonBox = QDialogButtonBox(self)
@@ -561,6 +564,86 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        msg.setWindowTitle("Lengths export")
 #        msg.setDetailedText(str(len_vect))
 #        msg.show()
+    def axelVisualisation(self):       
+#        #colors
+        blue = [0,0,255]
+        cyan = [0,255,255]
+        green = [0,255,0]
+        magenta=[255,0,255]
+        dark_yellow=[100,100,0]
+        yellow=[255,255,0]
+        dark_green=[0,190,0]
+        red = [255,0,0]
+        black = [0,0,0]
+        
+        colors = {
+                  'orange': yellow,
+                  'red': red,
+                  'green': green,
+                  'blue': blue, 
+                  'darkorange': dark_yellow,
+                  'darkred': cyan,
+                  'darkgreen': dark_green,
+                  'darkblue': magenta
+                  }
+#        ps = np.random.rand(10,3)
+#        ts = [
+#            (0,1,2),
+#            (3,4,5),
+#            (6,7,8),
+#            (1,2,9)
+#        ]
+        #v.add_polyline(ps)
+        #v.add_points(ps,point_size=3,opacity=.5)
+        #v.add_triangle_mesh(ps,ts, opacity=.5)
+#        v.add_mesh(ps,ts[:2],color=[255,255,0],name='ms')
+#        v.add_mesh(ps,ts[2:],color=[255,255,0],name='ms2')
+#        v.add_points(ps[:5],name='ps')
+#        v.add_points(ps[5:],name='ps')
+#        v.add_polyline(ps[:5],name='pl')
+#        v.add_polyline(ps[5:],name='pl')
+        
+        
+        if self.isComputed():
+            v = VisualizationAxel("/home/jan/Programs/miniconda3/bin/axel-s")
+            if self.comboBoxGraphFor.currentText()=='orange':
+                pos = self.graph.getPositionsOfVertices(self.spinBoxParameter.value()-1, 0, 0, 0)
+            elif self.comboBoxGraphFor.currentText()=='red':
+                pos = self.graph.getPositionsOfVertices(self.spinBoxParameter.value()-1, 0, 1, 0)
+            elif self.comboBoxGraphFor.currentText()=='green':
+                pos = self.graph.getPositionsOfVertices(self.spinBoxParameter.value()-1, 0, 0, 1)
+            elif self.comboBoxGraphFor.currentText()=='blue':
+                pos = self.graph.getPositionsOfVertices(self.spinBoxParameter.value()-1, 0, 1, 1)
+            else:
+                pos = None
+            if pos:
+                v1, v2, v3, v4, v5, v6, v7 = pos
+                v.add_polyline([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7], color=black)
+                v.add_polyline([v1, v6], color=black)
+                v.add_points([v1, v2, v3], color=black)
+#                for i, v in enumerate(pos):
+#                    self._branches_plot.text(v[0]+0.1, v[1], v[2], 'v'+str(i+1))
+            
+            for c in self.checkBoxBranches:
+                v.add_points(self.graph.intersections, color=red)
+                if self.checkBoxBranches[c].checkState():
+                    for part in self.graph.getBranch(c):
+                        v.add_polyline(part, color=colors[c])
+            
+            if self.checkBoxMirror.checkState():
+                v.add_points(self.graph.intersections_mirror, color=red)
+                for c in self.checkBoxBranches:
+                    if self.checkBoxBranches[c].checkState():
+                        for part in self.graph.getMirrorBranch(c):
+                            v.add_polyline(part, color=colors['dark'+c])
+            
+            if self._V6fromPHC:
+                v.add_points(self._V6fromPHC, color=dark_green)
+            v.show()
+        else:
+            self.showError('Recomputation of coupler curve needed!')
+
+       
 
 if __name__=="__main__":
     import sys
