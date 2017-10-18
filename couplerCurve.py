@@ -100,9 +100,9 @@ class MplWindow(UI_MainWindow, MainWindow):
                                 'blue': self.checkBoxBlue
                                 }
         for c in self.checkBoxBranches:
-            self.checkBoxBranches[c].stateChanged.connect(self.plotBranches)
+            self.checkBoxBranches[c].stateChanged.connect(self.plotScene)
         
-        self.checkBoxMirror.stateChanged.connect(self.plotBranches)
+        self.checkBoxMirror.stateChanged.connect(self.plotScene)
         
 #        self.spinBoxSamples.valueChanged.connect(self.updateSamples)
         
@@ -152,6 +152,10 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.exportButton.clicked.connect(self.exportForVangelis)
         
         self.buttonAxelVisualisation.clicked.connect(self.axelVisualisation)
+        
+        self.doubleSpinBox_x.valueChanged.connect(self.plotScene)
+        self.doubleSpinBox_y.valueChanged.connect(self.plotScene)
+        self.doubleSpinBox_z.valueChanged.connect(self.plotScene)
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -180,10 +184,32 @@ class MplWindow(UI_MainWindow, MainWindow):
             pickle.dump([self.graph._lengths, self.graph.getR26()], open(fileName, 'wb'))
 
     def insertLengths(self):
-        text, ok = QInputDialog.getMultiLineText(self, 'Insert lengths', 'Insert lengths as dictionary:')
+        text, ok = QInputDialog.getMultiLineText(self, 'Insert lengths', 'Insert lengths as [dictionary, R26] or list of squares of lengths:')
         if ok:
             try:
-                lengths, R26 = ast.literal_eval(str(text))
+                evaluated_expr = ast.literal_eval(str(text))
+                if not type(evaluated_expr[0]) is dict:
+                    g = evaluated_expr
+                    lengths = {
+                    'L12': np.sqrt(g[0]), 
+                    'L13': np.sqrt(g[1]), 
+                    'L14': np.sqrt(g[2]), 
+                    'L15': np.sqrt(g[3]), 
+                    'L16': np.sqrt(g[4]), 
+                    'L27': np.sqrt(g[7]), 
+                    'L37': np.sqrt(g[9]), 
+                    'L47': np.sqrt(g[11]), 
+                    'L57': np.sqrt(g[13]), 
+                    'L67': np.sqrt(g[14]), 
+                    'L23': np.sqrt(g[5]), 
+                    'L34': np.sqrt(g[8]), 
+                    'L45': np.sqrt(g[10]), 
+                    'L56': np.sqrt(g[12])
+                    }
+                    R26 = float(np.sqrt(g[6]))
+                else:
+                    lengths, R26 = evaluated_expr
+                
                 if type(lengths)==dict and type(R26)==float:
                     self.printLog('Inserted lengths: ')
                     self.graph.setLengths(lengths)
@@ -192,7 +218,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                     self.update_graph2tabLengths()
                     self.computeCouplerCurves()
                 else:
-                    self.showError('Input must be list containing dictionary of lengths and float R26`')
+                    self.showError('Input must be list containing dictionary of lengths and float R26 or list of squares of lengths')
             except Exception as e:
                  self.showError('Problem with input: \n'+str(e))
         
@@ -255,7 +281,7 @@ class MplWindow(UI_MainWindow, MainWindow):
     
     def updateDisplayedGraph(self):
         if self.isComputed():
-            self.plotBranches()
+            self.plotScene()
         else:
             self.showError('Recomputation of coupler curve needed!')
 
@@ -296,12 +322,14 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
         if self.isComputed():
             self.graph.computeIntersections()
-            self.plotBranches()
+            self.plotScene()
         else:
             self.showError('Recomputation of coupler curve needed!')
 
     def update_graph2R26(self):
+        blocked = self.doubleSpinBoxR26.blockSignals(True)
         self.doubleSpinBoxR26.setValue(self.graph.getR26())
+        self.doubleSpinBoxR26.blockSignals(blocked)
         self.update_graph2yV2()
 
     def update_graph2yV2(self):
@@ -316,13 +344,14 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.update_graph2tabLengths()
         if self.isComputed():
             self.graph.computeIntersections()
-            self.plotBranches()
+            self.plotScene()
         else:
             self.showError('Recomputation of coupler curve needed!')
     
     def setRequiresRecomputing(self):
         self.graph.setRequiresRecomputing(propagate=False)
         self.labelComputed.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
+        self._V6fromPHC = []
         self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
 
     def setComputed(self):
@@ -360,13 +389,14 @@ class MplWindow(UI_MainWindow, MainWindow):
         elif self.tabWidget.currentWidget()==self.tabSequence:
             self.plotGraphFromSequence()
 
-    def plotBranches(self):
+    def plotScene(self):
 #        self.printLog('Updating branches plot')
-        def drawLine(points):
-            self._branches_plot.plot([x for x, y, z in points], [y for x, y, z in points], [z for x, y, z in points],  color='black')
-        
-        def drawPoints(points, style):
-            self._branches_plot.plot([x for x, y, z in points], [y for x, y, z in points], [z for x, y, z in points],  style)
+#        def drawLine(points,  color='black'):
+#            self._branches_plot.plot([x for x, y, z in points], [y for x, y, z in points], [z for x, y, z in points],  color=color)
+#        
+        c_x, c_y, c_z = self.doubleSpinBox_x.value(), self.doubleSpinBox_y.value(), self.doubleSpinBox_z.value()
+        def draw(points, style='black'):
+            self._branches_plot.plot([x+c_x for x, y, z in points], [y+c_y for x, y, z in points], [z+c_z for x, y, z in points],  style)
         
         if self.isComputed():
             if not self._firstPlot:
@@ -394,25 +424,23 @@ class MplWindow(UI_MainWindow, MainWindow):
                 pos = None
             if pos:
                 v1, v2, v3, v4, v5, v6, v7 = pos
-                drawLine([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
-                drawLine([v1, v6])
-                drawPoints([v1, v2, v3], 'ko')
+                draw([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
+                draw([v1, v6])
+                draw([v1, v2, v3], 'ko')
                 for i, v in enumerate(pos):
-                    self._branches_plot.text(v[0]+0.1, v[1], v[2], 'v'+str(i+1))
+                    self._branches_plot.text(v[0]+0.1+c_x, v[1]+c_y, v[2]+c_z, 'v'+str(i+1))
             
+            draw(self.graph.intersections, 'ro')
             for c in self.checkBoxBranches:
                 if self.checkBoxBranches[c].checkState():
                     for part in self.graph.getBranch(c):
-                        self._branches_plot.plot([x for x, y, z in part], [y for x, y, z in part], [z for x, y, z in part],  color=c)
+                        draw(part, c)
             if self.checkBoxMirror.checkState():
-                self._branches_plot.plot([x for x, y, z in self.graph.intersections_mirror], 
-                                         [y for x, y, z in self.graph.intersections_mirror], [z for x, y, z in self.graph.intersections_mirror], 'ro')
+                draw(self.graph.intersections_mirror, 'ro')
                 for c in self.checkBoxBranches:
                     if self.checkBoxBranches[c].checkState():
                         for part in self.graph.getMirrorBranch(c):
-                            self._branches_plot.plot([x for x, y, z in part], [y for x, y, z in part], [z for x, y, z in part],  color='dark'+c)
-            
-            self._branches_plot.plot([x for x, y, z in self.graph.intersections], [y for x, y, z in self.graph.intersections], [z for x, y, z in self.graph.intersections], 'ro')
+                            draw(part, 'dark'+c)
         
             self._branches_plot.set_xlim3d(minbound, maxbound)
             self._branches_plot.set_ylim3d(minbound, maxbound)
@@ -421,7 +449,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         else:
             self.showError('Recomputation of coupler curve needed!')
         if self._V6fromPHC:
-            drawPoints(self._V6fromPHC, 'go')
+            draw(self._V6fromPHC, 'go')
 #        self._branches_plot.auto_scale_xyz([minbound, maxbound], [minbound, maxbound], [minbound, maxbound])
         
 #        x, y, z = self.graph.getSphere(100)
@@ -488,7 +516,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.printLog('Number of real solutions by PHC:')
         self.printLog(str(num_sol))
         self.spinBoxNumberReal.setValue(num_sol)
-        self.plotBranches()
+        self.plotScene()
         self.labelRecomputePHC.setText('Green points OK')
         self.buttonRunPHC.setEnabled(True)
 
@@ -585,24 +613,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                   'darkred': cyan,
                   'darkgreen': dark_green,
                   'darkblue': magenta
-                  }
-#        ps = np.random.rand(10,3)
-#        ts = [
-#            (0,1,2),
-#            (3,4,5),
-#            (6,7,8),
-#            (1,2,9)
-#        ]
-        #v.add_polyline(ps)
-        #v.add_points(ps,point_size=3,opacity=.5)
-        #v.add_triangle_mesh(ps,ts, opacity=.5)
-#        v.add_mesh(ps,ts[:2],color=[255,255,0],name='ms')
-#        v.add_mesh(ps,ts[2:],color=[255,255,0],name='ms2')
-#        v.add_points(ps[:5],name='ps')
-#        v.add_points(ps[5:],name='ps')
-#        v.add_polyline(ps[:5],name='pl')
-#        v.add_polyline(ps[5:],name='pl')
-        
+                  }    
         
         if self.isComputed():
             v = VisualizationAxel("/home/jan/Programs/miniconda3/bin/axel-s")
@@ -620,25 +631,25 @@ class MplWindow(UI_MainWindow, MainWindow):
                 v1, v2, v3, v4, v5, v6, v7 = pos
                 v.add_polyline([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7], color=black)
                 v.add_polyline([v1, v6], color=black)
-                v.add_points([v1, v2, v3], color=black)
+                v.add_points([v1, v2, v3], color=black,  size=1.5)
 #                for i, v in enumerate(pos):
 #                    self._branches_plot.text(v[0]+0.1, v[1], v[2], 'v'+str(i+1))
             
+            v.add_points(self.graph.intersections, color=red, size=1.0)
             for c in self.checkBoxBranches:
-                v.add_points(self.graph.intersections, color=red)
                 if self.checkBoxBranches[c].checkState():
                     for part in self.graph.getBranch(c):
                         v.add_polyline(part, color=colors[c])
             
             if self.checkBoxMirror.checkState():
-                v.add_points(self.graph.intersections_mirror, color=red)
+                v.add_points(self.graph.intersections_mirror, color=red, size=1.0)
                 for c in self.checkBoxBranches:
                     if self.checkBoxBranches[c].checkState():
                         for part in self.graph.getMirrorBranch(c):
                             v.add_polyline(part, color=colors['dark'+c])
             
             if self._V6fromPHC:
-                v.add_points(self._V6fromPHC, color=dark_green)
+                v.add_points(self._V6fromPHC, color=dark_green, size=1.0)
             v.show()
         else:
             self.showError('Recomputation of coupler curve needed!')

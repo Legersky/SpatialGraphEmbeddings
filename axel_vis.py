@@ -11,7 +11,7 @@ class Visualization(object):
         self.meshes = {} # name -> points,facets,color
         self.normals = {} #name -> normals
         self.polylines = {} # name -> points,lens,color
-        self.points = {} # name -> points,color
+        self.points = {} # name -> points,color,size
 
     def set_subdivision_number(self,n):
         self.subdivision_number = n
@@ -45,14 +45,14 @@ class Visualization(object):
         else:
             self.polylines[name] = (list(poly_points), [len(poly_points)], list(color) )
 
-    def add_points(self, points, color=[0,255,0], name=None):
+    def add_points(self, points, color=[0,255,0], name=None,  size=0.6):
         if name is None:
             name = "Points%d" % len(self.points)
 
         if name in self.points.keys():
             self.points[name][0].extend(list(points))
         else:
-            self.points[name] = (list(points), list(color) )
+            self.points[name] = (list(points), list(color) , size)
 
     def show(self):
         raise NotImplementedError()
@@ -113,8 +113,8 @@ class VisualizationAxel(Visualization):
         f.write('</mesh>\n')
 
     def write_points(self, f, name):
-        ps, color = self.points[name]
-        f.write('<mesh color="%d %d %d 1" shader="" name="%s" size="0.6">\n' % tuple(color + [name]) )
+        ps, color, size = self.points[name]
+        f.write('<mesh color="%d %d %d 1" shader="" name="%s" size="%f">\n' % tuple(color + [name]+[size]) )
         f.write('\t<count>%d 0 0</count>\n' % len(ps) ) #points edges facets
         f.write('\t<points>\n')
         for p in ps:
