@@ -156,6 +156,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.doubleSpinBox_x.valueChanged.connect(self.plotScene)
         self.doubleSpinBox_y.valueChanged.connect(self.plotScene)
         self.doubleSpinBox_z.valueChanged.connect(self.plotScene)
+        
+        self.groupBoxSequenceNavigation.setVisible(False)
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -357,18 +359,22 @@ class MplWindow(UI_MainWindow, MainWindow):
     def setComputed(self):
         self.graph.setComputed(propagate=False)
         self.labelComputed.setText('Ready')
+        c_x, c_y, c_z = self.graph.getCenterOfGravity()
+        self.doubleSpinBox_x.setValue(-c_x)
+        self.doubleSpinBox_y.setValue(-c_y)
+        self.doubleSpinBox_z.setValue(-c_z)
     
     def isComputed(self):
         return self.graph.isComputed()
 
-    def computeCouplerCurves(self):
+    def computeCouplerCurves(self,  onlyActive=False):
         N = self.spinBoxSamples.value()
-        if self.tabWidget.currentWidget()==self.tabLengths:
+        if self.tabWidget.currentWidget()==self.tabLengths or onlyActive:
             self.printLog('Computing coupler curve')
             self.pushButtonPlot.setEnabled(False)
             
             self.graph.computeCouplerCurve(N)
-            self.graph.computeIntersections()
+#            self.graph.computeIntersections()
             self.updateParameter()
             self.updateDisplayedGraph()
             self.pushButtonPlot.setEnabled(True)
@@ -376,10 +382,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         elif self.tabWidget.currentWidget()==self.tabSequence:
             self.pushButtonPlot.setEnabled(False)
             for graph in self.graph_sequence:
-#                self.graph = graph
                 graph.computeCouplerCurve(N)
-                graph.computeIntersections()
-#                time.sleep(5)
             self.plotGraphFromSequence()
             self.pushButtonPlot.setEnabled(True)
     
@@ -491,7 +494,10 @@ class MplWindow(UI_MainWindow, MainWindow):
                             'L56': np.sqrt(g[12])
                             }
                     self.graph_sequence.append(GraphEmbedding(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
-                    self.graph_sequence_num_intersections.append(g[15])
+                    try:
+                        self.graph_sequence_num_intersections.append(g[15])
+                    except:
+                        self.graph_sequence_num_intersections.append(0)
                     self.spinBoxImgInSeq.setMinimum(1)
                     self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
                     self.spinBoxNumByVangelis.setValue(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
@@ -503,11 +509,13 @@ class MplWindow(UI_MainWindow, MainWindow):
     def plotGraphFromSequence(self):
         if self.graph_sequence:
             self.setActiveGraph(self.graph_sequence[self.spinBoxImgInSeq.value()-1])
+            self._V6fromPHC = []
             self.spinBoxNumByVangelis.setValue(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
             self.update_graph2R26()
             self.update_graph2tabLengths()
             self.updateParameter()
             self.updateDisplayedGraph()
+            self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
     
     def runPHC(self):
         self.buttonRunPHC.setEnabled(False)
@@ -548,7 +556,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.update_graph2tabLengths()
         self.doubleSpinBoxR26.blockSignals(blocked)
         
-        self.computeCouplerCurves()
+        self.computeCouplerCurves(onlyActive=True)
         self.buttonRotateVertices.setEnabled(True)
     
     def exportForVangelis(self):

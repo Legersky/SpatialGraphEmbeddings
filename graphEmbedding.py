@@ -110,6 +110,12 @@ class GraphEmbedding(object):
         else:
             print s
             
+    def getCenterOfGravity(self):
+        try:
+            return self._centerOfGravity
+        except:
+            return [0, 0, 0]
+
     def getBranch(self, color):
         if self.isComputed():
             return self._branches[color]
@@ -275,12 +281,22 @@ class GraphEmbedding(object):
         self._branches_mirror['green'] = getTraceV6(1, 1, 0)
         self._branches_mirror['blue'] = getTraceV6(1, 0, 0)
         
+        s_x, s_y, s_z = 0, 0, 0
+        for color in ['orange', 'red', 'green', 'blue']:
+            for part in self._branches_mirror[color]+self._branches[color]:
+                for x, y, z in part:
+                    s_x += x
+                    s_y += y
+                    s_z += z
+        
+        self._centerOfGravity = [s_x/float(8*N), s_y/float(8*N), s_z/float(8*N)]
+        
+        self.computeIntersections(nocheck=True)
+        
         self.setComputed()
 
-    def computeIntersections(self):
-        if not self.isComputed():
-            self.printLog('Coupler curve must be computed first.')
-        else:
+    def computeIntersections(self, nocheck=False):
+        if self.isComputed() or nocheck:
             def getIntersectionWithSphere(A, B):
                 x_A, y_A, z_A = A
                 x_B, y_B, z_B = B
@@ -320,6 +336,8 @@ class GraphEmbedding(object):
             
             self.printLog('Intersections:')
             self.printLog(str(len(self.intersections)+len(self.intersections_mirror)))
+        else:
+            self.printLog('Coupler curve must be computed first.')
         
 
     def getPositionsOfVertices(self, i, solv4, solv5, solv6):

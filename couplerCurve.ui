@@ -83,6 +83,29 @@
          </widget>
         </item>
         <item>
+         <widget class="QGroupBox" name="groupBoxSequenceNavigation">
+          <property name="title">
+           <string>Sequence Navigation</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_3">
+           <item row="0" column="0">
+            <widget class="QPushButton" name="previousSeqButton">
+             <property name="text">
+              <string>Previous</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="nextSeqButton">
+             <property name="text">
+              <string>Next</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
          <widget class="QPlainTextEdit" name="plainTextEdit">
           <property name="minimumSize">
            <size>
@@ -499,7 +522,7 @@
              <number>100</number>
             </property>
             <property name="value">
-             <number>500</number>
+             <number>5000</number>
             </property>
            </widget>
           </item>
@@ -638,6 +661,9 @@
            <widget class="QCheckBox" name="checkBoxMirror">
             <property name="text">
              <string>Mirror</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -781,5 +807,54 @@
   </widget>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>nextSeqButton</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBoxImgInSeq</receiver>
+   <slot>stepUp()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>747</x>
+     <y>138</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>968</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>previousSeqButton</sender>
+   <signal>clicked()</signal>
+   <receiver>spinBoxImgInSeq</receiver>
+   <slot>stepDown()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>602</x>
+     <y>138</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>968</x>
+     <y>194</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonLoadSequence</sender>
+   <signal>clicked()</signal>
+   <receiver>groupBoxSequenceNavigation</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>968</x>
+     <y>61</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>674</x>
+     <y>125</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
