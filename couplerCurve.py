@@ -137,8 +137,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.spinBoxSeqLength.setReadOnly(True)
         self.spinBoxSeqLength.setButtonSymbols(QAbstractSpinBox.NoButtons)
         
-        self.spinBoxNumByVangelis.setReadOnly(True)
-        self.spinBoxNumByVangelis.setButtonSymbols(QAbstractSpinBox.NoButtons)
+        self.noteToImgInSeq.setReadOnly(True)
         self.boxInfoImgInSeq.setVisible(False)
         
         self.tabWidget.currentChanged.connect(self.tabChanged)
@@ -385,6 +384,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                 graph.computeCouplerCurve(N)
             self.plotGraphFromSequence()
             self.pushButtonPlot.setEnabled(True)
+            self.tabWidget.setCurrentWidget(self.tabLengths)
     
     def tabChanged(self):
         if self.tabWidget.currentWidget()==self.tabLengths:
@@ -430,6 +430,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                 draw([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
                 draw([v1, v6])
                 draw([v1, v2, v3], 'ko')
+                draw([v6, v6], 'y^')
                 for i, v in enumerate(pos):
                     self._branches_plot.text(v[0]+0.1+c_x, v[1]+c_y, v[2]+c_z, 'v'+str(i+1))
             
@@ -495,12 +496,12 @@ class MplWindow(UI_MainWindow, MainWindow):
                             }
                     self.graph_sequence.append(GraphEmbedding(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
                     try:
-                        self.graph_sequence_num_intersections.append(g[15])
+                        self.graph_sequence_num_intersections.append(str(g[15]))
                     except:
-                        self.graph_sequence_num_intersections.append(0)
+                        self.graph_sequence_num_intersections.append(str(' '))
                     self.spinBoxImgInSeq.setMinimum(1)
                     self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
-                    self.spinBoxNumByVangelis.setValue(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
+                    self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
                     self.spinBoxSeqLength.setValue(len(self.graph_sequence))
                     self.boxInfoImgInSeq.setVisible(True)
             except Exception as e:
@@ -510,7 +511,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         if self.graph_sequence:
             self.setActiveGraph(self.graph_sequence[self.spinBoxImgInSeq.value()-1])
             self._V6fromPHC = []
-            self.spinBoxNumByVangelis.setValue(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
+            self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
             self.update_graph2R26()
             self.update_graph2tabLengths()
             self.updateParameter()

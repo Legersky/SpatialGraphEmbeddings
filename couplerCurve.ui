@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1112</width>
-    <height>1022</height>
+    <width>1110</width>
+    <height>917</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,25 +84,108 @@
         </item>
         <item>
          <widget class="QGroupBox" name="groupBoxSequenceNavigation">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>160</height>
+           </size>
+          </property>
           <property name="title">
            <string>Sequence Navigation</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_3">
-           <item row="0" column="0">
-            <widget class="QPushButton" name="previousSeqButton">
-             <property name="text">
-              <string>Previous</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
+           <item row="1" column="1">
             <widget class="QPushButton" name="nextSeqButton">
              <property name="text">
               <string>Next</string>
              </property>
             </widget>
            </item>
+           <item row="3" column="0" colspan="2">
+            <widget class="QPlainTextEdit" name="noteToImgInSeq">
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>80</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QPushButton" name="previousSeqButton">
+             <property name="text">
+              <string>Previous</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Note:</string>
+             </property>
+            </widget>
+           </item>
           </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBoxPHC">
+          <property name="title">
+           <string>PHC</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout">
+           <item row="2" column="1">
+            <widget class="QSpinBox" name="spinBoxNumberReal"/>
+           </item>
+           <item row="0" column="0" colspan="2">
+            <widget class="QPushButton" name="buttonRunPHC">
+             <property name="text">
+              <string>Compute solutions</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_numReal">
+             <property name="text">
+              <string># real solutions</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0" colspan="2">
+            <widget class="QLabel" name="labelRecomputePHC">
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonRotateVertices">
+          <property name="text">
+           <string>Rotate labeling of vertices</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="exportButton">
+          <property name="text">
+           <string>Export Lenghts</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="buttonAxelVisualisation">
+          <property name="text">
+           <string>Axel visualisation</string>
+          </property>
          </widget>
         </item>
         <item>
@@ -480,17 +563,6 @@
                  </property>
                 </widget>
                </item>
-               <item>
-                <widget class="QLabel" name="label_2">
-                 <property name="text">
-                  <string>Number of intersections 
- computed by Vangelis:</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QSpinBox" name="spinBoxNumByVangelis"/>
-               </item>
               </layout>
              </widget>
             </item>
@@ -522,7 +594,7 @@
              <number>100</number>
             </property>
             <property name="value">
-             <number>5000</number>
+             <number>2000</number>
             </property>
            </widget>
           </item>
@@ -731,60 +803,6 @@
            </widget>
           </item>
          </layout>
-        </item>
-        <item>
-         <widget class="QGroupBox" name="groupBoxPHC">
-          <property name="title">
-           <string>PHC</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="2" column="1">
-            <widget class="QSpinBox" name="spinBoxNumberReal"/>
-           </item>
-           <item row="0" column="0" colspan="2">
-            <widget class="QPushButton" name="buttonRunPHC">
-             <property name="text">
-              <string>Compute solutions</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_numReal">
-             <property name="text">
-              <string># real solutions</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0" colspan="2">
-            <widget class="QLabel" name="labelRecomputePHC">
-             <property name="text">
-              <string>TextLabel</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonRotateVertices">
-          <property name="text">
-           <string>Rotate labeling of vertices</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="exportButton">
-          <property name="text">
-           <string>Export for Vangelis</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="buttonAxelVisualisation">
-          <property name="text">
-           <string>Axel visualisation</string>
-          </property>
-         </widget>
         </item>
         <item>
          <spacer name="verticalSpacer_2">
