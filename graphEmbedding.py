@@ -1,9 +1,10 @@
 import numpy as np
 import math
 from phcpy.solver import solve
+from phcpy.trackers import track
 from phcpy.solutions import strsol2dict, is_real
 from sympy import symbols
-import copy
+#import copy
 
 
 class GraphEmbedding(object):
@@ -29,6 +30,8 @@ class GraphEmbedding(object):
         self._branches = {}
         self._branches_mirror = {}
         self._samples = 0
+        self._prevSystem = None
+        self._prevSolutions = None
 
     def setRequiresRecomputing(self, propagate=True):
         self._branches_updated = False
@@ -408,19 +411,23 @@ class GraphEmbedding(object):
             res.append(str(eq)+';')
         return res
 
-    def findEmbeddings(self, tolerance=1.0e-8,  verbose=True):
+    def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True):
         syst = self.getEquations()
-        if verbose:
-            print 'solving system:'
-            for pol in syst:
-                print pol
-        sols = solve(syst,tasks=2)
+        if self._prevSystem:
+            sols = track(syst, self._prevSystem, self._prevSolutions, tasks=2)
+        else:
+            sols = solve(syst,tasks=2)
+        
+        if len(sols)==48:
+            self._prevSystem = syst
+            self._prevSolutions = sols
+        elif errorMsg and self._window:
+            self._window.showError('PHC found only '+str(len(sols))+' solutions!')
+        
         result_real = []
         result_complex = []
-        if verbose:
-            print 'system has', len(sols), 'solutions'
-        if len(sols)<48:
-            self._window.showError('PHC found only '+str(len(sols))+' solutions!')
+
+        
         for sol in sols:
             soldic = strsol2dict(sol)
             if is_real(sol, tolerance):
