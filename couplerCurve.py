@@ -1,6 +1,6 @@
 
 
-#from PyQt5 import QtCore
+from PyQt5 import QtCore
 from PyQt5.QtWidgets import QAction,  QApplication, QInputDialog, QFileDialog, QErrorMessage, QAbstractSpinBox, QPlainTextEdit, QDialog, QVBoxLayout
 from PyQt5.QtGui import QIcon,  QKeySequence,  QTextCursor
 
@@ -140,7 +140,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.noteToImgInSeq.setReadOnly(True)
         self.boxInfoImgInSeq.setVisible(False)
         
-        self.tabWidget.currentChanged.connect(self.tabChanged)
+#        self.tabWidget.currentChanged.connect(self.tabChanged)
         
         self.buttonRunPHC.clicked.connect(self.runPHC)
         self.spinBoxNumberReal.setReadOnly(True)
@@ -156,7 +156,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.doubleSpinBox_y.valueChanged.connect(self.plotScene)
         self.doubleSpinBox_z.valueChanged.connect(self.plotScene)
         
-        self.groupBoxSequenceNavigation.setVisible(False)
+#        self.dockSequenceNavigation.setVisible(False)
+#        self.splitDockWidget(self.dockPHC, self.dockLog, QtCore.Qt.Horizontal)
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -366,31 +367,23 @@ class MplWindow(UI_MainWindow, MainWindow):
     def isComputed(self):
         return self.graph.isComputed()
 
-    def computeCouplerCurves(self,  onlyActive=False):
+    def computeCouplerCurves(self):
         N = self.spinBoxSamples.value()
-        if self.tabWidget.currentWidget()==self.tabLengths or onlyActive:
-            self.printLog('Computing coupler curve')
-            self.pushButtonPlot.setEnabled(False)
-            
-            self.graph.computeCouplerCurve(N)
+        
+        self.printLog('Computing coupler curve')
+        self.pushButtonPlot.setEnabled(False)
+        
+        self.graph.computeCouplerCurve(N)
 #            self.graph.computeIntersections()
-            self.updateParameter()
-            self.updateDisplayedGraph()
-            self.pushButtonPlot.setEnabled(True)
-
-        elif self.tabWidget.currentWidget()==self.tabSequence:
-            self.pushButtonPlot.setEnabled(False)
-            for graph in self.graph_sequence:
-                graph.computeCouplerCurve(N)
-            self.plotGraphFromSequence()
-            self.pushButtonPlot.setEnabled(True)
-            self.tabWidget.setCurrentWidget(self.tabLengths)
+        self.updateParameter()
+        self.updateDisplayedGraph()
+        self.pushButtonPlot.setEnabled(True)
     
-    def tabChanged(self):
-        if self.tabWidget.currentWidget()==self.tabLengths:
-            self.printLog('Tab changed to Lengths')
-        elif self.tabWidget.currentWidget()==self.tabSequence:
-            self.plotGraphFromSequence()
+#    def tabChanged(self):
+#        if self.tabWidget.currentWidget()==self.tabLengths:
+#            self.printLog('Tab changed to Lengths')
+#        elif self.tabWidget.currentWidget()==self.tabSequence:
+#            self.plotGraphFromSequence()
 
     def plotScene(self):
 #        self.printLog('Updating branches plot')
@@ -499,11 +492,19 @@ class MplWindow(UI_MainWindow, MainWindow):
                         self.graph_sequence_num_intersections.append(str(g[15]))
                     except:
                         self.graph_sequence_num_intersections.append(str(' '))
-                    self.spinBoxImgInSeq.setMinimum(1)
-                    self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
-                    self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
-                    self.spinBoxSeqLength.setValue(len(self.graph_sequence))
-                    self.boxInfoImgInSeq.setVisible(True)
+
+                self.spinBoxImgInSeq.setMinimum(1)
+                self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
+                self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
+
+                self.boxInfoImgInSeq.setVisible(True)
+
+                self.pushButtonPlot.setEnabled(False)
+                N = self.spinBoxSamples.value()
+                for graph in self.graph_sequence:
+                    graph.computeCouplerCurve(N)
+                self.plotGraphFromSequence()
+                self.pushButtonPlot.setEnabled(True)
             except Exception as e:
                 self.showError('Some problem with loading: \n'+str(e))
 
@@ -557,7 +558,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.update_graph2tabLengths()
         self.doubleSpinBoxR26.blockSignals(blocked)
         
-        self.computeCouplerCurves(onlyActive=True)
+        self.computeCouplerCurves()
         self.buttonRotateVertices.setEnabled(True)
     
     def exportForVangelis(self):
