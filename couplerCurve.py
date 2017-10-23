@@ -38,7 +38,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.fig = Figure()
 #        self.graph = GraphEmbedding(window=self)
         self.graph_sequence = []
-        self.graph_sequence_num_intersections = []
+        self.graph_sequence_comments = []
         
         self._V6fromPHC = []
 #        self._log = ''
@@ -51,6 +51,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         #self.init_pick()
         self.dockLog.resize(self.dockLog.minimumWidth()*2, 300)
         self.dockLog.updateGeometry()
+
     
     def setActiveGraph(self, G):
         self.graph = G
@@ -83,14 +84,17 @@ class MplWindow(UI_MainWindow, MainWindow):
                                     }
 
         self.update_graph2tabLengths()
+        self.update_graph2phi()
         
         for e in self.doubleSpinBoxLengths:
             self.doubleSpinBoxLengths[e].valueChanged.connect(self.update_tabLengths2graph)
         
         self.update_graph2R26()
         self.doubleSpinBoxR26.valueChanged.connect(self.update_R26toGraph)
-        
         self.doubleSpinBoxY2.valueChanged.connect(self.update_yV2toGraph)
+        
+        self.doubleSpinBoxPhi.valueChanged.connect(self.update_phi2graph)
+        self.doubleSpinBoxTheta.valueChanged.connect(self.update_theta2graph)
         
         
         self.pushButtonPlot.clicked.connect(self.computeCouplerCurves)
@@ -143,6 +147,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         action = self.menuInputOutput.addAction('Export lengths')
         action.triggered.connect(self.exportLengths)
         
+        self.actionFullscreen.toggled.connect(self.fullScreen)
+        
         self.updateParameter()
         
         self.buttonLoadSequence.clicked.connect(self.loadSequence)
@@ -182,6 +188,14 @@ class MplWindow(UI_MainWindow, MainWindow):
 #            dockWidget.updateGeometry()
 #        self.dockLog.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
 #        self.dockLog.updateGeometry()
+        
+        self.buttonSamplingPhiTheta.clicked.connect(self.runSamplingPhiTheta)
+
+    def fullScreen(self, bool):
+        if bool:
+            self.showFullScreen()
+        else:
+            self.showMaximized()
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -196,6 +210,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                 blocked = self.doubleSpinBoxR26.blockSignals(True)
                 self.update_graph2R26()
                 self.update_graph2tabLengths()
+                self.update_graph2phi()
                 self.computeCouplerCurves()
                 self.doubleSpinBoxR26.blockSignals(blocked)
             except Exception as e:
@@ -242,6 +257,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                     self.graph.setR26(R26)
                     self.update_graph2R26()
                     self.update_graph2tabLengths()
+                    self.update_graph2phi()
                     self.computeCouplerCurves()
                 else:
                     self.showError('Input must be list containing dictionary of lengths and float R26 or list of squares of lengths')
@@ -349,39 +365,75 @@ class MplWindow(UI_MainWindow, MainWindow):
                  }
         self.graph.setLengths(lengths)
         self.update_graph2yV2()
+        self.update_graph2phi()
         self.setRequiresRecomputing()
+    
+    def update_phi2graph(self):
+        self.graph.setPhiDegree(self.doubleSpinBoxPhi.value())
         
+        blocked = self.doubleSpinBoxY2.blockSignals(True)
+        self.doubleSpinBoxY2.setValue(self.graph.getyV2())
+        self.doubleSpinBoxY2.blockSignals(blocked)
+        
+        self.update_yV2toGraph()
+    
+    def update_theta2graph(self):
+        self.graph.setThetaDegree(self.doubleSpinBoxTheta.value())
+        blocked = self.doubleSpinBoxR26.blockSignals(True)
+        self.doubleSpinBoxR26.setValue(self.graph.getR26())
+        self.doubleSpinBoxR26.blockSignals(blocked)
+        self.update_R26toGraph()
+    
     def update_R26toGraph(self):
         self.printLog('Graph updated from R26')
         self.graph.setR26(self.doubleSpinBoxR26.value())
         self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
+        self.update_graph2theta()
         if self.isComputed():
             self.graph.computeIntersections()
             self.plotScene()
         else:
             self.showError('Recomputation of coupler curve needed!')
+
+    def update_yV2toGraph(self):
+        self.printLog('v2 changed')
+        self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
+        self.graph.setyV2(self.doubleSpinBoxY2.value())
+        self.update_graph2tabLengths()
+        self.update_graph2phi()
+        if self.isComputed():
+            self.graph.computeIntersections()
+            self.plotScene()
+        else:
+            self.showError('Recomputation of coupler curve needed!')
+
+
 
     def update_graph2R26(self):
         blocked = self.doubleSpinBoxR26.blockSignals(True)
         self.doubleSpinBoxR26.setValue(self.graph.getR26())
         self.doubleSpinBoxR26.blockSignals(blocked)
         self.update_graph2yV2()
+        self.update_graph2theta()
 
     def update_graph2yV2(self):
         blocked = self.doubleSpinBoxY2.blockSignals(True)
         self.doubleSpinBoxY2.setValue(self.graph.getyV2())
         self.doubleSpinBoxY2.blockSignals(blocked)
+        
+        self.update_graph2phi()
+        
+
+    def update_graph2phi(self):
+        self.update_graph2theta()
+        blocked = self.doubleSpinBoxPhi.blockSignals(True)
+        self.doubleSpinBoxPhi.setValue(self.graph.getPhiDegree())
+        self.doubleSpinBoxPhi.blockSignals(blocked)
     
-    def update_yV2toGraph(self):
-        self.printLog('v2 changed manually')
-        self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
-        self.graph.setyV2(self.doubleSpinBoxY2.value())
-        self.update_graph2tabLengths()
-        if self.isComputed():
-            self.graph.computeIntersections()
-            self.plotScene()
-        else:
-            self.showError('Recomputation of coupler curve needed!')
+    def update_graph2theta(self):
+        blocked = self.doubleSpinBoxTheta.blockSignals(True)
+        self.doubleSpinBoxTheta.setValue(self.graph.getThetaDegree())
+        self.doubleSpinBoxTheta.blockSignals(blocked)
     
     def setRequiresRecomputing(self):
         self.graph.setRequiresRecomputing(propagate=False)
@@ -494,6 +546,25 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.plainTextEdit.ensureCursorVisible()
         QApplication.processEvents()
     
+    def setGraphSequence(self, seq,  seq_comments):
+        self.graph_sequence = seq
+        self.graph_sequence_comments = seq_comments
+        
+        self.spinBoxSeqLength.setValue(len(seq))
+        
+        self.spinBoxImgInSeq.setMinimum(1)
+        self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
+        self.noteToImgInSeq.setPlainText(self.graph_sequence_comments[self.spinBoxImgInSeq.value()-1])
+
+        self.boxInfoImgInSeq.setVisible(True)
+
+        self.pushButtonPlot.setEnabled(False)
+        N = self.spinBoxSamples.value()
+        for graph in self.graph_sequence:
+            graph.computeCouplerCurve(N)
+        self.plotGraphFromSequence()
+        self.pushButtonPlot.setEnabled(True)
+   
     def loadSequence(self):
         options = QFileDialog.Options()
         fileName, _ = QFileDialog.getOpenFileName(self,"Load sequence", "./sequences","Python Objects (*.p);;All Files (*)", options=options)
@@ -501,8 +572,8 @@ class MplWindow(UI_MainWindow, MainWindow):
             try:
                 self.printLog('Sequence loaded from: '+fileName)
                 seq = pickle.load(open(fileName,'rb'))
-                self.graph_sequence = []
-                self.graph_sequence_num_intersections = []
+                graph_sequence = []
+                graph_sequence_comments = []
                 for g in seq:
                     lengths = {
                             'L12': np.sqrt(g[0]), 
@@ -520,24 +591,13 @@ class MplWindow(UI_MainWindow, MainWindow):
                             'L45': np.sqrt(g[10]), 
                             'L56': np.sqrt(g[12])
                             }
-                    self.graph_sequence.append(GraphEmbedding(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
+                    graph_sequence.append(GraphEmbedding(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
                     try:
-                        self.graph_sequence_num_intersections.append(str(g[15]))
+                        graph_sequence_comments.append(str(g[15]))
                     except:
-                        self.graph_sequence_num_intersections.append(str(' '))
+                        graph_sequence_comments.append(str(' '))
 
-                self.spinBoxImgInSeq.setMinimum(1)
-                self.spinBoxImgInSeq.setMaximum(len(self.graph_sequence))
-                self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
-
-                self.boxInfoImgInSeq.setVisible(True)
-
-                self.pushButtonPlot.setEnabled(False)
-                N = self.spinBoxSamples.value()
-                for graph in self.graph_sequence:
-                    graph.computeCouplerCurve(N)
-                self.plotGraphFromSequence()
-                self.pushButtonPlot.setEnabled(True)
+                self.setGraphSequence(graph_sequence, graph_sequence_comments)
             except Exception as e:
                 self.showError('Some problem with loading: \n'+str(e))
 
@@ -545,9 +605,10 @@ class MplWindow(UI_MainWindow, MainWindow):
         if self.graph_sequence:
             self.setActiveGraph(self.graph_sequence[self.spinBoxImgInSeq.value()-1])
             self._V6fromPHC = []
-            self.noteToImgInSeq.setPlainText(self.graph_sequence_num_intersections[self.spinBoxImgInSeq.value()-1])
+            self.noteToImgInSeq.setPlainText(self.graph_sequence_comments[self.spinBoxImgInSeq.value()-1])
             self.update_graph2R26()
             self.update_graph2tabLengths()
+            
             self.updateParameter()
             self.updateDisplayedGraph()
             self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
@@ -589,6 +650,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         blocked = self.doubleSpinBoxR26.blockSignals(True)
         self.update_graph2R26()
         self.update_graph2tabLengths()
+        
         self.doubleSpinBoxR26.blockSignals(blocked)
         
         self.computeCouplerCurves()
@@ -696,8 +758,13 @@ class MplWindow(UI_MainWindow, MainWindow):
             v.show()
         else:
             self.showError('Recomputation of coupler curve needed!')
-
-       
+    
+    def runSamplingPhiTheta(self):
+        self.computeCouplerCurves()
+        self.printLog('Sampling phi and theta')
+        blocked = self.doubleSpinBoxPhi.blockSignals(True)
+        self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
+        self.doubleSpinBoxPhi.blockSignals(blocked)
 
 if __name__=="__main__":
     import sys

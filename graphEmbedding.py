@@ -4,7 +4,8 @@ from phcpy.solver import solve
 from phcpy.trackers import track
 from phcpy.solutions import strsol2dict, is_real
 from sympy import symbols
-#import copy
+import time
+import copy
 
 
 class GraphEmbedding(object):
@@ -64,6 +65,24 @@ class GraphEmbedding(object):
     def getyV2(self):
         return self._v2[1]
     
+    def getPhiRadian(self):
+        return math.asin((self._v1[1]-self._v2[1])/float(self.getEdgeLength('12')))
+    
+    def getPhiDegree(self):
+        return self.getPhiRadian()/math.pi*180.0
+    
+    def getThetaRadian(self):
+        try:
+            r26 = self.getR26()
+            l12 = self.getEdgeLength('12')
+            l16 = self.getEdgeLength('16')
+            return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
+        except:
+            self.printLog('Math error in Theta ')
+            return 0
+
+    def getThetaDegree(self):
+        return self.getThetaRadian()/math.pi*180.0
 
     def setLengths(self, lengths):
         self._lengths = {}
@@ -97,6 +116,22 @@ class GraphEmbedding(object):
         self._v2 = [0, y2, 0]
         self._v3 = [0, y3, 0]
         self.setRequiresRecomputing()
+    
+    def setPhiRadian(self, phi):
+        y2 = self._v1[1] - math.tan(phi)*self._v1[0]
+        self.setyV2(y2)
+    
+    def setPhiDegree(self, phi):
+        self.setPhiRadian(phi*math.pi/180.0)
+
+    def setThetaRadian(self, theta):
+        l12 = self.getEdgeLength('12')
+        l16 = self.getEdgeLength('16')
+        r26 = np.sqrt(l12**2+l16**2-2*l12*l16*math.cos(theta))
+        self.setR26(r26)
+    
+    def setThetaDegree(self, phi):
+        self.setThetaRadian(phi*math.pi/180.0)
     
     def setyV2(self, y2):
         self._v2 = [0, y2, 0]
@@ -452,7 +487,56 @@ class GraphEmbedding(object):
                                sol['z6'].real])
         return coordinates
 
+    
+    def runSamplingPhiTheta(self, num_phi, num_theta):
+        start = time.time()
+        margin_degree = 5
+        margin = margin_degree*math.pi/180.0
+        l_phi,  r_phi = -math.pi/2.0 + margin, math.pi/2.0 - margin
+        l_theta, r_theta = 0 + margin/2.0, math.pi - margin/2.0
+        sols = self.runSamplingPhiThetaWithMargins(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta)
+        end = time.time()
+        self.printLog('time: '+str(end - start))
+        self.printLog('Maximum number of embeddings:')
+        maximum = max([num for phi, theta, num in sols])
+        self.printLog(str(maximum))
+        max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]
+        step_phi = (r_phi-l_phi)/float(2*num_phi)
+        step_theta = (r_theta-l_theta)/float(2*num_theta)
+        graph_seq = []
+        graph_seq_comments = []
+        for phi, theta, num in max_positions:
+            self.setPhiRadian(phi)
+            self.setThetaRadian(theta)
+            graph_seq.append(copy.copy(self))
+            graph_seq_comments.append('1st round \n PHC: '+str(int(num)))
+            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(2*num_phi, 2*num_theta, phi - step_phi,  phi + step_phi, theta - step_theta,  theta + step_theta,  treshold=maximum+1):
+                self.setPhiRadian(phi2)
+                self.setThetaRadian(theta2)
+                graph_seq.append(copy.copy(self))
+                graph_seq_comments.append('2nd round \n PHC: '+str(int(num)))
+                break
+        if self._window:
+            self._window.setGraphSequence(graph_seq,  graph_seq_comments)
 
+    def runSamplingPhiThetaWithMargins(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, treshold=0):
+        step_phi = (r_phi-l_phi)/float(num_phi)
+        step_theta = (r_theta-l_theta)/float(num_theta)
+        solutions = []
+        for i in range(0, num_phi+1):
+            phi = l_phi+step_phi*i
+            self.setPhiRadian(phi)
+            for j in range(0, num_theta+1):
+                theta = l_theta + step_theta*j
+                self.setThetaRadian(theta)
+                self._window.update_graph2phi()
+                self._window.update_graph2theta()
+                self.computeIntersections()
+                self._window.plotScene()
+                num_real = len(self.findEmbeddings(errorMsg=False)['real'])
+                if num_real>=treshold:
+                    solutions.append([phi, theta, num_real])
+        return solutions
 
 def getIntersectionOfThreeSpheres(c1,c2,c3,r1,r2,r3):
     if c1==None or c2==None or c3==None:
