@@ -1,7 +1,7 @@
 
 
 from PyQt5 import QtCore
-from PyQt5.QtWidgets import QAction,  QApplication, QInputDialog, QFileDialog, QErrorMessage, QAbstractSpinBox, QPlainTextEdit, QDialog, QVBoxLayout
+from PyQt5.QtWidgets import QAction,  QApplication, QInputDialog, QFileDialog, QErrorMessage, QAbstractSpinBox, QPlainTextEdit, QDialog, QVBoxLayout, QSizePolicy, QDockWidget
 from PyQt5.QtGui import QIcon,  QKeySequence,  QTextCursor
 
 from PyQt5.uic import loadUiType
@@ -9,6 +9,7 @@ from PyQt5.uic import loadUiType
 import pickle
 import ast
 #import time 
+import copy
 
 import matplotlib
 matplotlib.use('Qt5Agg')
@@ -48,6 +49,8 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        self.init_data()
         self.init_plot()
         #self.init_pick()
+        self.dockLog.resize(self.dockLog.minimumWidth()*2, 300)
+        self.dockLog.updateGeometry()
     
     def setActiveGraph(self, G):
         self.graph = G
@@ -117,14 +120,28 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.loadLengthsButton = QAction(QIcon.fromTheme("document-open"),"Load lengths",self)
         self.doc_tb.addAction(self.loadLengthsButton)
         self.loadLengthsButton.triggered.connect(self.loadLengths)
-
+        action = self.menuFile.addAction('Load lengths')
+        action.triggered.connect(self.loadLengths)
+        
         self.saveLengthsButton = QAction(QIcon.fromTheme("document-save"),"Save lengths",self)
         self.doc_tb.addAction(self.saveLengthsButton)
         self.saveLengthsButton.triggered.connect(self.saveLengths)
-     
+        action = self.menuFile.addAction('Save lengths')
+        action.triggered.connect(self.saveLengths)
+        
+        self.inOut_tb = self.addToolBar("Input/Output")
+        
         self.insertLengthsButton = QAction(QIcon.fromTheme("insert-text"),"Insert lengths",self)
-        self.doc_tb.addAction(self.insertLengthsButton)
+        self.inOut_tb.addAction(self.insertLengthsButton)
         self.insertLengthsButton.triggered.connect(self.insertLengths)
+        action = self.menuInputOutput.addAction('Insert lengths')
+        action.triggered.connect(self.insertLengths)
+        
+        self.exportLengthsButton = QAction("Export lengths",self)
+        self.inOut_tb.addAction(self.exportLengthsButton)
+        self.exportLengthsButton.triggered.connect(self.exportLengths)
+        action = self.menuInputOutput.addAction('Export lengths')
+        action.triggered.connect(self.exportLengths)
         
         self.updateParameter()
         
@@ -139,25 +156,32 @@ class MplWindow(UI_MainWindow, MainWindow):
         
         self.noteToImgInSeq.setReadOnly(True)
         self.boxInfoImgInSeq.setVisible(False)
-        
-#        self.tabWidget.currentChanged.connect(self.tabChanged)
-        
+                
         self.buttonRunPHC.clicked.connect(self.runPHC)
         self.spinBoxNumberReal.setReadOnly(True)
         self.spinBoxNumberReal.setButtonSymbols(QAbstractSpinBox.NoButtons)
         
         self.buttonRotateVertices.clicked.connect(self.rotateVertices)
         
-        self.exportButton.clicked.connect(self.exportForVangelis)
+#        self.exportButton.clicked.connect(self.exportLengths)
         
-        self.buttonAxelVisualisation.clicked.connect(self.axelVisualisation)
+
         
         self.doubleSpinBox_x.valueChanged.connect(self.plotScene)
         self.doubleSpinBox_y.valueChanged.connect(self.plotScene)
         self.doubleSpinBox_z.valueChanged.connect(self.plotScene)
-        
-#        self.dockSequenceNavigation.setVisible(False)
-#        self.splitDockWidget(self.dockPHC, self.dockLog, QtCore.Qt.Horizontal)
+
+        dockWidgets= self.findChildren(QDockWidget)
+        for dockWidget in dockWidgets:
+            action = self.menuView.addAction(dockWidget.windowTitle())
+            action.setCheckable(True)
+            action.setChecked(True)
+            action.triggered.connect(dockWidget.setVisible)
+            dockWidget.visibilityChanged.connect(action.setChecked)
+#            dockWidget.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+#            dockWidget.updateGeometry()
+#        self.dockLog.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Expanding)
+#        self.dockLog.updateGeometry()
 
     def loadLengths(self):
         options = QFileDialog.Options()
@@ -251,14 +275,23 @@ class MplWindow(UI_MainWindow, MainWindow):
 
         NavigationToolbar.toolitems = [t for t in NavigationToolbar.toolitems
             if t[0] in ("Save", )]#,"Pan","Zoom","Subplots")]
-        self.toolbar = NavigationToolbar(self.canvas, self, coordinates=False)
-        actions = self.toolbar.findChildren(QAction)
+        self.img_tb = NavigationToolbar(self.canvas, self, coordinates=False)
+        actions = self.img_tb.findChildren(QAction)
         for a in actions:
             if a.text() == 'Customize':
-                self.toolbar.removeAction(a)
+                self.img_tb.removeAction(a)
                 break
-        self.addToolBar(self.toolbar)
-#        self.centralWidget().layout().insertWidget(0,self.toolbar)
+
+        self.addToolBar(self.img_tb)
+        self.buttonAxelVisualisation = QAction('Axel visualisation', self)
+        self.img_tb.addAction(self.buttonAxelVisualisation)
+        self.buttonAxelVisualisation.triggered.connect(self.axelVisualisation) 
+        action = self.menuInputOutput.addAction('Axel visualisation')
+        action.triggered.connect(self.axelVisualisation)
+        
+        
+        
+#        self.centralWidget().layout().insertWidget(0,self.img_tb)
 
 #    def init_data(self):
 #        """Initialize the lengths"""
@@ -561,7 +594,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.computeCouplerCurves()
         self.buttonRotateVertices.setEnabled(True)
     
-    def exportForVangelis(self):
+    def exportLengths(self):
         len_vect = []
         for e in ['12', '13', '14', '15', '16', '23']:
             len_vect.append(self.graph.getEdgeLength(e))
