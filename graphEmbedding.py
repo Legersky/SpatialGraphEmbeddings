@@ -66,7 +66,11 @@ class GraphEmbedding(object):
         return self._v2[1]
     
     def getPhiRadian(self):
-        return math.asin((self._v1[1]-self._v2[1])/float(self.getEdgeLength('12')))
+        try:
+            return math.asin((self._v1[1]-self._v2[1])/float(self.getEdgeLength('12')))
+        except:
+            self.printLog('Math error in Phi')
+            return 0
     
     def getPhiDegree(self):
         return self.getPhiRadian()/math.pi*180.0
@@ -446,31 +450,39 @@ class GraphEmbedding(object):
             res.append(str(eq)+';')
         return res
 
-    def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True):
+    def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True, usePrev=True):
         syst = self.getEquations()
-        if self._prevSystem:
-            sols = track(syst, self._prevSystem, self._prevSolutions, tasks=2)
-        else:
-            sols = solve(syst,tasks=2)
-        
-        if len(sols)==48:
-            self._prevSystem = syst
-            self._prevSolutions = sols
-        elif errorMsg and self._window:
-            self._window.showError('PHC found only '+str(len(sols))+' solutions!')
-        
-        result_real = []
-        result_complex = []
-
-        
-        for sol in sols:
-            soldic = strsol2dict(sol)
-            if is_real(sol, tolerance):
-                result_real.append(soldic)
+        i = 0
+        while True:
+            if self._prevSystem and usePrev:
+                sols = track(syst, self._prevSystem, self._prevSolutions, tasks=2)
             else:
-                result_complex.append(soldic)
-        return {'real':result_real, 'complex':result_complex}
+                sols = solve(syst,tasks=2)
         
+            result_real = []
+            result_complex = []
+            for sol in sols:
+                soldic = strsol2dict(sol)
+                if is_real(sol, tolerance):
+                    result_real.append(soldic)
+                else:
+                    result_complex.append(soldic)
+            
+            num_real = len(result_real)
+            num_all = len(sols)
+            
+            if num_real % 4 == 0 and num_all==48:
+                self._prevSystem = syst
+                self._prevSolutions = sols
+                return {'real':result_real, 'complex':result_complex}
+            else:
+                usePrev = False
+                i += 1
+            if i>=10:
+                if errorMsg:
+                    self._window.showError('PHC failed 10 times')
+                return {}
+
 #    def transformSolution(self, sol):
 #        res = copy.deepcopy(sol)
 ##        res['x6'] = self._x6_V2atOrigin
@@ -496,8 +508,8 @@ class GraphEmbedding(object):
         l_theta, r_theta = 0 + margin/2.0, math.pi - margin/2.0
         sols = self.runSamplingPhiThetaWithMargins(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta)
         end = time.time()
-        self.printLog('time: '+str(end - start))
-        self.printLog('Maximum number of embeddings:')
+        self.printLog('time 1st round: '+str(end - start))
+        self.printLog('Maximum number of embeddings in 1st round:')
         maximum = max([num for phi, theta, num in sols])
         self.printLog(str(maximum))
         max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]
@@ -505,19 +517,81 @@ class GraphEmbedding(object):
         step_theta = (r_theta-l_theta)/float(2*num_theta)
         graph_seq = []
         graph_seq_comments = []
+        thetaPhi_argmax = []
         for phi, theta, num in max_positions:
             self.setPhiRadian(phi)
             self.setThetaRadian(theta)
+            thetaPhi_argmax.append([phi, theta, num])
             graph_seq.append(copy.copy(self))
-            graph_seq_comments.append('1st round \n PHC: '+str(int(num)))
-            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(2*num_phi, 2*num_theta, phi - step_phi,  phi + step_phi, theta - step_theta,  theta + step_theta,  treshold=maximum+1):
+            min_dist,  min_dist_v6,  min_dist_10,  min_dist_100,  min_imag = self.findMinDistanceOfSolutions()
+            graph_seq_comments.append('1st round \n PHC: '+str(int(num))
+                                        + '\n min dist: ' +str(min_dist)
+                                        + '\n min dist v6: ' +str(min_dist_v6)
+                                        + '\n min dist 10: ' +str(min_dist)
+                                        + '\n min dist 100: ' +str(min_dist_10)
+                                        + '\n min imag: ' +str(min_imag)          
+                                        )
+            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(num_phi/4, num_theta/4,
+                                                                          phi - step_phi,  phi + step_phi,
+                                                                          theta - step_theta,  theta + step_theta,
+                                                                          treshold=maximum):
+                if num2>maximum:
+                    maximum = num2
+                    graph_seq = []
+                    graph_seq_comments = []
+                    thetaPhi_argmax = []
                 self.setPhiRadian(phi2)
                 self.setThetaRadian(theta2)
+                thetaPhi_argmax.append([phi2, theta2, num2])
                 graph_seq.append(copy.copy(self))
-                graph_seq_comments.append('2nd round \n PHC: '+str(int(num)))
-                break
+            min_dist,  min_dist_v6,  min_dist_10,  min_dist_100,  min_imag = self.findMinDistanceOfSolutions()
+            graph_seq_comments.append('2nd round \n PHC: '+str(int(num2))
+                                        + '\n min dist: ' +str(min_dist)
+                                        + '\n min dist v6: ' +str(min_dist_v6)
+                                        + '\n min dist 10: ' +str(min_dist)
+                                        + '\n min dist 100: ' +str(min_dist_10)
+                                        + '\n min imag: ' +str(min_imag)          
+                                        )
         if self._window:
             self._window.setGraphSequence(graph_seq,  graph_seq_comments)
+        end = time.time()
+        self.printLog('Maximum number of embeddings after 2nd round:')
+        self.printLog(str(maximum))
+        self.printLog('# with maximum number:')
+        self.printLog(str(len(graph_seq)))
+        self.printLog('time: '+str(end - start))
+
+    def findMinDistanceOfSolutions(self):
+        sols = self.findEmbeddings()
+        sols_real = sols['real']
+        min_vect = 1.0e20
+        min_v6 = 1.0e20
+        min_dist_10 = 1.0e20
+        min_dist_100 = 1.0e20
+        min_imag = 1.0e20
+
+        for i in range(0,len(sols_real)):
+            for j in range(i+1,len(sols_real)):
+                sol1 = forgetComplexPart(sols_real[i])
+                sol2 = forgetComplexPart(sols_real[j])
+                d = dist_solutions(sol1, sol2)
+                d_v6 = dist_v6(sol1, sol2)
+                d10 = dist_solutions_weigthed(sol1, sol2, 10)
+                d100 = dist_solutions_weigthed(sol1, sol2, 100)
+                if d < min_vect:
+                    min_vect = d
+                if d10 < min_dist_10:
+                    min_dist_10 = d10
+                if d100 < min_dist_100:
+                    min_dist_100 = d100
+                if d_v6 < min_v6:
+                    min_v6 = d_v6
+        
+        for sol in sols['complex']:
+            s_imag = sumImaginaryPart(sol)
+            if s_imag < min_imag:
+                min_imag = s_imag
+        return min_vect, min_v6, min_dist_10,  min_dist_100,  min_imag
 
     def runSamplingPhiThetaWithMargins(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, treshold=0):
         step_phi = (r_phi-l_phi)/float(num_phi)
@@ -529,11 +603,12 @@ class GraphEmbedding(object):
             for j in range(0, num_theta+1):
                 theta = l_theta + step_theta*j
                 self.setThetaRadian(theta)
-                self._window.update_graph2phi()
-                self._window.update_graph2theta()
-                self.computeIntersections()
-                self._window.plotScene()
+#                self._window.update_graph2phi()
+#                self._window.update_graph2theta()
+#                self.computeIntersections()
+#                self._window.plotScene()
                 num_real = len(self.findEmbeddings(errorMsg=False)['real'])
+                self.printLog(str([phi, theta, num_real]))
                 if num_real>=treshold:
                     solutions.append([phi, theta, num_real])
         return solutions
@@ -578,3 +653,32 @@ def getIntersectionOfThreeSpheres(c1,c2,c3,r1,r2,r3):
  
 def dist(u,v):
     return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
+
+def dist_solutions(sol1, sol2):
+    res = 0
+    for k in ['z4', 'y4', 'x4', 'y5', 'x5', 'z5', 'x6', 'z6', 'y6', 'x7', 'z7']:
+        res += (sol1[k] - sol2[k])**2
+    return np.sqrt(res)
+
+def dist_solutions_weigthed(sol1, sol2, weight):
+    res = 0
+    for k in ['z4', 'y4', 'x4', 'y5', 'x5', 'z5', 'x7', 'z7']:
+        res += (sol1[k] - sol2[k])**2
+    for k in ['x6', 'z6', 'y6']:
+        res += (weight*(sol1[k] - sol2[k]))**2
+    return np.sqrt(res)
+
+def sumImaginaryPart(sol):
+    res = 0
+    for k in ['z4', 'y4', 'x4', 'y5', 'x5', 'z5', 'x6', 'z6', 'y6', 'x7', 'z7']:
+        res += abs(sol[k].imag)
+    return res
+
+def dist_v6(sol1, sol2):
+    return dist([sol1[k] for k in ['x6', 'z6', 'y6']], [sol2[k] for k in ['x6', 'z6', 'y6']])
+    
+def forgetComplexPart(sol):
+    res = {}
+    for k in ['z4', 'y4', 'x4', 'y5', 'x5', 'z5', 'x6', 'z6', 'y6', 'x7', 'z7']:
+        res[k] = sol[k].real
+    return res

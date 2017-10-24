@@ -762,10 +762,8 @@ class MplWindow(UI_MainWindow, MainWindow):
     def runSamplingPhiTheta(self):
         self.computeCouplerCurves()
         self.printLog('Sampling phi and theta')
-        blocked = self.doubleSpinBoxPhi.blockSignals(True)
         self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
-        self.doubleSpinBoxPhi.blockSignals(blocked)
-
+        self.printLog('Sampling finished, see sequence')
 if __name__=="__main__":
     import sys
 

@@ -681,7 +681,7 @@
               <number>5</number>
              </property>
              <property name="value">
-              <number>5</number>
+              <number>20</number>
              </property>
             </widget>
            </item>
@@ -711,7 +711,7 @@
               <number>5</number>
              </property>
              <property name="value">
-              <number>5</number>
+              <number>20</number>
              </property>
             </widget>
            </item>
@@ -1024,7 +1024,7 @@
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>80</height>
+            <height>16777215</height>
            </size>
           </property>
          </widget>
@@ -1264,13 +1264,11 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Fullscreen</string>
+    <string>&amp;Fullscreen</string>
    </property>
   </action>
   <zorder>dockBranches</zorder>
   <zorder>dockSceneShift</zorder>
-  <zorder>dockWidget</zorder>
-  <zorder>dockWidgetSamplePhiTheta</zorder>
  </widget>
  <resources/>
  <connections>
