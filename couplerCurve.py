@@ -31,6 +31,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 
     def __init__(self):
         super(MplWindow, self).__init__()
+        self.verbose = 1
         self.setupUi(self)
         
         self.showMaximized()
@@ -190,6 +191,11 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        self.dockLog.updateGeometry()
         
         self.buttonSamplingPhiTheta.clicked.connect(self.runSamplingPhiTheta)
+        
+        self.tabifyDockWidget(self.dockBranches, self.dockSceneShift)
+        self.tabifyDockWidget(self.dockSceneShift, self.dockSequenceNavigation)
+        
+        
 
     def fullScreen(self, bool):
         if bool:
@@ -338,15 +344,15 @@ class MplWindow(UI_MainWindow, MainWindow):
 
     
     def update_graph2tabLengths(self):
-        self.printLog('Tab Lengths updated from graph')
+        self.printLog('Tab Lengths updated from graph', verbose=1)
         for e in self.doubleSpinBoxLengths:
             blocked = self.doubleSpinBoxLengths[e].blockSignals(True)
             self.doubleSpinBoxLengths[e].setValue(self.graph.getEdgeLength(e))
             self.doubleSpinBoxLengths[e].blockSignals(blocked)
-            self.printLog(e+': '+str(self.doubleSpinBoxLengths[e].value()))
+            self.printLog(e+': '+str(self.doubleSpinBoxLengths[e].value()), verbose=2)
     
     def update_tabLengths2graph(self):
-        self.printLog('Graph updated from tab Lengths')
+        self.printLog('Graph updated from tab Lengths', verbose=1)
         lengths = {
                 'L12': self.doubleSpinBoxL12.value(), 
                 'L13': self.doubleSpinBoxL13.value(), 
@@ -536,12 +542,16 @@ class MplWindow(UI_MainWindow, MainWindow):
         
 #        x, y, z = self.graph.getSphere(100)
 #        self._branches_plot.plot_surface(x, y, z, alpha=0.2, color='grey',  shade=True, linewidth=0)
+
+        self._branches_plot.set_axis_off()
+
         self.canvas.draw()
 
-    def printLog(self,s):
+    def printLog(self,s, verbose=0):
 #        self._log += s +'\n'
 #        self.plainTextEdit.setPlainText(self._log)
-        self.plainTextEdit.appendPlainText(s)
+        if verbose<=self.verbose:
+            self.plainTextEdit.appendPlainText(s)
         self.plainTextEdit.moveCursor(QTextCursor.End)
         self.plainTextEdit.ensureCursorVisible()
         QApplication.processEvents()
@@ -606,8 +616,11 @@ class MplWindow(UI_MainWindow, MainWindow):
             self.setActiveGraph(self.graph_sequence[self.spinBoxImgInSeq.value()-1])
             self._V6fromPHC = []
             self.noteToImgInSeq.setPlainText(self.graph_sequence_comments[self.spinBoxImgInSeq.value()-1])
-            self.update_graph2R26()
             self.update_graph2tabLengths()
+            self.update_graph2R26()
+            
+            
+            
             
             self.updateParameter()
             self.updateDisplayedGraph()
@@ -615,7 +628,7 @@ class MplWindow(UI_MainWindow, MainWindow):
     
     def runPHC(self):
         self.buttonRunPHC.setEnabled(False)
-        self._V6fromPHC = self.graph.getSolutionsForV6()
+        self._V6fromPHC = self.graph.getSolutionsForV6(usePrev=False)
         num_sol = len(self._V6fromPHC)
         self.printLog('Number of real solutions by PHC:')
         self.printLog(str(num_sol))
@@ -647,10 +660,10 @@ class MplWindow(UI_MainWindow, MainWindow):
         R26 = self.graph.getEdgeLength('23')
         self.graph.setLengths(rotated_lengths)
         self.graph.setR26(R26)
+        
         blocked = self.doubleSpinBoxR26.blockSignals(True)
         self.update_graph2R26()
         self.update_graph2tabLengths()
-        
         self.doubleSpinBoxR26.blockSignals(blocked)
         
         self.computeCouplerCurves()
@@ -760,10 +773,35 @@ class MplWindow(UI_MainWindow, MainWindow):
             self.showError('Recomputation of coupler curve needed!')
     
     def runSamplingPhiTheta(self):
-        self.computeCouplerCurves()
+#        self.computeCouplerCurves()
         self.printLog('Sampling phi and theta')
         self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
         self.printLog('Sampling finished, see sequence')
+    
+    def showClusters(self, clusters, centers):
+        pass
+        newDialog = QDialog(self)
+        newDialog.figure = Figure()
+        newDialog.canvas = FigureCanvas(newDialog.figure)
+        
+        layout = QVBoxLayout()
+        layout.addWidget(newDialog.canvas)
+        newDialog.setLayout(layout)
+        
+        ax = newDialog.figure.add_subplot(111)
+        for cluster in clusters:
+            ax.plot([x for x, y in cluster], [y for x, y in cluster], 'o')
+        
+        ax.plot([x for x, y in centers], [y for x, y in centers], 'ro')
+        
+        newDialog.canvas.draw()
+        
+        newDialog.show()
+        
+        
+
+
+
 if __name__=="__main__":
     import sys
 
