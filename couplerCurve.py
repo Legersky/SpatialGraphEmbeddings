@@ -23,7 +23,8 @@ from mpl_toolkits.mplot3d import Axes3D
 #from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
-from graphEmbedding import *
+
+from graphEmbeddingVangelis import *
 from axel_vis import *
 
 UI_MainWindow, MainWindow = loadUiType("couplerCurve.ui")
@@ -37,14 +38,14 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.showMaximized()
         
         self.fig = Figure()
-#        self.graph = GraphEmbedding(window=self)
+        
         self.graph_sequence = []
         self.graph_sequence_comments = []
         
         self._V6fromPHC = []
 #        self._log = ''
 #        self.setRequiresRecomputing()
-        self.setActiveGraph(GraphEmbedding(window=self))
+        self.setActiveGraph(GraphEmbeddingVangelis(window=self))
         self.init_widgets()
         self.init_mpl()
 #        self.init_data()
@@ -211,7 +212,7 @@ class MplWindow(UI_MainWindow, MainWindow):
             try:
                 self.printLog('Lengths loaded from: '+fileName)
                 lengths,  R26 = pickle.load(open(fileName,'rb'))
-                self.graph.setLengths(lengths)
+                self.graph.setLengthsAndUpdateFixedTriangle(lengths)
                 self.graph.setR26(R26)
                 blocked = self.doubleSpinBoxR26.blockSignals(True)
                 self.update_graph2R26()
@@ -259,7 +260,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                 
                 if type(lengths)==dict and type(R26)==float:
                     self.printLog('Inserted lengths: ')
-                    self.graph.setLengths(lengths)
+                    self.graph.setLengthsAndUpdateFixedTriangle(lengths)
                     self.graph.setR26(R26)
                     self.update_graph2R26()
                     self.update_graph2tabLengths()
@@ -367,9 +368,10 @@ class MplWindow(UI_MainWindow, MainWindow):
                'L23': self.doubleSpinBoxL23.value(), 
                'L34': self.doubleSpinBoxL34.value(), 
                'L45': self.doubleSpinBoxL45.value(), 
-               'L56': self.doubleSpinBoxL56.value()
+               'L56': self.doubleSpinBoxL56.value(), 
+               'L26': self.doubleSpinBoxR26.value()
                  }
-        self.graph.setLengths(lengths)
+        self.graph.setLengthsAndUpdateFixedTriangle(lengths)
         self.update_graph2yV2()
         self.update_graph2phi()
         self.setRequiresRecomputing()
@@ -601,7 +603,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                             'L45': np.sqrt(g[10]), 
                             'L56': np.sqrt(g[12])
                             }
-                    graph_sequence.append(GraphEmbedding(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
+                    graph_sequence.append(GraphEmbeddingVangelis(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
                     try:
                         graph_sequence_comments.append(str(g[15]))
                     except:
@@ -658,7 +660,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                         'L56' : self.graph.getR26()
                         }
         R26 = self.graph.getEdgeLength('23')
-        self.graph.setLengths(rotated_lengths)
+        self.graph.setLengthsAndUpdateFixedTriangle(rotated_lengths)
         self.graph.setR26(R26)
         
         blocked = self.doubleSpinBoxR26.blockSignals(True)
@@ -774,6 +776,7 @@ class MplWindow(UI_MainWindow, MainWindow):
     
     def runSamplingPhiTheta(self):
 #        self.computeCouplerCurves()
+#        self.graph.testIterators(10, 8, 0.5, 3.2, 2.5, 5.0)
         self.printLog('Sampling phi and theta')
         self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
         self.printLog('Sampling finished, see sequence')
@@ -791,7 +794,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         ax = newDialog.figure.add_subplot(111)
         for cluster in clusters:
             ax.plot([x for x, y in cluster], [y for x, y in cluster], 'o')
-        
+#        print centers
+#        print [x for x, y in centers]
         ax.plot([x for x, y in centers], [y for x, y in centers], 'ro')
         
         newDialog.canvas.draw()
