@@ -244,17 +244,34 @@ class MplWindow(UI_MainWindow, MainWindow):
                     'L14': np.sqrt(g[2]), 
                     'L15': np.sqrt(g[3]), 
                     'L16': np.sqrt(g[4]), 
-                    'L27': np.sqrt(g[7]), 
-                    'L37': np.sqrt(g[9]), 
-                    'L47': np.sqrt(g[11]), 
-                    'L57': np.sqrt(g[13]), 
-                    'L67': np.sqrt(g[14]), 
-                    'L23': np.sqrt(g[5]), 
-                    'L34': np.sqrt(g[8]), 
-                    'L45': np.sqrt(g[10]), 
-                    'L56': np.sqrt(g[12])
+                    'L27': np.sqrt(g[5]), 
+                    'L37': np.sqrt(g[6]), 
+                    'L47': np.sqrt(g[7]), 
+                    'L57': np.sqrt(g[8]), 
+                    'L67': np.sqrt(g[9]), 
+                    'L23': np.sqrt(g[10]), 
+                    'L34': np.sqrt(g[11]), 
+                    'L45': np.sqrt(g[12]), 
+                    'L56': np.sqrt(g[13])
                     }
-                    R26 = float(np.sqrt(g[6]))
+                    R26 = float(np.sqrt(g[14]))
+#                    lengths = {
+#                    'L12': np.sqrt(g[0]), 
+#                    'L13': np.sqrt(g[1]), 
+#                    'L14': np.sqrt(g[2]), 
+#                    'L15': np.sqrt(g[3]), 
+#                    'L16': np.sqrt(g[4]), 
+#                    'L27': np.sqrt(g[7]), 
+#                    'L37': np.sqrt(g[9]), 
+#                    'L47': np.sqrt(g[11]), 
+#                    'L57': np.sqrt(g[13]), 
+#                    'L67': np.sqrt(g[14]), 
+#                    'L23': np.sqrt(g[5]), 
+#                    'L34': np.sqrt(g[8]), 
+#                    'L45': np.sqrt(g[10]), 
+#                    'L56': np.sqrt(g[12])
+#                    }
+#                    R26 = float(np.sqrt(g[6]))
                 else:
                     lengths, R26 = evaluated_expr
                 
@@ -777,9 +794,13 @@ class MplWindow(UI_MainWindow, MainWindow):
     def runSamplingPhiTheta(self):
 #        self.computeCouplerCurves()
 #        self.graph.testIterators(10, 8, 0.5, 3.2, 2.5, 5.0)
-        self.printLog('Sampling phi and theta')
-        self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
-        self.printLog('Sampling finished, see sequence')
+#        n = 0
+#        while n<48 and not self.interrupt.checkState():
+#            self.printLog('Rotating:')
+#            self.rotateVertices()
+            self.printLog('Sampling phi and theta')
+            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
+            self.printLog('Sampling finished, see sequence')
     
     def showClusters(self, clusters, centers):
         pass

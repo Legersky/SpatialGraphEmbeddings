@@ -21,6 +21,9 @@ class GraphEmbedding(object):
 
     def getEdgeLength(self, edge):
         return float(self._lengths['L'+edge])
+    
+    def getLengths(self):
+        return self._lengths
 
     def setLengths(self, lengths):
         self._lengths = {}
