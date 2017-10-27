@@ -209,7 +209,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"Load lengths", "./examples","Python Objects (*.p);;All Files (*)", options=options)
         if fileName:
-#            try:
+            try:
                 self.printLog('Lengths loaded from: '+fileName)
                 lengths,  R26 = pickle.load(open(fileName,'rb'))
                 self.graph.setLengthsAndUpdateFixedTriangle(lengths)
@@ -220,8 +220,8 @@ class MplWindow(UI_MainWindow, MainWindow):
                 self.update_graph2phi()
                 self.computeCouplerCurves()
                 self.doubleSpinBoxR26.blockSignals(blocked)
-#            except Exception as e:
-#                self.showError('Some problem with loading: \n'+str(e))
+            except Exception as e:
+                self.showError('Some problem with loading: \n'+str(e))
 
     def saveLengths(self):
         options = QFileDialog.Options()

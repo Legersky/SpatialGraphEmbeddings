@@ -27,6 +27,21 @@ class GraphCouplerCurve(GraphEmbedding):
                          '56': 0.995723616535744,
                          '57': 10.53627365999783,
                          '67': 10.53647884635266}
+#            lengths = {'67': 6.7082039325, 
+#                    '47': 8.0622577483, 
+#                    '45': 8.33506448685, 
+#                    '56': 15.0953602143, 
+#                    '57': 13.0, 
+#                    '14': 5.99552332995, 
+#                    '15': 14.2478068488, 
+#                    '16': 10.0498756211, 
+#                    '34': 6.51062976985, 
+#                    '12': 1.19993396795, 
+#                    '13': 0.894427191, 
+#                    '37': 9.2736184955, 
+#                    '23': 0.385778797541, 
+#                    '27': 9.5852672451,
+#                        '26':11.05}
 #            {'12': 0.956581258335196,
 #                     '13': 2.651661708696340,
 #                     '14': 3.74969777489766,
@@ -41,6 +56,7 @@ class GraphCouplerCurve(GraphEmbedding):
 #                     '56': 3.407714967884632,
 #                     '57': 4.13929267237052,
 #                     '67': 1.218419216365267}
+                
         
         super(GraphCouplerCurve, self).__init__(lengths, fixedTriangle=[2, 3, 1], vertexWithFootAtOrigin=7,  window=window)
         self.updateFixedTriangle()
@@ -378,7 +394,7 @@ class GraphCouplerCurve(GraphEmbedding):
 #        return (x, y, z)
 
     def getSolutionsForV6(self, usePrev=True):    
-        real_sol = self.findEmbeddings(self.getLengths(), usePrev=usePrev)['real']
+        real_sol = self.findEmbeddings(usePrev=usePrev)['real']
         coordinates = []
         
         for sol in real_sol:

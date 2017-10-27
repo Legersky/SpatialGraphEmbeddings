@@ -22,8 +22,8 @@ class GraphEmbedding(object):
         self.updateFixedTriangle()
     
     def setLengths(self, lengths):
-            self._lengths = {}
-#        try:
+        self._lengths = {}
+        try:
             for e in lengths.keys():
                 if e[0]=='L':
                     f=e[1:]
@@ -31,8 +31,8 @@ class GraphEmbedding(object):
                     f=e
                 self.setEdgeLength(float(lengths[e]), int(f[0]), int(f[1]))
                 self.printLog(str(f)+': '+str(self.getEdgeLength(int(f[1]), int(f[0]))), verbose=2)
-#        except KeyError as er:
-#            self.printLog('Problem with setting lengths: '+str(er))
+        except KeyError as er:
+            self.printLog('Problem with setting lengths: '+str(er))
     
     def getEdgeLength(self, u, v=None):
         if v==None:
@@ -59,7 +59,7 @@ class GraphEmbedding(object):
             print s
 
     def getEquations(self):
-        return self.constructEquations(self._lengths)
+        return self.constructEquations()
     
     def getAltitudeAndFoot(self, u, v, w):
         ''' Returns altitude of triangle uvw from w and the distance of its foot from v'''
@@ -81,10 +81,7 @@ class GraphEmbedding(object):
         '''Adjusts coordinates of the fixed triangle according to _lengths. If p!=None, the coordinate system is shifted so that foot of altitude from p in the triangle uvp is in the origin. (uvp must be in the graph)'''
         u, v, w = self._fixedTriangle_vertices
         if self._vertexWithFootAtOrigin!=None:
-#            yshift = - self.coordinatesOfTriangle(v, u, self._vertexWithFootAtOrigin)[2][1]
             yshift = -self.getAltitudeAndFoot(v, u, self._vertexWithFootAtOrigin)[1]
-            self.printLog(str(-self.coordinatesOfTriangle(u, v, self._vertexWithFootAtOrigin)[2][1]))
-            self.printLog(str(yshift))
         else:
             yshift = 0
         self._fixedTriangle = self.coordinatesOfTriangle(u, v, w, yshift)
@@ -97,39 +94,7 @@ class GraphEmbedding(object):
         self.setEdgeLength(Luv, u, v)
         self.setEdgeLength(self.dist(p_coord, new_u), p, u)
         self.setEdgeLength(self.dist(w_coord, new_u), w, u)
-        
-#        #        u = [0, y2, 0]
-#        newL23 = self.getEdgeLength(2, 3)+y2-self.getV2()[1]
-#        self.setEdgeLengthWithCorrespondingOnes(newL23,  2, 3, 1, 7)
-#        self.updateFixedTriangle()
-#        self._lengths[(1, 2)] = self.dist(self.getV1(), self.getV2())
-#        self._lengths[(2, 7)] = self.dist([self._max_x7, 0, 0], self.getV2())
-#        self._lengths[(2, 3)] = self.dist(self.getV3(), self.getV2())
-        
-#    def updateFixedTriangle(self):       
-#        l12 = self.getEdgeLength('12')
-#        l13 = self.getEdgeLength('13')
-#        l27 = self.getEdgeLength('27')
-#        l37 = self.getEdgeLength('37')
-#        l23 = self.getEdgeLength('23')
-#        
-#        theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
-#        theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
-#
-#        self._max_x7 = math.sin(theta7)*l27
-#        x1 = math.sin(theta1)*l12
-#
-#        y7 = math.cos(theta7)*l27
-#        y1 = math.cos(theta1)*l12
-#
-#        y2 = -y7
-#        y3 = -y7+l23
-#        y1 = y1-y7
-#        
-#        self._v1 = [x1, y1, 0]
-#        self._v2 = [0, y2, 0]
-#        self._v3 = [0, y3, 0]
-    
+
     def dist(self, u, v):
         return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
 
@@ -234,29 +199,28 @@ class GraphEmbedding(object):
 #        l16 = lengths['L16']
 #        return [math.asin((y1-y2)/float(lengths['L12'])), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
 
-    def constructEquations(self, lengths):
+    def constructEquations(self):
         '''system with correct mixed volume'''
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
         x7, y7, z7 = symbols('x7 y7 z7')
-#        L12 = lengths['L12']
-#        L13 = lengths['L13']
-        L14 = lengths['L14']
-        L15 = lengths['L15']
-        L16 = lengths['L16']
-    
-#        L27 = lengths['L27']
-        L37 = lengths['L37']
-        L47 = lengths['L47']
-        L57 = lengths['L57']
-        L67 = lengths['L67']
+#        L12 = lengths['12']
+#        L13 = lengths['13']
+        L14 = self.getEdgeLength('14')
+        L15 = self.getEdgeLength('15')
+        L16 = self.getEdgeLength('16')
+    #        L27 = lengths['27']
+        L37 = self.getEdgeLength('37')
+        L47 = self.getEdgeLength('47')
+        L57 = self.getEdgeLength('57')
+        L67 = self.getEdgeLength('67')
         
-#        L23 = lengths['L23']
-        L34 = lengths['L34']
-        L45 = lengths['L45']
-        L56 = lengths['L56']
-        L26 = lengths['L26']
+#        L23 = lengths['23']
+        L34 = self.getEdgeLength('34')
+        L45 = self.getEdgeLength('45')
+        L56 = self.getEdgeLength('56')
+        L26 = self.getEdgeLength('26')
                
         X1, Y1, _ = self._fixedTriangle[2]
         _, Y2, _ = self._fixedTriangle[0]
@@ -279,3 +243,42 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
+
+
+
+
+
+
+
+
+#        #        u = [0, y2, 0]
+#        newL23 = self.getEdgeLength(2, 3)+y2-self.getV2()[1]
+#        self.setEdgeLengthWithCorrespondingOnes(newL23,  2, 3, 1, 7)
+#        self.updateFixedTriangle()
+#        self._lengths[(1, 2)] = self.dist(self.getV1(), self.getV2())
+#        self._lengths[(2, 7)] = self.dist([self._max_x7, 0, 0], self.getV2())
+#        self._lengths[(2, 3)] = self.dist(self.getV3(), self.getV2())
+        
+#    def updateFixedTriangle(self):       
+#        l12 = self.getEdgeLength('12')
+#        l13 = self.getEdgeLength('13')
+#        l27 = self.getEdgeLength('27')
+#        l37 = self.getEdgeLength('37')
+#        l23 = self.getEdgeLength('23')
+#        
+#        theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
+#        theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
+#
+#        self._max_x7 = math.sin(theta7)*l27
+#        x1 = math.sin(theta1)*l12
+#
+#        y7 = math.cos(theta7)*l27
+#        y1 = math.cos(theta1)*l12
+#
+#        y2 = -y7
+#        y3 = -y7+l23
+#        y1 = y1-y7
+#        
+#        self._v1 = [x1, y1, 0]
+#        self._v2 = [0, y2, 0]
+#        self._v3 = [0, y3, 0]
