@@ -24,7 +24,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 
-from graphEmbeddingVangelis import *
+from graphCouplerCurve import *
 from axel_vis import *
 
 UI_MainWindow, MainWindow = loadUiType("couplerCurve.ui")
@@ -32,7 +32,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 
     def __init__(self):
         super(MplWindow, self).__init__()
-        self.verbose = 1
+        self.verbose = 2
         self.setupUi(self)
         
         self.showMaximized()
@@ -45,7 +45,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self._V6fromPHC = []
 #        self._log = ''
 #        self.setRequiresRecomputing()
-        self.setActiveGraph(GraphEmbeddingVangelis(window=self))
+        self.setActiveGraph(GraphCouplerCurve(window=self))
         self.init_widgets()
         self.init_mpl()
 #        self.init_data()
@@ -209,7 +209,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        options |= QFileDialog.DontUseNativeDialog
         fileName, _ = QFileDialog.getOpenFileName(self,"Load lengths", "./examples","Python Objects (*.p);;All Files (*)", options=options)
         if fileName:
-            try:
+#            try:
                 self.printLog('Lengths loaded from: '+fileName)
                 lengths,  R26 = pickle.load(open(fileName,'rb'))
                 self.graph.setLengthsAndUpdateFixedTriangle(lengths)
@@ -220,8 +220,8 @@ class MplWindow(UI_MainWindow, MainWindow):
                 self.update_graph2phi()
                 self.computeCouplerCurves()
                 self.doubleSpinBoxR26.blockSignals(blocked)
-            except Exception as e:
-                self.showError('Some problem with loading: \n'+str(e))
+#            except Exception as e:
+#                self.showError('Some problem with loading: \n'+str(e))
 
     def saveLengths(self):
         options = QFileDialog.Options()
@@ -239,37 +239,37 @@ class MplWindow(UI_MainWindow, MainWindow):
                 if not type(evaluated_expr[0]) is dict:
                     g = evaluated_expr
                     lengths = {
-                    'L12': np.sqrt(g[0]), 
-                    'L13': np.sqrt(g[1]), 
-                    'L14': np.sqrt(g[2]), 
-                    'L15': np.sqrt(g[3]), 
-                    'L16': np.sqrt(g[4]), 
-                    'L27': np.sqrt(g[5]), 
-                    'L37': np.sqrt(g[6]), 
-                    'L47': np.sqrt(g[7]), 
-                    'L57': np.sqrt(g[8]), 
-                    'L67': np.sqrt(g[9]), 
-                    'L23': np.sqrt(g[10]), 
-                    'L34': np.sqrt(g[11]), 
-                    'L45': np.sqrt(g[12]), 
-                    'L56': np.sqrt(g[13])
+                    '12': np.sqrt(g[0]), 
+                    '13': np.sqrt(g[1]), 
+                    '14': np.sqrt(g[2]), 
+                    '15': np.sqrt(g[3]), 
+                    '16': np.sqrt(g[4]), 
+                    '27': np.sqrt(g[5]), 
+                    '37': np.sqrt(g[6]), 
+                    '47': np.sqrt(g[7]), 
+                    '57': np.sqrt(g[8]), 
+                    '67': np.sqrt(g[9]), 
+                    '23': np.sqrt(g[10]), 
+                    '34': np.sqrt(g[11]), 
+                    '45': np.sqrt(g[12]), 
+                    '56': np.sqrt(g[13])
                     }
                     R26 = float(np.sqrt(g[14]))
 #                    lengths = {
-#                    'L12': np.sqrt(g[0]), 
-#                    'L13': np.sqrt(g[1]), 
-#                    'L14': np.sqrt(g[2]), 
-#                    'L15': np.sqrt(g[3]), 
-#                    'L16': np.sqrt(g[4]), 
-#                    'L27': np.sqrt(g[7]), 
-#                    'L37': np.sqrt(g[9]), 
-#                    'L47': np.sqrt(g[11]), 
-#                    'L57': np.sqrt(g[13]), 
-#                    'L67': np.sqrt(g[14]), 
-#                    'L23': np.sqrt(g[5]), 
-#                    'L34': np.sqrt(g[8]), 
-#                    'L45': np.sqrt(g[10]), 
-#                    'L56': np.sqrt(g[12])
+#                    '12': np.sqrt(g[0]), 
+#                    '13': np.sqrt(g[1]), 
+#                    '14': np.sqrt(g[2]), 
+#                    '15': np.sqrt(g[3]), 
+#                    '16': np.sqrt(g[4]), 
+#                    '27': np.sqrt(g[7]), 
+#                    '37': np.sqrt(g[9]), 
+#                    '47': np.sqrt(g[11]), 
+#                    '57': np.sqrt(g[13]), 
+#                    '67': np.sqrt(g[14]), 
+#                    '23': np.sqrt(g[5]), 
+#                    '34': np.sqrt(g[8]), 
+#                    '45': np.sqrt(g[10]), 
+#                    '56': np.sqrt(g[12])
 #                    }
 #                    R26 = float(np.sqrt(g[6]))
                 else:
@@ -372,21 +372,21 @@ class MplWindow(UI_MainWindow, MainWindow):
     def update_tabLengths2graph(self):
         self.printLog('Graph updated from tab Lengths', verbose=1)
         lengths = {
-                'L12': self.doubleSpinBoxL12.value(), 
-                'L13': self.doubleSpinBoxL13.value(), 
-                'L14': self.doubleSpinBoxL14.value(), 
-               'L15': self.doubleSpinBoxL15.value(), 
-               'L16': self.doubleSpinBoxL16.value(), 
-               'L27': self.doubleSpinBoxL27.value(), 
-               'L37': self.doubleSpinBoxL37.value(), 
-               'L47': self.doubleSpinBoxL47.value(), 
-               'L57': self.doubleSpinBoxL57.value(), 
-               'L67': self.doubleSpinBoxL67.value(), 
-               'L23': self.doubleSpinBoxL23.value(), 
-               'L34': self.doubleSpinBoxL34.value(), 
-               'L45': self.doubleSpinBoxL45.value(), 
-               'L56': self.doubleSpinBoxL56.value(), 
-               'L26': self.doubleSpinBoxR26.value()
+                '12': self.doubleSpinBoxL12.value(), 
+                '13': self.doubleSpinBoxL13.value(), 
+                '14': self.doubleSpinBoxL14.value(), 
+               '15': self.doubleSpinBoxL15.value(), 
+               '16': self.doubleSpinBoxL16.value(), 
+               '27': self.doubleSpinBoxL27.value(), 
+               '37': self.doubleSpinBoxL37.value(), 
+               '47': self.doubleSpinBoxL47.value(), 
+               '57': self.doubleSpinBoxL57.value(), 
+               '67': self.doubleSpinBoxL67.value(), 
+               '23': self.doubleSpinBoxL23.value(), 
+               '34': self.doubleSpinBoxL34.value(), 
+               '45': self.doubleSpinBoxL45.value(), 
+               '56': self.doubleSpinBoxL56.value(), 
+               '26': self.doubleSpinBoxR26.value()
                  }
         self.graph.setLengthsAndUpdateFixedTriangle(lengths)
         self.update_graph2yV2()
@@ -605,22 +605,23 @@ class MplWindow(UI_MainWindow, MainWindow):
                 graph_sequence_comments = []
                 for g in seq:
                     lengths = {
-                            'L12': np.sqrt(g[0]), 
-                            'L13': np.sqrt(g[1]), 
-                            'L14': np.sqrt(g[2]), 
-                            'L15': np.sqrt(g[3]), 
-                            'L16': np.sqrt(g[4]), 
-                            'L27': np.sqrt(g[7]), 
-                            'L37': np.sqrt(g[9]), 
-                            'L47': np.sqrt(g[11]), 
-                            'L57': np.sqrt(g[13]), 
-                            'L67': np.sqrt(g[14]), 
-                            'L23': np.sqrt(g[5]), 
-                            'L34': np.sqrt(g[8]), 
-                            'L45': np.sqrt(g[10]), 
-                            'L56': np.sqrt(g[12])
+                            '12': np.sqrt(g[0]), 
+                            '13': np.sqrt(g[1]), 
+                            '14': np.sqrt(g[2]), 
+                            '15': np.sqrt(g[3]), 
+                            '16': np.sqrt(g[4]), 
+                            '27': np.sqrt(g[7]), 
+                            '37': np.sqrt(g[9]), 
+                            '47': np.sqrt(g[11]), 
+                            '57': np.sqrt(g[13]), 
+                            '67': np.sqrt(g[14]), 
+                            '23': np.sqrt(g[5]), 
+                            '34': np.sqrt(g[8]), 
+                            '45': np.sqrt(g[10]), 
+                            '56': np.sqrt(g[12]), 
+                            '26': np.sqrt(g[6])
                             }
-                    graph_sequence.append(GraphEmbeddingVangelis(lengths=lengths,  r26=np.sqrt(g[6]), window=self))
+                    graph_sequence.append(GraphCouplerCurve(lengths=lengths, window=self))
                     try:
                         graph_sequence_comments.append(str(g[15]))
                     except:
@@ -636,11 +637,7 @@ class MplWindow(UI_MainWindow, MainWindow):
             self._V6fromPHC = []
             self.noteToImgInSeq.setPlainText(self.graph_sequence_comments[self.spinBoxImgInSeq.value()-1])
             self.update_graph2tabLengths()
-            self.update_graph2R26()
-            
-            
-            
-            
+            self.update_graph2R26()           
             self.updateParameter()
             self.updateDisplayedGraph()
             self.labelRecomputePHC.setText('<html><head/><body><p><span style=" color:#ff0000;">Recomputation needed</span></p></body></html>')
@@ -661,20 +658,20 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.buttonRotateVertices.setEnabled(False)
         self.printLog('Rotating labeling of vertices:')
         rotated_lengths = {
-                        'L12' : self.graph.getEdgeLength('13'),
-                        'L13' : self.graph.getEdgeLength('14'),
-                        'L14' : self.graph.getEdgeLength('15'),
-                        'L15' : self.graph.getEdgeLength('16'),
-                        'L16' : self.graph.getEdgeLength('12'),
-                        'L27' : self.graph.getEdgeLength('37'),
-                        'L37' : self.graph.getEdgeLength('47'),
-                        'L47' : self.graph.getEdgeLength('57'),
-                        'L57' : self.graph.getEdgeLength('67'),
-                        'L67' : self.graph.getEdgeLength('27'),
-                        'L23' : self.graph.getEdgeLength('34'),
-                        'L34' : self.graph.getEdgeLength('45'),
-                        'L45' : self.graph.getEdgeLength('56'),
-                        'L56' : self.graph.getR26()
+                        '12' : self.graph.getEdgeLength('13'),
+                        '13' : self.graph.getEdgeLength('14'),
+                        '14' : self.graph.getEdgeLength('15'),
+                        '15' : self.graph.getEdgeLength('16'),
+                        '16' : self.graph.getEdgeLength('12'),
+                        '27' : self.graph.getEdgeLength('37'),
+                        '37' : self.graph.getEdgeLength('47'),
+                        '47' : self.graph.getEdgeLength('57'),
+                        '57' : self.graph.getEdgeLength('67'),
+                        '67' : self.graph.getEdgeLength('27'),
+                        '23' : self.graph.getEdgeLength('34'),
+                        '34' : self.graph.getEdgeLength('45'),
+                        '45' : self.graph.getEdgeLength('56'),
+                        '56' : self.graph.getR26()
                         }
         R26 = self.graph.getEdgeLength('23')
         self.graph.setLengthsAndUpdateFixedTriangle(rotated_lengths)
@@ -711,7 +708,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         dialog.textBrowser = QPlainTextEdit(dialog)
         dialog.textBrowser.appendPlainText(str(len_vect))
         len_dict = copy.deepcopy(self.graph._lengths)
-        len_dict['L26'] = self.graph.getR26()
+        len_dict[(2, 6)] = self.graph.getR26()
         dialog.textBrowser.appendPlainText(str(len_dict))
         
 
@@ -799,7 +796,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #            self.printLog('Rotating:')
 #            self.rotateVertices()
             self.printLog('Sampling phi and theta')
-            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
+#            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
             self.printLog('Sampling finished, see sequence')
     
     def showClusters(self, clusters, centers):

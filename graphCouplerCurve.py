@@ -1,47 +1,62 @@
 import numpy as np
-import math
 
-from sympy import symbols
-import time
-import copy
-from sklearn.cluster import DBSCAN
+
+import math
+#import copy
+#from sympy import symbols
+
 
 from graphEmbedding import *
 
 
-class GraphEmbeddingVangelis(GraphEmbedding):
-    def __init__(self,lengths={}, r26=0.550000000000000,   window=None):
-
+class GraphCouplerCurve(GraphEmbedding):
+    def __init__(self, lengths={}, window=None):
         if not lengths:
-            lengths = {'L12': 0.956581258335196,
-                     'L13': 2.651661708696340,
-                     'L14': 3.74969777489766,
-                     'L15': 3.076648111148685,
-                     'L16': 1.101294935802410,
-                     'L23': 2.800000000000000,
-                     'L27': 1.526854929507074,
-                     'L34': 4.49999748323629,
-                     'L37': 3.12265521649798,
-                     'L45': 6.45000000000000,
-                     'L47': 2.705062963547708,
-                     'L56': 3.407714967884632,
-                     'L57': 4.13929267237052,
-                     'L67': 1.218419216365267}
-
-        if not 'L26' in lengths.keys():
-            lengths['L26'] = r26
+            lengths = {'12': 1.99993774567597,
+                         '13': 1.99476987780024,
+                         '14': 2.003436460984393,
+                         '15': 2.00289249524296,
+                         '16': 2.000134247468136,
+                         '23': 0.999614322089483,
+                         '26': 1.001987710974071,
+                         '27': 10.53609172287933,
+                         '34': 1.00368644488060,
+                         '37': 10.53631716364608,
+                         '45': 1.001530148504854,
+                         '47': 10.53572330314948,
+                         '56': 0.995723616535744,
+                         '57': 10.53627365999783,
+                         '67': 10.53647884635266}
+#            {'12': 0.956581258335196,
+#                     '13': 2.651661708696340,
+#                     '14': 3.74969777489766,
+#                     '15': 3.076648111148685,
+#                     '16': 1.101294935802410,
+#                     '23': 2.800000000000000,
+#                     '27': 1.526854929507074,
+#                     '34': 4.49999748323629,
+#                     '37': 3.12265521649798,
+#                     '45': 6.45000000000000,
+#                     '47': 2.705062963547708,
+#                     '56': 3.407714967884632,
+#                     '57': 4.13929267237052,
+#                     '67': 1.218419216365267}
         
-        super(GraphEmbeddingVangelis, self).__init__(lengths, self.constructEquations, window=window)
-        
+        super(GraphCouplerCurve, self).__init__(lengths, fixedTriangle=[2, 3, 1], vertexWithFootAtOrigin=7,  window=window)
         self.updateFixedTriangle()
+        self.setRequiresRecomputing()
         
+        self._max_x7 = self.getAltitudeAndFoot(2, 3, 7)[0]
+
         self._branches = {}
         self._branches_mirror = {}
         self._samples = 0
-    
-    def setLengthsAndUpdateFixedTriangle(self, lengths):
+
+    def setLengthsAndUpdateFixedTriangle(self, lengths, setRequiresRecomputing=True):
         self.setLengths(lengths)
         self.updateFixedTriangle()
+        if setRequiresRecomputing:
+            self.setRequiresRecomputing()
 
     def setRequiresRecomputing(self, propagate=True):
         self._branches_updated = False
@@ -63,64 +78,48 @@ class GraphEmbeddingVangelis(GraphEmbedding):
         return self._samples
 
     def setR26(self, r26):
-        self._lengths['L26'] = float(r26)
-    
+        self._lengths[(2,6)] = float(r26)
+
+    def getV1(self):
+        return self._fixedTriangle[2]
+
+    def getV2(self):
+        return self._fixedTriangle[0]
+
+    def getV3(self):
+        return self._fixedTriangle[1]
+
     def getR26(self):
         return self.getEdgeLength('26')
 
     def getyV2(self):
-        return self._v2[1]
+        return self.getV2()[1]
     
     def getPhiRadian(self):
-#        try:
-            return math.asin((self._v1[1]-self._v2[1])/float(self.getEdgeLength('12')))
-#        except:
-#            self.printLog('Math error in Phi')
-#            return 0
+        try:
+            return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
+        except:
+            self.printLog('Math error in Phi')
+            return 0
     
     def getPhiDegree(self):
         return self.getPhiRadian()/math.pi*180.0
     
     def getThetaRadian(self):
-#        try:
+        try:
             r26 = self.getR26()
             l12 = self.getEdgeLength('12')
             l16 = self.getEdgeLength('16')
             return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
-#        except:
-#            self.printLog('Math error in Theta ')
-#            return 0
+        except:
+            self.printLog('Math error in Theta ')
+            return 0
 
     def getThetaDegree(self):
         return self.getThetaRadian()/math.pi*180.0
-
-    def updateFixedTriangle(self):       
-        l12 = self.getEdgeLength('12')
-        l13 = self.getEdgeLength('13')
-        l27 = self.getEdgeLength('27')
-        l37 = self.getEdgeLength('37')
-        l23 = self.getEdgeLength('23')
-        
-        theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
-        theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
-
-        self._max_x7 = math.sin(theta7)*l27
-        x1 = math.sin(theta1)*l12
-
-        y7 = math.cos(theta7)*l27
-        y1 = math.cos(theta1)*l12
-
-        y2 = -y7
-        y3 = -y7+l23
-        y1 = y1-y7
-        
-        self._v1 = [x1, y1, 0]
-        self._v2 = [0, y2, 0]
-        self._v3 = [0, y3, 0]
-        self.setRequiresRecomputing()
     
     def setPhiRadian(self, phi):
-        y2 = self._v1[1] - math.tan(phi)*self._v1[0]
+        y2 = self.getV1()[1] - math.tan(phi)*self.getV1()[0]
         self.setyV2(y2)
     
     def setPhiDegree(self, phi):
@@ -136,11 +135,17 @@ class GraphEmbeddingVangelis(GraphEmbedding):
         self.setThetaRadian(phi*math.pi/180.0)
     
     def setyV2(self, y2):
-        self._v2 = [0, y2, 0]
-        
-        self._lengths['L12'] = self.dist(self._v1, self._v2)
-        self._lengths['L27'] = self.dist([self._max_x7, 0, 0], self._v2)
-        self._lengths['L23'] = self.dist(self._v3, self._v2)
+#        tmp = self._fixedTriangle[0][1]
+#        self._fixedTriangle[0][1] = y2
+#        self.printLog(str([self.getV1(), self.getV2(), self.getV3()]))
+#        self.printLog('(1, 2)'+ str(self.dist(self.getV1(), self.getV2())))
+#        self.printLog('(2, 7)'+ str(self.dist([self._max_x7, 0, 0], self.getV2())))
+#        self.printLog('(2, 3)'+ str(self.dist(self.getV3(), self.getV2())))
+#        
+#        self._fixedTriangle[0][1] = tmp
+        newL23 = self.getEdgeLength(2, 3)-y2+self.getV2()[1]
+        self.setEdgeLengthWithCorrespondingOnes(newL23,  2, 3, 1, 7)
+        self.updateFixedTriangle()
 
     def getCenterOfGravity(self):
         try:
@@ -165,19 +170,19 @@ class GraphEmbeddingVangelis(GraphEmbedding):
     def computeCouplerCurve(self, N):
         self._samples = N
         
-        l14 = self._lengths['L14']
-        l15 = self._lengths['L15']
-        l16 = self._lengths['L16']
-        l47 = self._lengths['L47']
-        l57 = self._lengths['L57']
-        l67 = self._lengths['L67']
-        l34 = self._lengths['L34']
-        l45 = self._lengths['L45']
-        l56 = self._lengths['L56']
+        l14 = self.getEdgeLength(1, 4)
+        l15 = self.getEdgeLength(1, 5)
+        l16 = self.getEdgeLength(1, 6)
+        l47 = self.getEdgeLength(4, 7)
+        l57 = self.getEdgeLength(5, 7)
+        l67 = self.getEdgeLength(6, 7)
+        l34 = self.getEdgeLength(3, 4)
+        l45 = self.getEdgeLength(4, 5)
+        l56 = self.getEdgeLength(5, 6)
 
 
-        v3 = self._v3
-        v1 = self._v1
+        v3 = self.getV3()
+        v1 = self.getV1()
         
         self.minbound = 0
         self.maxbound = 0
@@ -307,7 +312,7 @@ class GraphEmbeddingVangelis(GraphEmbedding):
             def getIntersectionWithSphere(A, B):
                 x_A, y_A, z_A = A
                 x_B, y_B, z_B = B
-                x_C, y_C, z_C = self._v2
+                x_C, y_C, z_C = self.getV2()
                 r = self.getR26()
                 res = []
                 nom_a = x_A**2 - x_A*x_B - (x_A - x_B)*x_C + y_A**2 - y_A*y_B - (y_A - y_B)*y_C + z_A**2 - z_A*z_B - (z_A - z_B)*z_C
@@ -342,7 +347,8 @@ class GraphEmbeddingVangelis(GraphEmbedding):
                             self.intersections_mirror += getIntersectionWithSphere(part[i], part[i+1])
             
             self.printLog('Intersections:')
-            self.printLog(str(len(self.intersections)+len(self.intersections_mirror)))
+            n = len(self.intersections)+len(self.intersections_mirror)
+            self.printLog(str(n))
         else:
             self.printLog('Coupler curve must be computed first.')
         
@@ -356,7 +362,7 @@ class GraphEmbeddingVangelis(GraphEmbedding):
             if v4==None or v5==None or v6==None:
                 return None
             else:
-                return [self._v1, self._v2, self._v3, v4, v5, v6,  v7]
+                return [self.getV1(), self.getV2(), self.getV3(), v4, v5, v6,  v7]
         else:
             self.printLog('Coupler curve must be computed first.')
     
@@ -366,58 +372,13 @@ class GraphEmbeddingVangelis(GraphEmbedding):
 #        x = self.getEdgeLength('16') * np.outer(np.cos(u), np.sin(v))
 #        y = self.getEdgeLength('16') * np.outer(np.sin(u), np.sin(v))
 #        z = self.getEdgeLength('16') * np.outer(np.ones(np.size(u)), np.cos(v))
-#        x = np.add(x, self._v1[0]* np.ones(np.size(u)))
-#        y = np.add(y, self._v1[1]* np.ones(np.size(u)))
-#        z = np.add(z, self._v1[2]* np.ones(np.size(u)))
+#        x = np.add(x, self.getV1()[0]* np.ones(np.size(u)))
+#        y = np.add(y, self.getV1()[1]* np.ones(np.size(u)))
+#        z = np.add(z, self.getV1()[2]* np.ones(np.size(u)))
 #        return (x, y, z)
 
-    def constructEquations(self):
-        '''system with correct mixed volume'''
-        x4, y4, z4 = symbols('x4 y4 z4')
-        x5, y5, z5 = symbols('x5 y5 z5')
-        x6, y6, z6 = symbols('x6 y6 z6')
-        x7, y7, z7 = symbols('x7 y7 z7')
-#        L12 = self.getEdgeLength('12')
-#        L13 = self.getEdgeLength('13')
-        L14 = self.getEdgeLength('14')
-        L15 = self.getEdgeLength('15')
-        L16 = self.getEdgeLength('16')
-        
-#        L27 = self.getEdgeLength('27')
-        L37 = self.getEdgeLength('37')
-        L47 = self.getEdgeLength('47')
-        L57 = self.getEdgeLength('57')
-        L67 = self.getEdgeLength('67')
-        
-#        L23 = self.getEdgeLength('23')
-        L34 = self.getEdgeLength('34')
-        L45 = self.getEdgeLength('45')
-        L56 = self.getEdgeLength('56')
-        L26 = self.getR26()
-        
-        X1, Y1, _ = self._v1
-        X2, Y2, _ = self._v2
-        X3, Y3, _ = self._v3
-        eqs = [
-            L26**2 - (Y2 - y6)**2 - x6**2 - z6**2 ,
-            L37**2 - Y3**2 - x7**2 - z7**2 ,
-            L34**2 - (Y3 - y4)**2 - x4**2 - z4**2 ,
-            L14**2 - L34**2 - X1**2 - Y1**2 + Y3**2 + 2*X1*x4 + 2*Y1*y4 - 2*Y3*y4 ,
-            L15**2 - (X1 - x5)**2 - (Y1 - y5)**2 - z5**2 ,
-            L16**2 - L26**2 - X1**2 - Y1**2 + Y2**2 + 2*X1*x6 + 2*Y1*y6 - 2*Y2*y6 ,
-            -L34**2 - L37**2 + L47**2 + 2*Y3**2 + 2*x4*x7 - 2*Y3*y4 + 2*z4*z7 ,
-            -L15**2 - L37**2 + L57**2 + X1**2 + Y1**2 + Y3**2 - 2*X1*x5 + 2*x5*x7 - 2*Y1*y5 + 2*z5*z7 ,
-            -L15**2 - L34**2 + L45**2 + X1**2 + Y1**2 + Y3**2 - 2*X1*x5 + 2*x4*x5 - 2*Y3*y4 - 2*Y1*y5 + 2*y4*y5 + 2*z4*z5 ,
-            -L26**2 - L37**2 + L67**2 + Y2**2 + Y3**2 + 2*x6*x7 - 2*Y2*y6 + 2*z6*z7 ,
-            -L15**2 - L26**2 + L56**2 + X1**2 + Y1**2 + Y2**2 - 2*X1*x5 + 2*x5*x6 - 2*Y1*y5 - 2*Y2*y6 + 2*y5*y6 + 2*z5*z6 ,
-        ]
-        res = []
-        for eq in eqs:
-            res.append(str(eq)+';')
-        return res
-
     def getSolutionsForV6(self, usePrev=True):    
-        real_sol = self.findEmbeddings(usePrev=usePrev)['real']
+        real_sol = self.findEmbeddings(self.getLengths(), usePrev=usePrev)['real']
         coordinates = []
         
         for sol in real_sol:
@@ -427,167 +388,7 @@ class GraphEmbeddingVangelis(GraphEmbedding):
         return coordinates
 
     
-    def runSamplingPhiTheta(self, num_phi, num_theta):
-        start = time.time()
-        act_num = len(self.findEmbeddings()['real'])
-        act_phi = self.getPhiRadian()
-        act_theta = self.getThetaRadian()
-       
-        margin_degree = 5
-        margin = margin_degree*math.pi/180.0
-        l_phi,  r_phi = -math.pi/2.0 + margin, math.pi/2.0 - margin
-        l_theta, r_theta = 0 + margin/2.0, math.pi - margin/2.0
-        sols = self.runSamplingPhiThetaWithMargins(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta,  treshold=act_num)
-        sols.append([act_phi, act_theta, act_num])
-        end = time.time()
-        self.printLog('time 1st round: '+str(end - start))
-        self.printLog('Maximum number of embeddings in 1st round:')
-
-        maximum = max([num for phi, theta, num in sols])
-        self.printLog(str(maximum))
-        max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]
-        step_phi = (r_phi-l_phi)/float(2*num_phi)
-        step_theta = (r_theta-l_theta)/float(2*num_theta)
-        argmax = []
-        
-        for phi, theta, num in max_positions:
-            if num>=maximum:
-                argmax.append([phi, theta])
-            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(num_phi/4, num_theta/4,
-                                                                          phi - step_phi,  phi + step_phi,
-                                                                          theta - step_theta,  theta + step_theta,
-                                                                          treshold=maximum):
-                if num2>maximum:
-                    self.setPhiRadian(phi2)
-                    self.setThetaRadian(theta2)
-                    self.printLog(str(num2)+',trying increase max', verbose=2)
-                    num_check = len(self.findEmbeddings(usePrev=False)['real'])
-                    if num_check>maximum:
-                        maximum = num_check
-                        argmax = []
-                        self.printLog('Maximum increased to '+str(num_check), verbose=1)
-                    argmax.append([phi2, theta2])
-                elif num2==maximum:
-                    argmax.append([phi2, theta2])
-                    self.printLog(str(num2), verbose=2)
-#        comparing minimums was here
-
-        eps = 0.1
-        for i in range(0, 100):
-            labels = DBSCAN(eps=eps).fit_predict(argmax)
-            if len([1 for el in labels if el==-1])>len(labels)/10:
-                eps += 0.05
-                self.printLog('Increasing eps for clustering')
-            else:
-                break
-            if i==99:
-                self.printLog('Clustering was not succesfull')
-                labels = [0 for el in labels]
-        
-        clusters = [[] for i in range(0, max(list(labels)+[0])+1)]
-        
-        for label, point in zip(labels, argmax):
-            if label>=0:
-                clusters[label].append(point)
-        
-        print clusters
-        
-        res_graphs= []
-        res_infos = []
-        centers = []
-        
-        def dist_angle(a, b):
-            return (a[0]-b[0])**2 + (a[1]-b[1])**2
-        
-        for cluster in clusters:
-            s_x = 0
-            s_y = 0
-            for x, y in cluster:
-                s_x += x
-                s_y += y
-            phi, theta = s_x/float(len(cluster)), s_y/float(len(cluster))
-            self.setPhiRadian(phi)
-            self.setThetaRadian(theta)
-            n = len(self.findEmbeddings()['real'])
-            if n < maximum:
-                min_dist = dist_angle([phi, theta], cluster[0])
-                self.setPhiRadian(cluster[0][0])
-                self.setThetaRadian(cluster[0][1])
-                for x, y in cluster:
-                    d = dist_angle([phi, theta], [x, y])
-                    if d < min_dist:
-                        min_dist = d
-                        self.setPhiRadian(x)
-                        self.setThetaRadian(y)
-                self.printLog('Center of cluster does not have maximum number of solutions \n -> nearest point chosen instead.')
-            
-            centers.append([self.getPhiRadian(), self.getThetaRadian()])
-            res_graphs.append(GraphEmbeddingVangelis(lengths=self._lengths,  r26=self.getR26(), window=self._window))
-            res_infos.append(str([self.getPhiRadian(), self.getThetaRadian()]))
-        
-        if maximum<act_num:
-            self.setPhiRadian(act_phi)
-            self.setThetaRadian(act_theta)
-            res_graphs= [GraphEmbedding(lengths=self._lengths,  r26=self.getR26(), window=self._window)]
-            res_infos = ['original kept:\n'+str([self.getPhiRadian(), self.getThetaRadian()])]
-            centers = [[self.getPhiRadian(), self.getThetaRadian()]]
-            sols.append([act_phi, act_theta, act_num])
-            maximum = act_num
-        
-        if self._window:
-            self._window.showClusters(clusters, centers)
-            self._window.setGraphSequence(res_graphs, res_infos)
-
-        end = time.time()
-        self.printLog('Maximum number of embeddings:')
-        self.printLog(str(maximum))
-
-        self.printLog('time: '+str(end - start))
-        
-        return maximum
-
-    def getLengthsForPhiTheta(self, phi, theta):
-#                lengths = copy.copy(self.getLengths())
-#                l12 = lengths['L12']
-#                l13 = lengths['L13']
-#                l27 = lengths['L27']
-#                l37 = lengths['L37']
-#                l23 = lengths['L23']
-#                
-#                theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
-#                theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
-#
-#                max_x7 = math.sin(theta7)*l27
-#                x1 = math.sin(theta1)*l12
-#
-#                y7 = math.cos(theta7)*l27
-#                y1 = math.cos(theta1)*l12
-#                y3 = -y7+l23
-#                y1 = y1-y7
-#                
-#                y2 = y1 - math.tan(phi)*x1
-#    
-#                lengths['L12'] = self.dist([x1, y1, 0], [0, y2, 0])
-#                lengths['L27'] = self.dist([max_x7, 0, 0], [0, y2, 0])
-#                lengths['L23'] = self.dist([0, y3, 0], [0, y2, 0])
-#                
-#                l12 = lengths['L12']
-#                l16 = lengths['L16']
-#                lengths['L26'] = np.sqrt(l12**2+l16**2-2*l12*l16*math.cos(theta))
-        self.setPhiRadian(phi)
-        self.setThetaRadian(theta)
-        return copy.copy(self.getLengths())
-
-    def getSamplingIterator(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta):
-        step_phi = (r_phi-l_phi)/float(num_phi)
-        step_theta = (r_theta-l_theta)/float(num_theta)
-        phi = l_phi
-        while (phi<r_phi+step_phi):
-            theta = l_theta
-            while theta<r_theta+step_theta:
-                yield self.getLengthsForPhiTheta(phi, theta),  phi, theta
-                theta += step_theta
-            phi += step_phi
+    
 
 #    def getSamplingIterator_changingSelf(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta):
 #        step_phi = (r_phi-l_phi)/float(num_phi)
@@ -605,24 +406,6 @@ class GraphEmbeddingVangelis(GraphEmbedding):
 #                phi += step_phi
 #        
 #        return samples
-    
-    def runSamplingPhiThetaWithMargins(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, treshold=0, animate=False):
-        return self.runSampling(self.getSamplingIterator(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta), treshold=treshold, animate=animate)
-
-    def runSampling(self, iterator, treshold=0, animate=False):
-        solutions = []
-        for lengths, phi, theta in iterator:
-            self.setLengthsAndUpdateFixedTriangle(lengths)
-            if animate:
-                self._window.update_graph2phi()
-                self._window.update_graph2theta()
-                self.computeIntersections()
-                self._window.plotScene()
-            num_real = len(self.findEmbeddings(errorMsg=False)['real'])
-            self.printLog(str([phi, theta, num_real]), verbose=1)
-            if num_real>=treshold:
-                solutions.append([phi, theta, num_real])
-        return solutions
 
     def getIntersectionOfThreeSpheres(self, c1,c2,c3,r1,r2,r3):
         if c1==None or c2==None or c3==None:
@@ -661,7 +444,6 @@ class GraphEmbeddingVangelis(GraphEmbedding):
         except Exception as e:
             if type(e)==ValueError:
                 return [None, None]
- 
  
  
 #-------------------OLD PARTS----------------------------------------
