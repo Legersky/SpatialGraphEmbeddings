@@ -151,7 +151,7 @@ class AlgRealEmbeddings(object):
             centers.append([phi_c, theta_c])
             
             res_lengths.append(copy.copy(starting_graph.getLengths()))
-            res_infos.append(str([phi_c, theta_c]))
+            res_infos.append(str([phi_c, theta_c]) + '\n embeddings: '+str(maximum))
         
 #        if maximum<act_num:
 #            res_lengths= [lengths]

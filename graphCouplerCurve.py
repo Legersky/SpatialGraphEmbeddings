@@ -430,6 +430,8 @@ class GraphCouplerCurve(GraphEmbedding):
         except Exception as e:
             if type(e)==ValueError:
                 return [None, None]
+            else:
+                self.printLog(str(e))
  
  
 #-------------------OLD PARTS----------------------------------------

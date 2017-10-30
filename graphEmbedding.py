@@ -44,6 +44,8 @@ class GraphEmbedding(object):
                 return float(self._lengths[(v, u)])
     
     def setEdgeLength(self, Luv, u, v):
+        if Luv<=1e-8:
+            raise ValueError('Length of '+str([u, v])+' cannot be set to '+str(Luv))
         if u<v:
             self._lengths[(u, v)] = Luv
         else:
@@ -160,7 +162,7 @@ class GraphEmbedding(object):
         u, v, w, p = uvwp
         altitude, foot_v = self.getAltitudeAndFoot(u, v, w)
         a = altitude*math.tan(phi)
-        self.setEdgeLengthWithCorrespondingOnes(foot_v+a, uvwp)
+        self.setEdgeLengthWithCorrespondingOnes(abs(foot_v+a), uvwp)
 
     def setTheta(self, uwc, theta):
         u, w, c = uwc

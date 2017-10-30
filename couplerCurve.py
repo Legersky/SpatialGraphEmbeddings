@@ -193,9 +193,38 @@ class MplWindow(UI_MainWindow, MainWindow):
         
         self.buttonSamplingPhiTheta.clicked.connect(self.runSamplingPhiTheta)
         
-        self._possibleParametrizedVertices = {
-                                        '[2, 3, 1, 7, 6]' : [2, 3, 1, 7, 6]
-                                        }
+        self._possibleParametrizedVertices = {'[2, 1, 3, 6, 7]': [2, 1, 3, 6, 7],
+                                             '[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
+                                             '[2, 3, 1, 7, 6]': [2, 3, 1, 7, 6],
+                                             '[2, 6, 1, 7, 3]': [2, 6, 1, 7, 3],
+                                             '[2, 7, 3, 6, 1]': [2, 7, 3, 6, 1],
+                                             '[2, 7, 6, 3, 1]': [2, 7, 6, 3, 1],
+                                             '[3, 1, 2, 4, 7]': [3, 1, 2, 4, 7],
+                                             '[3, 1, 4, 2, 7]': [3, 1, 4, 2, 7],
+                                             '[3, 2, 1, 7, 4]': [3, 2, 1, 7, 4],
+                                             '[3, 4, 1, 7, 2]': [3, 4, 1, 7, 2],
+                                             '[3, 7, 2, 4, 1]': [3, 7, 2, 4, 1],
+                                             '[3, 7, 4, 2, 1]': [3, 7, 4, 2, 1],
+                                             '[4, 1, 3, 5, 7]': [4, 1, 3, 5, 7],
+                                             '[4, 1, 5, 3, 7]': [4, 1, 5, 3, 7],
+                                             '[4, 3, 1, 7, 5]': [4, 3, 1, 7, 5],
+                                             '[4, 5, 1, 7, 3]': [4, 5, 1, 7, 3],
+                                             '[4, 7, 3, 5, 1]': [4, 7, 3, 5, 1],
+                                             '[4, 7, 5, 3, 1]': [4, 7, 5, 3, 1],
+                                             '[5, 1, 4, 6, 7]': [5, 1, 4, 6, 7],
+                                             '[5, 1, 6, 4, 7]': [5, 1, 6, 4, 7],
+                                             '[5, 4, 1, 7, 6]': [5, 4, 1, 7, 6],
+                                             '[5, 6, 1, 7, 4]': [5, 6, 1, 7, 4],
+                                             '[5, 7, 4, 6, 1]': [5, 7, 4, 6, 1],
+                                             '[5, 7, 6, 4, 1]': [5, 7, 6, 4, 1],
+                                             '[6, 1, 2, 5, 7]': [6, 1, 2, 5, 7],
+                                             '[6, 1, 5, 2, 7]': [6, 1, 5, 2, 7],
+                                             '[6, 2, 1, 7, 5]': [6, 2, 1, 7, 5],
+                                             '[6, 5, 1, 7, 2]': [6, 5, 1, 7, 2],
+                                             '[6, 7, 2, 5, 1]': [6, 7, 2, 5, 1],
+                                             '[6, 7, 5, 2, 1]': [6, 7, 5, 2, 1]
+                                             }
+        self.comboBoxParamVert.setInsertPolicy(6)
         for comb in self._possibleParametrizedVertices:
             self.comboBoxParamVert.addItem(comb)
         
@@ -799,14 +828,17 @@ class MplWindow(UI_MainWindow, MainWindow):
     def runSamplingPhiTheta(self):
         self.computeCouplerCurves()
         n = 0
-        while n<48 and not self.interrupt.checkState():
+        first = True
+        while n<48 and (not self.interrupt.checkState() or first):
+            first = False
             self.printLog('Sampling phi and theta')
             alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
             alg.runSamplingPhiTheta(self.graph.getLengths(), self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
             self.printLog('Sampling finished, see sequence')
-        
-            self.printLog('Rotating:')
-            self.rotateVertices()
+            
+            if not self.interrupt.checkState():
+                self.printLog('Rotating:')
+                self.rotateVertices()
     
     def showClusters(self, clusters, centers):
         pass
