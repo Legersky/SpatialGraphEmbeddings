@@ -27,51 +27,21 @@ class GraphCouplerCurve(GraphEmbedding):
                          '56': 0.995723616535744,
                          '57': 10.53627365999783,
                          '67': 10.53647884635266}
-            lengths = {'67': 6.7082039325, 
-                    '47': 8.0622577483, 
-                    '45': 8.33506448685, 
-                    '56': 15.0953602143, 
-                    '57': 13.0, 
-                    '14': 5.99552332995, 
-                    '15': 14.2478068488, 
-                    '16': 10.0498756211, 
-                    '34': 6.51062976985, 
-                    '12': 1.19993396795, 
-                    '13': 0.894427191, 
-                    '37': 9.2736184955, 
-                    '23': 0.385778797541, 
-                    '27': 9.5852672451,
-                        '26':11.05}
-            lengths = {'45': 15.0954, 
-                        '12': 0.8944, 
-                        '67': 9.5853, 
-                        '13': 5.9955, 
-                        '27': 9.2736, 
-                        '15': 10.0499, 
-                        '14': 14.2478, 
-                        '16': 1.1999, 
-                        '47': 13.0, 
-                        '57': 6.7082, 
-                        '23': 6.5106, 
-                        '37': 8.0623, 
-                        '34': 8.3351, 
-                        '56': 11.05, 
-                        '26':0.3858}
-#            {'12': 0.956581258335196,
-#                     '13': 2.651661708696340,
-#                     '14': 3.74969777489766,
-#                     '15': 3.076648111148685,
-#                     '16': 1.101294935802410,
-#                     '23': 2.800000000000000,
-#                     '27': 1.526854929507074,
-#                     '34': 4.49999748323629,
-#                     '37': 3.12265521649798,
-#                     '45': 6.45000000000000,
-#                     '47': 2.705062963547708,
-#                     '56': 3.407714967884632,
-#                     '57': 4.13929267237052,
-#                     '67': 1.218419216365267}
-                
+#            lengths = {'67': 6.7082039325, 
+#                    '47': 8.0622577483, 
+#                    '45': 8.33506448685, 
+#                    '56': 15.0953602143, 
+#                    '57': 13.0, 
+#                    '14': 5.99552332995, 
+#                    '15': 14.2478068488, 
+#                    '16': 10.0498756211, 
+#                    '34': 6.51062976985, 
+#                    '12': 1.19993396795, 
+#                    '13': 0.894427191, 
+#                    '37': 9.2736184955, 
+#                    '23': 0.385778797541, 
+#                    '27': 9.5852672451,
+#                        '26':11.05}
         
         super(GraphCouplerCurve, self).__init__(lengths, fixedTriangle=[2, 3, 1], vertexWithFootAtOrigin=7,  window=window)
         self.updateFixedTriangle()
@@ -124,57 +94,45 @@ class GraphCouplerCurve(GraphEmbedding):
     def getyV2(self):
         return self.getV2()[1]
     
-    def getPhiRadian(self):
-        try:
-            return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
-        except:
-            self.printLog('Math error in Phi')
-            return 0
-    
+    def setyV2(self, y2):
+        newL23 = self.getEdgeLength(2, 3)-y2+self.getV2()[1]
+        self.setEdgeLengthWithCorrespondingOnes(newL23,  [2, 3, 1, 7])
+        self.updateFixedTriangle()
+
     def getPhiDegree(self):
         return self.getPhiRadian()/math.pi*180.0
-    
-    def getThetaRadian(self):
-        try:
-            r26 = self.getR26()
-            l12 = self.getEdgeLength('12')
-            l16 = self.getEdgeLength('16')
-            return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
-        except:
-            self.printLog('Math error in Theta ')
-            return 0
 
     def getThetaDegree(self):
         return self.getThetaRadian()/math.pi*180.0
-    
-    def setPhiRadian(self, phi):
-        y2 = self.getV1()[1] - math.tan(phi)*self.getV1()[0]
-        self.setyV2(y2)
-    
+
     def setPhiDegree(self, phi):
         self.setPhiRadian(phi*math.pi/180.0)
 
-    def setThetaRadian(self, theta):
+    def setPhiRadian_old(self, phi):
+        v1 = self._fixedTriangle[2]
+        y2 = v1[1] - math.tan(phi)*v1[0]
+        
+        v2 = self._fixedTriangle[0]
+        
+        newL23 = self.getEdgeLength(2, 3)-y2+v2[1]
+        self.setEdgeLengthWithCorrespondingOnes(newL23,  [2, 3, 1, 7])
+        self.updateFixedTriangle()
+    
+    def setPhiRadian(self, phi):
+        self.setPhi([2, 3, 1, 7], phi)
+        self.updateFixedTriangle()
+
+    def setThetaRadian_old(self, theta):
         l12 = self.getEdgeLength('12')
         l16 = self.getEdgeLength('16')
         r26 = np.sqrt(l12**2+l16**2-2*l12*l16*math.cos(theta))
-        self.setR26(r26)
+        self.setEdgeLength(float(r26), 2, 6)
     
+    def setThetaRadian(self, theta):
+        self.setTheta([2, 1, 6], theta)
+
     def setThetaDegree(self, phi):
-        self.setThetaRadian(phi*math.pi/180.0)
-    
-    def setyV2(self, y2):
-#        tmp = self._fixedTriangle[0][1]
-#        self._fixedTriangle[0][1] = y2
-#        self.printLog(str([self.getV1(), self.getV2(), self.getV3()]))
-#        self.printLog('(1, 2)'+ str(self.dist(self.getV1(), self.getV2())))
-#        self.printLog('(2, 7)'+ str(self.dist([self._max_x7, 0, 0], self.getV2())))
-#        self.printLog('(2, 3)'+ str(self.dist(self.getV3(), self.getV2())))
-#        
-#        self._fixedTriangle[0][1] = tmp
-        newL23 = self.getEdgeLength(2, 3)-y2+self.getV2()[1]
-        self.setEdgeLengthWithCorrespondingOnes(newL23,  2, 3, 1, 7)
-        self.updateFixedTriangle()
+        self.setThetaRadian(phi*math.pi/180.0) 
 
     def getCenterOfGravity(self):
         try:

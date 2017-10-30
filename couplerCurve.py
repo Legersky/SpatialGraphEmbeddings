@@ -23,7 +23,7 @@ from mpl_toolkits.mplot3d import Axes3D
 #from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 
-
+from algRealEmbeddings import *
 from graphCouplerCurve import *
 from axel_vis import *
 
@@ -164,7 +164,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         
         self.noteToImgInSeq.setReadOnly(True)
         self.boxInfoImgInSeq.setVisible(False)
-                
+    
         self.buttonRunPHC.clicked.connect(self.runPHC)
         self.spinBoxNumberReal.setReadOnly(True)
         self.spinBoxNumberReal.setButtonSymbols(QAbstractSpinBox.NoButtons)
@@ -192,6 +192,13 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        self.dockLog.updateGeometry()
         
         self.buttonSamplingPhiTheta.clicked.connect(self.runSamplingPhiTheta)
+        
+        self._possibleParametrizedVertices = {
+                                        '[2, 3, 1, 7, 6]' : [2, 3, 1, 7, 6]
+                                        }
+        for comb in self._possibleParametrizedVertices:
+            self.comboBoxParamVert.addItem(comb)
+        
         
         self.tabifyDockWidget(self.dockBranches, self.dockSceneShift)
         self.tabifyDockWidget(self.dockSceneShift, self.dockSequenceNavigation)
@@ -790,15 +797,16 @@ class MplWindow(UI_MainWindow, MainWindow):
             self.showError('Recomputation of coupler curve needed!')
     
     def runSamplingPhiTheta(self):
-#        self.computeCouplerCurves()
-#        self.graph.testIterators(10, 8, 0.5, 3.2, 2.5, 5.0)
-#        n = 0
-#        while n<48 and not self.interrupt.checkState():
-#            self.printLog('Rotating:')
-#            self.rotateVertices()
+        self.computeCouplerCurves()
+        n = 0
+        while n<48 and not self.interrupt.checkState():
             self.printLog('Sampling phi and theta')
-            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
+            alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
+            alg.runSamplingPhiTheta(self.graph.getLengths(), self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
             self.printLog('Sampling finished, see sequence')
+        
+            self.printLog('Rotating:')
+            self.rotateVertices()
     
     def showClusters(self, clusters, centers):
         pass

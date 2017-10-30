@@ -15,12 +15,11 @@ class GraphEmbedding(object):
 #        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
         self._prevSolutions = None
-        
-        self.setLengths(lengths)
         self._fixedTriangle_vertices = fixedTriangle
         self._vertexWithFootAtOrigin = vertexWithFootAtOrigin
-        self.updateFixedTriangle()
-    
+        
+        self.setLengths(lengths)    
+
     def setLengths(self, lengths):
         self._lengths = {}
         try:
@@ -31,6 +30,7 @@ class GraphEmbedding(object):
                     f=e
                 self.setEdgeLength(float(lengths[e]), int(f[0]), int(f[1]))
                 self.printLog(str(f)+': '+str(self.getEdgeLength(int(f[1]), int(f[0]))), verbose=2)
+            self.updateFixedTriangle()
         except KeyError as er:
             self.printLog('Problem with setting lengths: '+str(er))
     
@@ -59,7 +59,6 @@ class GraphEmbedding(object):
             print s
 
     def getEquations(self):
-        self.updateFixedTriangle()
         return self.constructEquations()
     
     def getAltitudeAndFoot(self, u, v, w):
@@ -68,7 +67,10 @@ class GraphEmbedding(object):
         Lvw = self.getEdgeLength(w, v)
         Luw = self.getEdgeLength(w, u)
         cos_alpha = (Lvw**2+Luv**2 - Luw**2)/float(Lvw*2*Luv)
-        return [Lvw*math.sin(math.acos(cos_alpha)), cos_alpha*Lvw]
+        if cos_alpha>=-1 and cos_alpha<=1:
+            return [Lvw*math.sin(math.acos(cos_alpha)), cos_alpha*Lvw]
+        else:
+            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+' is not defined.')
     
     def coordinatesOfTriangle(self, u, v, w, yshift=0):
         '''Returns coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u'''
@@ -87,8 +89,9 @@ class GraphEmbedding(object):
             yshift = 0
         self._fixedTriangle = self.coordinatesOfTriangle(u, v, w, yshift)
     
-    def setEdgeLengthWithCorrespondingOnes(self, Luv,  u, v, w, p):
+    def setEdgeLengthWithCorrespondingOnes(self, Luv,  uvwp):
         '''Sets length of uv to Luv and also lengths of uw and up so that angles uvp and uvw preserves '''
+        u, v, w, p = uvwp
         p_coord = self.coordinatesOfTriangle(u, v, p)[2]
         w_coord = self.coordinatesOfTriangle(u, v, w)[2]
         new_u = [0, self.getEdgeLength(u, v)-Luv, 0]
@@ -106,7 +109,7 @@ class GraphEmbedding(object):
             if self._prevSystem and usePrev:
                 sols = track(syst, self._prevSystem, self._prevSolutions, tasks=2)
             else:
-                sols = solve(syst, verbose=0, tasks=2)
+                sols = solve(syst, verbose=1, tasks=2)
         
             result_real = []
             result_complex = []
@@ -129,79 +132,58 @@ class GraphEmbedding(object):
                 i += 1
                 self.printLog('PHC failed, trying again: '+str(i), verbose=1)
             if i>=10:
-                self._prevSystem = []
                 if errorMsg:
                     self._window.showError('PHC failed 10 times')
                 print 'PHC failed 10 times'
                 return {'real':[], 'complex':[]}
+
+    def getPhiRadian(self):
+        '''only vangelis graph !!!!!'''
+        try:
+            return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
+        except:
+            self.printLog('Math error in Phi')
+            return 0
     
-#    def getLengthsForPhiTheta(self, phi, theta):
-##    def setThetaRadian(self, theta):
-##        l12 = self.getEdgeLength('12')
-##        l16 = self.getEdgeLength('16')
-##        r26 = np.sqrt(l12**2+l16**2-2*l12*l16*math.cos(theta))
-##        self.setR26(r26)     
-#        
-##        v1, _, v3, max_x7 = self.getFixedTriangleAndMaxX7(_lengths)
-##        lengths = copy.copy(_lengths)     
-##        x1, y1, z1 = v1
-##        y2 = y1 - math.tan(phi)*x1
-##
-##        lengths['L12'] = self.dist(v1, [0, y2, 0])
-##        lengths['L27'] = self.dist([max_x7, 0, 0], [0, y2, 0])
-##        lengths['L23'] = self.dist(v3, [0, y2, 0])
-##        
-##        l12 = lengths['L12']
-##        l16 = lengths['L16']
-##        lengths['L26'] = np.sqrt(l12**2+l16**2-2*l12*l16*math.cos(theta))
-##        return lengths
-#
-#        v1, v2, v3, max_x7 = self.getFixedTriangleAndMaxX7(self._lengths)
-#        x1, y1, z1 = v1
-#        y2 = y1 - math.tan(phi)*x1
-#
-#        v2 = [0, y2, 0]
-#        
-#        self._lengths['L12'] = self.dist(v1, v2)
-#        self._lengths['L27'] = self.dist([max_x7, 0, 0], v2)
-#        self._lengths['L23'] = self.dist(v3, v2)
-#
-#        self.setThetaRadian(theta)
-#        return self.getLengths()
+    def getThetaRadian(self):
+        '''only vangelis graph !!!!!'''
+        try:
+            r26 = self.getR26()
+            l12 = self.getEdgeLength('12')
+            l16 = self.getEdgeLength('16')
+            return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
+        except:
+            self.printLog('Math error in Theta ')
+            return 0
 
-    def getFixedTriangleAndMaxX7(self):
-        l12 = self._lengths['L12']
-        l13 = self._lengths['L13']
-        l27 = self._lengths['L27']
-        l37 = self._lengths['L37']
-        l23 = self._lengths['L23']
-        
-        theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
-        theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
+    def setPhi(self, uvwp, phi):
+        u, v, w, p = uvwp
+        altitude, foot_v = self.getAltitudeAndFoot(u, v, w)
+        a = altitude*math.tan(phi)
+        self.setEdgeLengthWithCorrespondingOnes(foot_v+a, uvwp)
 
-        max_x7 = math.sin(theta7)*l27
-        x1 = math.sin(theta1)*l12
+    def setTheta(self, uwc, theta):
+        u, w, c = uwc
+        Luw = self.getEdgeLength(u, w)
+        Lwc = self.getEdgeLength(c, w)
+        self.setEdgeLength(np.sqrt(Luw**2+Lwc**2-2*Luw*Lwc*math.cos(theta)), u, c)
 
-        y7 = math.cos(theta7)*l27
-        y1 = math.cos(theta1)*l12
-       
-        v1 = [x1, y1-y7, 0]
-        v2 = [0, -y7, 0]
-        v3 = [0, -y7+l23, 0]
-        
-        return [v1, v2, v3, max_x7]
+    def setPhiTheta(self, uvwpc, phi, theta):
+        self.setPhi(uvwpc[:-1], phi)
+        self.setTheta([uvwpc[i] for i in [0, 2, 4]], theta)
 
-#    def getPhiTheta(self, lengths):
-#        v1, v2, v3, max_x7 = self.getFixedTriangleAndMaxX7(lengths)
-#        y1 = v1[1]
-#        y2 = v2[1]
-#        l26 = lengths['L26']
-#        l12 = lengths['L12']
-#        l16 = lengths['L16']
-#        return [math.asin((y1-y2)/float(lengths['L12'])), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
+    def getPhiTheta(self):
+        '''only vangelis graph !!!!!'''
+        v1, v2, v3 = self.coordinatesOfTriangle(1, 2, 3)
+        y1 = v1[1]
+        y2 = v2[1]
+        l26 = self.getEdgeLength(2, 6)
+        l12 = self.getEdgeLength(1, 2)
+        l16 = self.getEdgeLength(1, 6)
+        return [math.asin((y1-y2)/float(self.getEdgeLength(1, 2))), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
 
     def constructEquations(self):
-        '''system with correct mixed volume'''
+        '''system with correct mixed volume'''        
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
@@ -223,10 +205,18 @@ class GraphEmbedding(object):
         L45 = self.getEdgeLength('45')
         L56 = self.getEdgeLength('56')
         L26 = self.getEdgeLength('26')
-               
-        X1, Y1, _ = self._fixedTriangle[2]
-        _, Y2, _ = self._fixedTriangle[0]
-        _, Y3, _ = self._fixedTriangle[1]
+        
+#        self._vertexWithFootAtOrigin = 7
+#        self.updateFixedTriangle()
+#        X1, Y1, _ = self._fixedTriangle[2]
+#        _, Y2, _ = self._fixedTriangle[0]
+#        _, Y3, _ = self._fixedTriangle[1]
+#        
+        yshift = -self.getAltitudeAndFoot(3, 2, 7)[1]
+        v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        X1, Y1, _ = v1
+        _, Y2, _ = v2
+        _, Y3, _ = v3
         
         eqs = [
             L26**2 - (Y2 - y6)**2 - x6**2 - z6**2 ,
@@ -245,42 +235,3 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
-
-
-
-
-
-
-
-
-#        #        u = [0, y2, 0]
-#        newL23 = self.getEdgeLength(2, 3)+y2-self.getV2()[1]
-#        self.setEdgeLengthWithCorrespondingOnes(newL23,  2, 3, 1, 7)
-#        self.updateFixedTriangle()
-#        self._lengths[(1, 2)] = self.dist(self.getV1(), self.getV2())
-#        self._lengths[(2, 7)] = self.dist([self._max_x7, 0, 0], self.getV2())
-#        self._lengths[(2, 3)] = self.dist(self.getV3(), self.getV2())
-        
-#    def updateFixedTriangle(self):       
-#        l12 = self.getEdgeLength('12')
-#        l13 = self.getEdgeLength('13')
-#        l27 = self.getEdgeLength('27')
-#        l37 = self.getEdgeLength('37')
-#        l23 = self.getEdgeLength('23')
-#        
-#        theta1 = math.acos((-l13**2+l12**2+l23**2)/(2*l12*l23))
-#        theta7 = math.acos((-l37**2+l27**2+l23**2)/(2*l27*l23))
-#
-#        self._max_x7 = math.sin(theta7)*l27
-#        x1 = math.sin(theta1)*l12
-#
-#        y7 = math.cos(theta7)*l27
-#        y1 = math.cos(theta1)*l12
-#
-#        y2 = -y7
-#        y3 = -y7+l23
-#        y1 = y1-y7
-#        
-#        self._v1 = [x1, y1, 0]
-#        self._v2 = [0, y2, 0]
-#        self._v3 = [0, y3, 0]
