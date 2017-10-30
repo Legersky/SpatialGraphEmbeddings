@@ -32,7 +32,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 
     def __init__(self):
         super(MplWindow, self).__init__()
-        self.verbose = 2
+        self.verbose = 1
         self.setupUi(self)
         
         self.showMaximized()
@@ -212,14 +212,16 @@ class MplWindow(UI_MainWindow, MainWindow):
             try:
                 self.printLog('Lengths loaded from: '+fileName)
                 lengths,  R26 = pickle.load(open(fileName,'rb'))
+                lengths['26'] = R26
                 self.graph.setLengthsAndUpdateFixedTriangle(lengths)
-                self.graph.setR26(R26)
+#                self.graph.setR26(R26)
                 blocked = self.doubleSpinBoxR26.blockSignals(True)
                 self.update_graph2R26()
                 self.update_graph2tabLengths()
                 self.update_graph2phi()
-                self.computeCouplerCurves()
                 self.doubleSpinBoxR26.blockSignals(blocked)
+                
+                self.computeCouplerCurves()
             except Exception as e:
                 self.showError('Some problem with loading: \n'+str(e))
 
@@ -671,12 +673,11 @@ class MplWindow(UI_MainWindow, MainWindow):
                         '23' : self.graph.getEdgeLength('34'),
                         '34' : self.graph.getEdgeLength('45'),
                         '45' : self.graph.getEdgeLength('56'),
-                        '56' : self.graph.getR26()
+                        '56' : self.graph.getEdgeLength('26'), 
+                        '26' : self.graph.getEdgeLength('23')
                         }
-        R26 = self.graph.getEdgeLength('23')
         self.graph.setLengthsAndUpdateFixedTriangle(rotated_lengths)
-        self.graph.setR26(R26)
-        
+
         blocked = self.doubleSpinBoxR26.blockSignals(True)
         self.update_graph2R26()
         self.update_graph2tabLengths()
@@ -796,7 +797,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #            self.printLog('Rotating:')
 #            self.rotateVertices()
             self.printLog('Sampling phi and theta')
-#            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
+            n = self.graph.runSamplingPhiTheta(self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value())
             self.printLog('Sampling finished, see sequence')
     
     def showClusters(self, clusters, centers):

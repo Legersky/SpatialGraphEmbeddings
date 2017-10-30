@@ -27,21 +27,36 @@ class GraphCouplerCurve(GraphEmbedding):
                          '56': 0.995723616535744,
                          '57': 10.53627365999783,
                          '67': 10.53647884635266}
-#            lengths = {'67': 6.7082039325, 
-#                    '47': 8.0622577483, 
-#                    '45': 8.33506448685, 
-#                    '56': 15.0953602143, 
-#                    '57': 13.0, 
-#                    '14': 5.99552332995, 
-#                    '15': 14.2478068488, 
-#                    '16': 10.0498756211, 
-#                    '34': 6.51062976985, 
-#                    '12': 1.19993396795, 
-#                    '13': 0.894427191, 
-#                    '37': 9.2736184955, 
-#                    '23': 0.385778797541, 
-#                    '27': 9.5852672451,
-#                        '26':11.05}
+            lengths = {'67': 6.7082039325, 
+                    '47': 8.0622577483, 
+                    '45': 8.33506448685, 
+                    '56': 15.0953602143, 
+                    '57': 13.0, 
+                    '14': 5.99552332995, 
+                    '15': 14.2478068488, 
+                    '16': 10.0498756211, 
+                    '34': 6.51062976985, 
+                    '12': 1.19993396795, 
+                    '13': 0.894427191, 
+                    '37': 9.2736184955, 
+                    '23': 0.385778797541, 
+                    '27': 9.5852672451,
+                        '26':11.05}
+            lengths = {'45': 15.0954, 
+                        '12': 0.8944, 
+                        '67': 9.5853, 
+                        '13': 5.9955, 
+                        '27': 9.2736, 
+                        '15': 10.0499, 
+                        '14': 14.2478, 
+                        '16': 1.1999, 
+                        '47': 13.0, 
+                        '57': 6.7082, 
+                        '23': 6.5106, 
+                        '37': 8.0623, 
+                        '34': 8.3351, 
+                        '56': 11.05, 
+                        '26':0.3858}
 #            {'12': 0.956581258335196,
 #                     '13': 2.651661708696340,
 #                     '14': 3.74969777489766,
@@ -61,8 +76,6 @@ class GraphCouplerCurve(GraphEmbedding):
         super(GraphCouplerCurve, self).__init__(lengths, fixedTriangle=[2, 3, 1], vertexWithFootAtOrigin=7,  window=window)
         self.updateFixedTriangle()
         self.setRequiresRecomputing()
-        
-        self._max_x7 = self.getAltitudeAndFoot(2, 3, 7)[0]
 
         self._branches = {}
         self._branches_mirror = {}
@@ -94,7 +107,7 @@ class GraphCouplerCurve(GraphEmbedding):
         return self._samples
 
     def setR26(self, r26):
-        self._lengths[(2,6)] = float(r26)
+        self.setEdgeLength(float(r26), 2, 6)
 
     def getV1(self):
         return self._fixedTriangle[2]
@@ -184,6 +197,7 @@ class GraphCouplerCurve(GraphEmbedding):
             return []
 
     def computeCouplerCurve(self, N):
+        self.updateFixedTriangle()
         self._samples = N
         
         l14 = self.getEdgeLength(1, 4)
@@ -195,8 +209,7 @@ class GraphCouplerCurve(GraphEmbedding):
         l34 = self.getEdgeLength(3, 4)
         l45 = self.getEdgeLength(4, 5)
         l56 = self.getEdgeLength(5, 6)
-
-
+        
         v3 = self.getV3()
         v1 = self.getV1()
         
@@ -208,12 +221,13 @@ class GraphCouplerCurve(GraphEmbedding):
         self._trace_v5 = [[[], []], [[], []]]
         self._trace_v6 = [[[[], []], [[], []]], [[[], []], [[], []]]]
         
+        max_x7 = self.getAltitudeAndFoot(2, 3, 7)[0]
+        
         for i in range(0,N):
-            v7_x = float(self._max_x7*math.sin(2*math.pi*i/N))
-            v7_z = float(self._max_x7*math.cos(2*math.pi*i/N))
+            v7_x = float(max_x7*math.sin(2*math.pi*i/N))
+            v7_z = float(max_x7*math.cos(2*math.pi*i/N))
             v7 = [v7_x, 0, v7_z]
             self._trace_v7.append(v7)
-            
             intersection_v4 = self.getIntersectionOfThreeSpheres(v3,v1,v7,l34,l14,l47)
             v4 = intersection_v4[0]
             self._trace_v4[0].append(v4)
@@ -286,7 +300,6 @@ class GraphCouplerCurve(GraphEmbedding):
                     if v6 != None:
                         self.minbound = min(self.minbound, v6[0], v6[1], v6[2])
                         self.maxbound = max(self.maxbound, v6[0], v6[1], v6[2])
-            
 
         def getTraceV6(a, b, c):
             res = [[]]
@@ -297,8 +310,7 @@ class GraphCouplerCurve(GraphEmbedding):
                     if res[-1]:
                         res.append([])
             return res
-            
-
+        
         self._branches['orange'] = getTraceV6(0, 0, 0)
         self._branches['red'] = getTraceV6(0, 1, 0)
         self._branches['green'] = getTraceV6(0, 0, 1)

@@ -59,6 +59,7 @@ class GraphEmbedding(object):
             print s
 
     def getEquations(self):
+        self.updateFixedTriangle()
         return self.constructEquations()
     
     def getAltitudeAndFoot(self, u, v, w):
@@ -207,6 +208,7 @@ class GraphEmbedding(object):
         x7, y7, z7 = symbols('x7 y7 z7')
 #        L12 = lengths['12']
 #        L13 = lengths['13']
+        
         L14 = self.getEdgeLength('14')
         L15 = self.getEdgeLength('15')
         L16 = self.getEdgeLength('16')
@@ -225,7 +227,7 @@ class GraphEmbedding(object):
         X1, Y1, _ = self._fixedTriangle[2]
         _, Y2, _ = self._fixedTriangle[0]
         _, Y3, _ = self._fixedTriangle[1]
-
+        
         eqs = [
             L26**2 - (Y2 - y6)**2 - x6**2 - z6**2 ,
             L37**2 - Y3**2 - x7**2 - z7**2 ,
