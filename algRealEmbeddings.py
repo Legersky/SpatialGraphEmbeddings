@@ -185,7 +185,7 @@ class AlgRealEmbeddings(object):
             self._window.showClusters(clusters, centers)
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
 
-    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations, previous_steps, previous_lengths, prev_max, required_num):
+    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations,  prev_max, required_num, name=''):
         self._max_found = False
         self._num_phi = num_phi
         self._num_theta = num_theta
@@ -194,6 +194,8 @@ class AlgRealEmbeddings(object):
         self._reachedMaxs = []
         self._actMaximum = 0
         
+        previous_steps = [['', 0]]
+        previous_lengths = [copy.copy(starting_lengths)]
         self.findMoreEmbeddings_recursion(starting_lengths, previous_steps, previous_lengths, prev_max)
         
         
@@ -204,15 +206,15 @@ class AlgRealEmbeddings(object):
             self._window.showDialog(report)
         
         import hashlib
-        hash_object = hashlib.md5(str(starting_lengths).encode())
+        hash_object = hashlib.md5(str(self._reachedMaxs).encode())
         
-        fileName = './res/'+str(hash_object.hexdigest())
+        fileName = './res/'+name+'_'+str(self._actMaximum)+'_embd_'+str(hash_object.hexdigest())+'.p'
         self.printLog('Results saved to: '+fileName)
         pickle.dump([self._actMaximum, self._reachedMaxs], open(fileName, 'wb'))
 
     def findMoreEmbeddings_recursion(self, starting_lengths, previous_steps, previous_lengths, prev_max):
         for uvwpc in self._combinations:
-            if previous_steps[-1][0] != uvwpc and not self._max_found:
+            if previous_steps[-1][0] != uvwpc:
                 self.printLog('Actual step: ' + str(uvwpc))
                 
                 lengths_tmp = copy.copy(starting_lengths)
@@ -220,44 +222,45 @@ class AlgRealEmbeddings(object):
 
                 cl = 0                
                 for lengths in res_lengths:
-                    cl +=1
-                    steps = previous_steps+[[uvwpc, cl]]
-                    all_lengths = previous_lengths + [copy.copy(lengths)]
-                    
-                    if maximum>self._actMaximum:
-                        self._reachedMaxs = []
-                        self._actMaximum = maximum
-                    
-                    if maximum==self._actMaximum:
-                        self._reachedMaxs.append([steps, all_lengths])
-                    
-                    if maximum == self._required_num:
-                        report  = [
-                                    str(self._required_num)+' EMBEDDINGS FOUND:', 
-                                    'Applied steps:',
-                                    steps[1:],
-                                    'All lengths:',
-                                    all_lengths
-                                     ]
-                        for r in report:
-                            self.printLog(r)                                                
-                        if self._window:
-                            self._window.showDialog(report)
-                        self._max_found = True
-                    
-                    elif maximum>prev_max:
-                        report  = [
-                                    'MAXIMUM INCREASED to '+str(maximum), 
-                                    'Applied steps:',
-                                    steps[1:],
-                                    'New lengths:',
-                                    lengths
-                                     ]
-                        for r in report:
-                            self.printLog(r)                                                
-                        if self._window:
-                            self._window.showDialog(report)
-                        self.findMoreEmbeddings_recursion(lengths, steps, all_lengths, maximum)
+                    if not self._max_found:
+                        cl +=1
+                        steps = previous_steps+[[uvwpc, cl]]
+                        all_lengths = previous_lengths + [copy.copy(lengths)]
+                        
+                        if maximum>self._actMaximum:
+                            self._reachedMaxs = []
+                            self._actMaximum = maximum
+                        
+                        if maximum==self._actMaximum:
+                            self._reachedMaxs.append([steps, all_lengths])
+                        
+                        if maximum == self._required_num:
+                            report  = [
+                                        str(self._required_num)+' EMBEDDINGS FOUND:', 
+                                        'Applied steps:',
+                                        steps[1:],
+                                        'All lengths:',
+                                        all_lengths
+                                         ]
+                            for r in report:
+                                self.printLog(r)                                                
+                            if self._window:
+                                self._window.showDialog(report)
+                            self._max_found = True
+                        
+                        elif maximum>prev_max:
+                            report  = [
+                                        'MAXIMUM INCREASED to '+str(maximum), 
+                                        'Applied steps:',
+                                        steps[1:],
+                                        'New lengths:',
+                                        lengths
+                                         ]
+                            for r in report:
+                                self.printLog(r)                                                
+                            if self._window:
+                                self._window.showDialog(report)
+                            self.findMoreEmbeddings_recursion(lengths, steps, all_lengths, maximum)
 
     def printLog(self, s, verbose=0):
         if self._window:

@@ -745,10 +745,17 @@
              </property>
             </widget>
            </item>
-           <item row="5" column="0" colspan="4">
+           <item row="6" column="0" colspan="4">
             <widget class="QPushButton" name="buttonFindMore">
              <property name="text">
               <string>Find more embeddings</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="4">
+            <widget class="QLineEdit" name="lineEditName">
+             <property name="text">
+              <string>name</string>
              </property>
             </widget>
            </item>

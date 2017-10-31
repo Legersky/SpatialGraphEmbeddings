@@ -639,7 +639,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        self._log += s +'\n'
 #        self.plainTextEdit.setPlainText(self._log)
         if verbose<=self.verbose:
-            self.plainTextEdit.appendPlainText(s)
+            self.plainTextEdit.appendPlainText(str(s))
             print s
         self.plainTextEdit.moveCursor(QTextCursor.End)
         self.plainTextEdit.ensureCursorVisible()
@@ -663,6 +663,26 @@ class MplWindow(UI_MainWindow, MainWindow):
             graph.computeCouplerCurve(N)
         self.plotGraphFromSequence()
         self.pushButtonPlot.setEnabled(True)
+#   
+#[48, [
+#          [
+#           [['', 0], [[5, 6, 1, 7, 4], 1], [[4, 5, 1, 7, 3], 1], [[5, 6, 1, 7, 4], 1], [[3, 2, 1, 7, 4], 1]],
+#        [{(1, 2): 1.99993774567597, (2, 7): 10.53609172287933, (4, 7): 10.53572330314948, (2, 6): 1.001987710974071, (6, 7): 10.53647884635266, 
+#          (5, 6): 4.504386360535721, (5, 7): 11.26064825798889, (1, 4): 2.003436460984393, (1, 5): 4.45587900107854, (1, 3): 1.99476987780024, 
+#          (1, 6): 2.000134247468136, (4, 5): 4.1810358189222256, (3, 7): 10.53631716364608, (3, 4): 1.0036864448806, (2, 3): 0.999614322089483}, 
+#          
+#          {(1, 2): 1.99993774567597, (2, 7): 10.53609172287933, (4, 7): 12.831335036787282, (2, 6): 1.001987710974071, (6, 7): 10.53647884635266, 
+#          (5, 6): 4.504386360535721, (5, 7): 11.26064825798889, (1, 4): 7.588587051351411, (1, 5): 4.45587900107854, (1, 3): 1.99476987780024, 
+#          (1, 6): 2.000134247468136, (4, 5): 11.306894660621534, (3, 7): 10.53631716364608, (3, 4): 7.2894600859795649, (2, 3): 0.999614322089483}, 
+#          
+#          {(1, 2): 1.99993774567597, (2, 7): 10.53609172287933, (4, 7): 12.831335036787282, (2, 6): 1.001987710974071, (6, 7): 10.53647884635266, 
+#          (5, 6): 3.674491243171125, (5, 7): 10.99293129764172, (1, 4): 7.588587051351411, (1, 5): 3.7261764241301862, (1, 3): 1.99476987780024, 
+#          (1, 6): 2.000134247468136, (4, 5): 6.5316212079357383, (3, 7): 10.53631716364608, (3, 4): 7.289460085979565, (2, 3): 0.999614322089483}, 
+#          
+#          {(1, 2): 1.99993774567597, (2, 7): 10.53609172287933, (4, 7): 12.831335036787282, (2, 6): 1.001987710974071, (6, 7): 10.53647884635266, 
+#          (5, 6): 3.674491243171125, (5, 7): 10.99293129764172, (1, 4): 7.588587051351411, (1, 5): 3.7261764241301862, (1, 3): 1.9347054477961303, 
+#          (1, 6): 2.000134247468136, (4, 5): 6.531621207935738, (3, 7): 10.524592180929439, (3, 4): 7.3736846540081995, (2, 3): 0.5698832598284466}]]
+#      ]]   
    
     def loadSequence(self):
         options = QFileDialog.Options()
@@ -673,29 +693,36 @@ class MplWindow(UI_MainWindow, MainWindow):
                 seq = pickle.load(open(fileName,'rb'))
                 graph_sequence = []
                 graph_sequence_comments = []
-                for g in seq:
-                    lengths = {
-                            '12': np.sqrt(g[0]), 
-                            '13': np.sqrt(g[1]), 
-                            '14': np.sqrt(g[2]), 
-                            '15': np.sqrt(g[3]), 
-                            '16': np.sqrt(g[4]), 
-                            '27': np.sqrt(g[7]), 
-                            '37': np.sqrt(g[9]), 
-                            '47': np.sqrt(g[11]), 
-                            '57': np.sqrt(g[13]), 
-                            '67': np.sqrt(g[14]), 
-                            '23': np.sqrt(g[5]), 
-                            '34': np.sqrt(g[8]), 
-                            '45': np.sqrt(g[10]), 
-                            '56': np.sqrt(g[12]), 
-                            '26': np.sqrt(g[6])
-                            }
+                if type(seq[0])==list:
+                    for g in seq:
+                        lengths = {
+                                '12': np.sqrt(g[0]), 
+                                '13': np.sqrt(g[1]), 
+                                '14': np.sqrt(g[2]), 
+                                '15': np.sqrt(g[3]), 
+                                '16': np.sqrt(g[4]), 
+                                '27': np.sqrt(g[7]), 
+                                '37': np.sqrt(g[9]), 
+                                '47': np.sqrt(g[11]), 
+                                '57': np.sqrt(g[13]), 
+                                '67': np.sqrt(g[14]), 
+                                '23': np.sqrt(g[5]), 
+                                '34': np.sqrt(g[8]), 
+                                '45': np.sqrt(g[10]), 
+                                '56': np.sqrt(g[12]), 
+                                '26': np.sqrt(g[6])
+                                }
                     graph_sequence.append(GraphCouplerCurve(lengths=lengths, window=self))
                     try:
                         graph_sequence_comments.append(str(g[15]))
                     except:
                         graph_sequence_comments.append(str(' '))
+                else:
+                    self.printLog(seq)
+                    for len_seq in seq[1]:
+                        for lengths in len_seq[1]:
+                            graph_sequence.append(GraphCouplerCurve(lengths=lengths, window=self))
+                            graph_sequence_comments.append(str(' '))
 
                 self.setGraphSequence(graph_sequence, graph_sequence_comments)
             except Exception as e:
@@ -896,11 +923,9 @@ class MplWindow(UI_MainWindow, MainWindow):
         alg.findMoreEmbeddings(self.graph.getLengths(), 
                                self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
                                self._possibleParametrizedVertices.values(), 
-                               [['', 0]], 
-                               [], 
                                prev_max, 
-                               48
-                               )
+                               48, 
+                               name=self.lineEditName.text())
         
         if not self.interrupt.checkState():
             self.printLog('Rotating:')
@@ -926,10 +951,6 @@ class MplWindow(UI_MainWindow, MainWindow):
         newDialog.canvas.draw()
         
         newDialog.show()
-        
-        
-
-
 
 if __name__=="__main__":
     import sys
