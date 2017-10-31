@@ -722,6 +722,9 @@
              </property>
             </widget>
            </item>
+           <item row="3" column="1" colspan="3">
+            <widget class="QComboBox" name="comboBoxParamVert"/>
+           </item>
            <item row="4" column="3">
             <widget class="QCheckBox" name="interrupt">
              <property name="text">
@@ -742,8 +745,12 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1" colspan="3">
-            <widget class="QComboBox" name="comboBoxParamVert"/>
+           <item row="5" column="0" colspan="4">
+            <widget class="QPushButton" name="buttonFindMore">
+             <property name="text">
+              <string>Find more embeddings</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>

@@ -46,6 +46,9 @@ class GraphEmbedding(object):
     def setEdgeLength(self, Luv, u, v):
         if Luv<=1e-8:
             raise ValueError('Length of '+str([u, v])+' cannot be set to '+str(Luv))
+        if Luv>1e6:
+            self._window.showError('Length'+str(Luv)+ ' of '+str([u, v])+' is too big')
+            raise ValueError('Length'+str(Luv)+ ' of '+str([u, v])+' is too big')
         if u<v:
             self._lengths[(u, v)] = Luv
         else:
@@ -72,7 +75,7 @@ class GraphEmbedding(object):
         if cos_alpha>=-1 and cos_alpha<=1:
             return [Lvw*math.sin(math.acos(cos_alpha)), cos_alpha*Lvw]
         else:
-            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+' is not defined.')
+            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+'with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
     
     def coordinatesOfTriangle(self, u, v, w, yshift=0):
         '''Returns coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u'''
@@ -139,26 +142,16 @@ class GraphEmbedding(object):
                 print 'PHC failed 10 times'
                 return {'real':[], 'complex':[]}
 
-    def getPhiRadian(self):
-        '''only vangelis graph !!!!!'''
-        try:
-            return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
-        except:
-            self.printLog('Math error in Phi')
-            return 0
-    
-    def getThetaRadian(self):
-        '''only vangelis graph !!!!!'''
-        try:
-            r26 = self.getR26()
-            l12 = self.getEdgeLength('12')
-            l16 = self.getEdgeLength('16')
-            return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
-        except:
-            self.printLog('Math error in Theta ')
-            return 0
-
     def setPhi(self, uvwp, phi):
+        margin_degree = 4
+        margin = margin_degree*math.pi/180.0
+        l_phi,  r_phi = -math.pi/2.0 + margin, math.pi/2.0 - margin
+        if phi<=l_phi:
+            self.printLog('Phi '+str(phi)+' too small -> set to '+str(l_phi))
+            phi = l_phi
+        if phi>=r_phi:
+            self.printLog('Phi '+str(phi)+' too large -> set to '+str(r_phi))
+            phi = r_phi
         u, v, w, p = uvwp
         altitude, foot_v = self.getAltitudeAndFoot(u, v, w)
         a = altitude*math.tan(phi)
@@ -174,8 +167,16 @@ class GraphEmbedding(object):
         self.setPhi(uvwpc[:-1], phi)
         self.setTheta([uvwpc[i] for i in [0, 2, 4]], theta)
 
-    def getPhiTheta(self):
-        '''only vangelis graph !!!!!'''
+    def getPhiTheta(self, uvwpc):      
+        u, v, w, p, c = uvwpc
+        
+        altitude_w = self.getAltitudeAndFoot(u, v, w)[0]
+        Luw = self.getEdgeLength(u, w)
+        Luc = self.getEdgeLength(u, c)
+        Lcw = self.getEdgeLength(w, c)
+        return [math.acos(altitude_w/float(Luw)), math.acos((Luw**2+Lcw**2-Luc**2)/float(2*Luw*Lcw))]
+
+    def getPhiTheta_old(self):
         v1, v2, v3 = self.coordinatesOfTriangle(1, 2, 3)
         y1 = v1[1]
         y2 = v2[1]

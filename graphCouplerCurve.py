@@ -134,6 +134,26 @@ class GraphCouplerCurve(GraphEmbedding):
     def setThetaDegree(self, phi):
         self.setThetaRadian(phi*math.pi/180.0) 
 
+    
+    def getPhiRadian(self):
+        '''only vangelis graph !!!!!'''
+        try:
+            return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
+        except:
+            self.printLog('Math error in Phi')
+            return 0
+    
+    def getThetaRadian(self):
+        '''only vangelis graph !!!!!'''
+        try:
+            r26 = self.getR26()
+            l12 = self.getEdgeLength('12')
+            l16 = self.getEdgeLength('16')
+            return math.acos((-r26**2+l12**2+l16**2)/float(2*l12*l16))
+        except:
+            self.printLog('Math error in Theta ')
+            return 0
+
     def getCenterOfGravity(self):
         try:
             return self._centerOfGravity

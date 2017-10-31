@@ -1,6 +1,7 @@
 import time
 import math
 import copy
+import pickle
 from sklearn.cluster import DBSCAN
 
 from graphEmbedding import *
@@ -16,10 +17,15 @@ class AlgRealEmbeddings(object):
         step_phi = (r_phi-l_phi)/float(num_phi)
         step_theta = (r_theta-l_theta)/float(num_theta)
         phi = l_phi
+        
+        margin_degree = 4
+        margin = margin_degree*math.pi/180.0
+        l_ext,  r_ext = -math.pi/2.0 + margin, math.pi/2.0 - margin
         while (phi<r_phi+step_phi):
             theta = l_theta
             while theta<r_theta+step_theta:
-                yield phi, theta
+                if phi>=l_ext and phi<=r_ext:
+                    yield phi, theta
                 theta += step_theta
             phi += step_phi
 
@@ -61,7 +67,7 @@ class AlgRealEmbeddings(object):
         
         start = time.time()
         act_num = len(starting_graph.findEmbeddings()['real'])
-        act_phi, act_theta = starting_graph.getPhiTheta()
+        act_phi, act_theta = starting_graph.getPhiTheta(uvwpc)
        
         margin_degree = 5
         margin = margin_degree*math.pi/180.0
@@ -98,24 +104,27 @@ class AlgRealEmbeddings(object):
                     argmax.append([phi2, theta2])
                     self.printLog(str(num2), verbose=2)
         
-        self.printLog('Clustering phase starts:')
-        eps = 0.1
-        for i in range(0, 100):
-            labels = DBSCAN(eps=eps).fit_predict(argmax)
-            if len([1 for el in labels if el==-1])>len(labels)/10:
-                eps += 0.05
-                self.printLog('Increasing eps for clustering')
-            else:
-                break
-            if i==99:
-                self.printLog('Clustering was not succesfull')
-                labels = [0 for el in labels]
-        
-        clusters = [[] for i in range(0, max(list(labels)+[0])+1)]
-        
-        for label, point in zip(labels, argmax):
-            if label>=0:
-                clusters[label].append(point)
+        if len(argmax)==1:
+            clusters = [argmax]
+        else:
+            self.printLog('Clustering phase starts:')
+            eps = 0.1
+            for i in range(0, 100):
+                labels = DBSCAN(eps=eps).fit_predict(argmax)
+                if len([1 for el in labels if el==-1])>len(labels)/10:
+                    eps += 0.05
+                    self.printLog('Increasing eps for clustering')
+                else:
+                    break
+                if i==99:
+                    self.printLog('Clustering was not succesfull')
+                    labels = [0 for el in labels]
+            
+            clusters = [[] for i in range(0, max(list(labels)+[0])+1)]
+            
+            for label, point in zip(labels, argmax):
+                if label>=0:
+                    clusters[label].append(point)
         
         print clusters
         
@@ -137,15 +146,17 @@ class AlgRealEmbeddings(object):
             n = len(starting_graph.findEmbeddings()['real'])
             if n < maximum:
                 min_dist = dist_angle([phi_c, theta_c], cluster[0])
-                phi_c = cluster[0][0]
-                theta_c = cluster[0][1]
+                phi_tmp = cluster[0][0]
+                theta_tmp = cluster[0][1]
                 for x, y in cluster:
                     d = dist_angle([phi_c, theta_c], [x, y])
                     if d < min_dist:
                         min_dist = d
-                        phi_c = x
-                        theta_c = y
+                        phi_tmp = x
+                        theta_tmp = y
                 self.printLog('Center of cluster does not have maximum number of solutions \n -> nearest point chosen instead.')
+                phi_c = phi_tmp
+                theta_c = theta_tmp
                 starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
 
             centers.append([phi_c, theta_c])
@@ -166,15 +177,87 @@ class AlgRealEmbeddings(object):
 
         self.printLog('time: '+str(end - start))
         
-        return [clusters, centers, res_lengths, res_infos]
-        
-        
+        return [clusters, centers, res_lengths, res_infos, maximum]
 
     def runSamplingPhiTheta(self, starting_lengths, num_phi, num_theta, uvwpc):
-        [clusters, centers, res_lengths, res_infos] = self.computeSamplingPhiTheta(starting_lengths, num_phi, num_theta, uvwpc)        
+        [clusters, centers, res_lengths, res_infos, maximum] = self.computeSamplingPhiTheta(starting_lengths, num_phi, num_theta, uvwpc)        
         if self._window:
             self._window.showClusters(clusters, centers)
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
+
+    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations, previous_steps, previous_lengths, prev_max, required_num):
+        self._max_found = False
+        self._num_phi = num_phi
+        self._num_theta = num_theta
+        self._combinations = combinations
+        self._required_num = required_num
+        self._reachedMaxs = []
+        self._actMaximum = 0
+        
+        self.findMoreEmbeddings_recursion(starting_lengths, previous_steps, previous_lengths, prev_max)
+        
+        
+        report  = ['Reached maximum: ', self._actMaximum, 'Steps and lengths:', self._reachedMaxs]
+        for r in report:
+            self.printLog(r)                                                
+        if self._window:
+            self._window.showDialog(report)
+        
+        import hashlib
+        hash_object = hashlib.md5(str(starting_lengths).encode())
+        
+        fileName = './res/'+str(hash_object.hexdigest())
+        self.printLog('Results saved to: '+fileName)
+        pickle.dump([self._actMaximum, self._reachedMaxs], open(fileName, 'wb'))
+
+    def findMoreEmbeddings_recursion(self, starting_lengths, previous_steps, previous_lengths, prev_max):
+        for uvwpc in self._combinations:
+            if previous_steps[-1][0] != uvwpc and not self._max_found:
+                self.printLog('Actual step: ' + str(uvwpc))
+                
+                lengths_tmp = copy.copy(starting_lengths)
+                [clusters, centers, res_lengths, res_infos, maximum] = self.computeSamplingPhiTheta(lengths_tmp, self._num_phi, self._num_theta, uvwpc)
+
+                cl = 0                
+                for lengths in res_lengths:
+                    cl +=1
+                    steps = previous_steps+[[uvwpc, cl]]
+                    all_lengths = previous_lengths + [copy.copy(lengths)]
+                    
+                    if maximum>self._actMaximum:
+                        self._reachedMaxs = []
+                        self._actMaximum = maximum
+                    
+                    if maximum==self._actMaximum:
+                        self._reachedMaxs.append([steps, all_lengths])
+                    
+                    if maximum == self._required_num:
+                        report  = [
+                                    str(self._required_num)+' EMBEDDINGS FOUND:', 
+                                    'Applied steps:',
+                                    steps[1:],
+                                    'All lengths:',
+                                    all_lengths
+                                     ]
+                        for r in report:
+                            self.printLog(r)                                                
+                        if self._window:
+                            self._window.showDialog(report)
+                        self._max_found = True
+                    
+                    elif maximum>prev_max:
+                        report  = [
+                                    'MAXIMUM INCREASED to '+str(maximum), 
+                                    'Applied steps:',
+                                    steps[1:],
+                                    'New lengths:',
+                                    lengths
+                                     ]
+                        for r in report:
+                            self.printLog(r)                                                
+                        if self._window:
+                            self._window.showDialog(report)
+                        self.findMoreEmbeddings_recursion(lengths, steps, all_lengths, maximum)
 
     def printLog(self, s, verbose=0):
         if self._window:

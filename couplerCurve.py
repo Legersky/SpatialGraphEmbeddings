@@ -1,5 +1,3 @@
-
-
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QAction,  QApplication, QInputDialog, QFileDialog, QErrorMessage, QAbstractSpinBox, QPlainTextEdit, QDialog, QVBoxLayout, QSizePolicy, QDockWidget
 from PyQt5.QtGui import QIcon,  QKeySequence,  QTextCursor
@@ -193,41 +191,33 @@ class MplWindow(UI_MainWindow, MainWindow):
         
         self.buttonSamplingPhiTheta.clicked.connect(self.runSamplingPhiTheta)
         
-        self._possibleParametrizedVertices = {'[2, 1, 3, 6, 7]': [2, 1, 3, 6, 7],
-                                             '[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
-                                             '[2, 3, 1, 7, 6]': [2, 3, 1, 7, 6],
-                                             '[2, 6, 1, 7, 3]': [2, 6, 1, 7, 3],
-                                             '[2, 7, 3, 6, 1]': [2, 7, 3, 6, 1],
-                                             '[2, 7, 6, 3, 1]': [2, 7, 6, 3, 1],
-                                             '[3, 1, 2, 4, 7]': [3, 1, 2, 4, 7],
-                                             '[3, 1, 4, 2, 7]': [3, 1, 4, 2, 7],
-                                             '[3, 2, 1, 7, 4]': [3, 2, 1, 7, 4],
-                                             '[3, 4, 1, 7, 2]': [3, 4, 1, 7, 2],
-                                             '[3, 7, 2, 4, 1]': [3, 7, 2, 4, 1],
-                                             '[3, 7, 4, 2, 1]': [3, 7, 4, 2, 1],
-                                             '[4, 1, 3, 5, 7]': [4, 1, 3, 5, 7],
-                                             '[4, 1, 5, 3, 7]': [4, 1, 5, 3, 7],
-                                             '[4, 3, 1, 7, 5]': [4, 3, 1, 7, 5],
-                                             '[4, 5, 1, 7, 3]': [4, 5, 1, 7, 3],
-                                             '[4, 7, 3, 5, 1]': [4, 7, 3, 5, 1],
-                                             '[4, 7, 5, 3, 1]': [4, 7, 5, 3, 1],
-                                             '[5, 1, 4, 6, 7]': [5, 1, 4, 6, 7],
-                                             '[5, 1, 6, 4, 7]': [5, 1, 6, 4, 7],
-                                             '[5, 4, 1, 7, 6]': [5, 4, 1, 7, 6],
-                                             '[5, 6, 1, 7, 4]': [5, 6, 1, 7, 4],
-                                             '[5, 7, 4, 6, 1]': [5, 7, 4, 6, 1],
-                                             '[5, 7, 6, 4, 1]': [5, 7, 6, 4, 1],
-                                             '[6, 1, 2, 5, 7]': [6, 1, 2, 5, 7],
-                                             '[6, 1, 5, 2, 7]': [6, 1, 5, 2, 7],
-                                             '[6, 2, 1, 7, 5]': [6, 2, 1, 7, 5],
-                                             '[6, 5, 1, 7, 2]': [6, 5, 1, 7, 2],
-                                             '[6, 7, 2, 5, 1]': [6, 7, 2, 5, 1],
-                                             '[6, 7, 5, 2, 1]': [6, 7, 5, 2, 1]
-                                             }
+        self._possibleParametrizedVertices = {'[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
+                                                 '[2, 3, 1, 7, 6]': [2, 3, 1, 7, 6],
+                                                 '[2, 6, 1, 7, 3]': [2, 6, 1, 7, 3],
+                                                 '[2, 7, 6, 3, 1]': [2, 7, 6, 3, 1],
+                                                 '[3, 1, 2, 4, 7]': [3, 1, 2, 4, 7],
+                                                 '[3, 2, 1, 7, 4]': [3, 2, 1, 7, 4],
+                                                 '[3, 4, 1, 7, 2]': [3, 4, 1, 7, 2],
+                                                 '[3, 7, 2, 4, 1]': [3, 7, 2, 4, 1],
+                                                 '[4, 1, 3, 5, 7]': [4, 1, 3, 5, 7],
+                                                 '[4, 3, 1, 7, 5]': [4, 3, 1, 7, 5],
+                                                 '[4, 5, 1, 7, 3]': [4, 5, 1, 7, 3],
+                                                 '[4, 7, 3, 5, 1]': [4, 7, 3, 5, 1],
+                                                 '[5, 1, 4, 6, 7]': [5, 1, 4, 6, 7],
+                                                 '[5, 4, 1, 7, 6]': [5, 4, 1, 7, 6],
+                                                 '[5, 6, 1, 7, 4]': [5, 6, 1, 7, 4],
+                                                 '[5, 7, 4, 6, 1]': [5, 7, 4, 6, 1],
+                                                 '[6, 1, 5, 2, 7]': [6, 1, 5, 2, 7],
+                                                 '[6, 2, 1, 7, 5]': [6, 2, 1, 7, 5],
+                                                 '[6, 5, 1, 7, 2]': [6, 5, 1, 7, 2],
+                                                 '[6, 7, 5, 2, 1]': [6, 7, 5, 2, 1]
+                                                 }
         self.comboBoxParamVert.setInsertPolicy(6)
         for comb in self._possibleParametrizedVertices:
             self.comboBoxParamVert.addItem(comb)
         
+        
+        self.buttonFindMore.clicked.connect(self.findMoreEmbeddings)
         
         self.tabifyDockWidget(self.dockBranches, self.dockSceneShift)
         self.tabifyDockWidget(self.dockSceneShift, self.dockSequenceNavigation)
@@ -270,11 +260,11 @@ class MplWindow(UI_MainWindow, MainWindow):
             pickle.dump([self.graph._lengths, self.graph.getR26()], open(fileName, 'wb'))
 
     def insertLengths(self):
-        text, ok = QInputDialog.getMultiLineText(self, 'Insert lengths', 'Insert lengths as [dictionary, R26] or list of squares of lengths:')
+        text, ok = QInputDialog.getMultiLineText(self, 'Insert lengths', 'Insert lengths as dictionary or list of squares of lengths:')
         if ok:
             try:
                 evaluated_expr = ast.literal_eval(str(text))
-                if not type(evaluated_expr[0]) is dict:
+                if not type(evaluated_expr) is dict:
                     g = evaluated_expr
                     lengths = {
                     '12': np.sqrt(g[0]), 
@@ -290,9 +280,9 @@ class MplWindow(UI_MainWindow, MainWindow):
                     '23': np.sqrt(g[10]), 
                     '34': np.sqrt(g[11]), 
                     '45': np.sqrt(g[12]), 
-                    '56': np.sqrt(g[13])
+                    '56': np.sqrt(g[13]),
+                    '26': np.sqrt(g[14])
                     }
-                    R26 = float(np.sqrt(g[14]))
 #                    lengths = {
 #                    '12': np.sqrt(g[0]), 
 #                    '13': np.sqrt(g[1]), 
@@ -307,16 +297,16 @@ class MplWindow(UI_MainWindow, MainWindow):
 #                    '23': np.sqrt(g[5]), 
 #                    '34': np.sqrt(g[8]), 
 #                    '45': np.sqrt(g[10]), 
-#                    '56': np.sqrt(g[12])
+#                    '56': np.sqrt(g[12]),
+#                    '26': np.sqrt(g[6])
 #                    }
-#                    R26 = float(np.sqrt(g[6]))
                 else:
-                    lengths, R26 = evaluated_expr
+                    lengths = evaluated_expr
                 
-                if type(lengths)==dict and type(R26)==float:
+                if type(lengths)==dict:
                     self.printLog('Inserted lengths: ')
                     self.graph.setLengthsAndUpdateFixedTriangle(lengths)
-                    self.graph.setR26(R26)
+#                    self.graph.setR26(R26)
                     self.update_graph2R26()
                     self.update_graph2tabLengths()
                     self.update_graph2phi()
@@ -609,6 +599,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #        self.plainTextEdit.setPlainText(self._log)
         if verbose<=self.verbose:
             self.plainTextEdit.appendPlainText(s)
+            print s
         self.plainTextEdit.moveCursor(QTextCursor.End)
         self.plainTextEdit.ensureCursorVisible()
         QApplication.processEvents()
@@ -690,6 +681,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.plotScene()
         self.labelRecomputePHC.setText('Green points OK')
         self.buttonRunPHC.setEnabled(True)
+        return num_sol
 
     
     def rotateVertices(self):
@@ -721,6 +713,19 @@ class MplWindow(UI_MainWindow, MainWindow):
         
         self.computeCouplerCurves()
         self.buttonRotateVertices.setEnabled(True)
+
+    def showDialog(self, texts):
+        dialog = QDialog(self)
+
+        dialog.textBrowser = QPlainTextEdit(dialog)
+        dialog.verticalLayout = QVBoxLayout(dialog)
+        dialog.verticalLayout.addWidget(dialog.textBrowser)
+        dialog.setMinimumSize(600, 300)
+        
+        for s in texts:
+            dialog.textBrowser.appendPlainText(str(s))
+        
+        dialog.show()
     
     def exportLengths(self):
         len_vect = []
@@ -833,12 +838,32 @@ class MplWindow(UI_MainWindow, MainWindow):
             first = False
             self.printLog('Sampling phi and theta')
             alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
-            alg.runSamplingPhiTheta(self.graph.getLengths(), self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
+            alg.runSamplingPhiTheta(self.graph.getLengths(),
+                                    self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
+                                    self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
             self.printLog('Sampling finished, see sequence')
             
             if not self.interrupt.checkState():
                 self.printLog('Rotating:')
                 self.rotateVertices()
+    
+    def findMoreEmbeddings(self):
+        self.computeCouplerCurves()
+        self.printLog('Searching more embeddings:')
+        prev_max = self.runPHC()
+        alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
+        alg.findMoreEmbeddings(self.graph.getLengths(), 
+                               self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
+                               self._possibleParametrizedVertices.values(), 
+                               [['', 0]], 
+                               [], 
+                               prev_max, 
+                               48
+                               )
+        
+        if not self.interrupt.checkState():
+            self.printLog('Rotating:')
+            self.rotateVertices()
     
     def showClusters(self, clusters, centers):
         pass
