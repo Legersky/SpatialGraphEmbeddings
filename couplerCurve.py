@@ -141,11 +141,20 @@ class MplWindow(UI_MainWindow, MainWindow):
         action = self.menuInputOutput.addAction('Insert lengths')
         action.triggered.connect(self.insertLengths)
         
+        self.insertLengthsByEmbeddingsButton = QAction("Insert lengths by embedding",self)
+        self.inOut_tb.addAction(self.insertLengthsByEmbeddingsButton)
+        self.insertLengthsByEmbeddingsButton.triggered.connect(self.insertLengthsByEmbeddings)
+        action = self.menuInputOutput.addAction('Insert lengths by embedding')
+        action.triggered.connect(self.insertLengthsByEmbeddings) 
+        
         self.exportLengthsButton = QAction("Export lengths",self)
         self.inOut_tb.addAction(self.exportLengthsButton)
         self.exportLengthsButton.triggered.connect(self.exportLengths)
         action = self.menuInputOutput.addAction('Export lengths')
         action.triggered.connect(self.exportLengths)
+
+        
+        
         
         self.actionFullscreen.toggled.connect(self.fullScreen)
         
@@ -315,8 +324,40 @@ class MplWindow(UI_MainWindow, MainWindow):
                     self.showError('Input must be list containing dictionary of lengths and float R26 or list of squares of lengths')
             except Exception as e:
                  self.showError('Problem with input: \n'+str(e))
-        
-    
+
+    def insertLengthsByEmbeddings(self):
+        text, ok = QInputDialog.getMultiLineText(self, 'Insert embedding', 'Insert list of coordinates of v1,..., v7:')
+        if ok:
+            try:
+                evaluated_expr = ast.literal_eval(str(text))
+                v1, v2, v3, v4, v5, v6, v7 = evaluated_expr
+                lengths = {
+                '12': self.graph.dist(v1, v2), 
+                '13': self.graph.dist(v1, v3), 
+                '14': self.graph.dist(v1, v4), 
+                '15': self.graph.dist(v1, v5), 
+                '16': self.graph.dist(v1, v6), 
+                '27': self.graph.dist(v2, v7), 
+                '37': self.graph.dist(v3, v7), 
+                '47': self.graph.dist(v4, v7), 
+                '57': self.graph.dist(v5, v7), 
+                '67': self.graph.dist(v6, v7), 
+                '23': self.graph.dist(v2, v3), 
+                '34': self.graph.dist(v3, v4), 
+                '45': self.graph.dist(v4, v5), 
+                '56': self.graph.dist(v5, v6),
+                '26': self.graph.dist(v2, v6)
+                }
+            
+                self.printLog('Inserted lengths: ')
+                self.graph.setLengthsAndUpdateFixedTriangle(lengths)
+                self.update_graph2R26()
+                self.update_graph2tabLengths()
+                self.update_graph2phi()
+                self.computeCouplerCurves()
+            except Exception as e:
+                 self.showError('Problem with input: \n'+str(e))
+
     def showError(self, s):
         msg = QErrorMessage(self)
 #        msg.setWindowModality(QtCore.Qt.WindowModal)
