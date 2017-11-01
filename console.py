@@ -40,7 +40,7 @@ possibleParametrizedVertices = {'[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
      '[6, 7, 5, 2, 1]': [6, 7, 5, 2, 1]
      }
 
-alg = AlgRealEmbeddings(lengths, fixedTriangle_vertices)
+alg = AlgRealEmbeddings(lengths, 'Max7vertices')
 alg.runSamplingPhiTheta(lengths, 20, 20, possibleParametrizedVertices['[2, 3, 1, 7, 6]'])
 
 

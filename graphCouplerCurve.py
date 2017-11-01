@@ -43,7 +43,7 @@ class GraphCouplerCurve(GraphEmbedding):
 #                    '27': 9.5852672451,
 #                        '26':11.05}
         
-        super(GraphCouplerCurve, self).__init__(lengths, fixedTriangle=[2, 3, 1], vertexWithFootAtOrigin=7,  window=window)
+        super(GraphCouplerCurve, self).__init__(lengths, 'Max7vertices',  window=window)
         self.updateFixedTriangle()
         self.setRequiresRecomputing()
 
@@ -136,7 +136,6 @@ class GraphCouplerCurve(GraphEmbedding):
 
     
     def getPhiRadian(self):
-        '''only vangelis graph !!!!!'''
         try:
             return math.asin((self.getV1()[1]-self.getV2()[1])/float(self.getEdgeLength('12')))
         except:
@@ -144,7 +143,6 @@ class GraphCouplerCurve(GraphEmbedding):
             return 0
     
     def getThetaRadian(self):
-        '''only vangelis graph !!!!!'''
         try:
             r26 = self.getR26()
             l12 = self.getEdgeLength('12')

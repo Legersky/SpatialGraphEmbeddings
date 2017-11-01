@@ -905,7 +905,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         while n<48 and (not self.interrupt.checkState() or first):
             first = False
             self.printLog('Sampling phi and theta')
-            alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
+            alg = AlgRealEmbeddings(self.graph.getLengths(), 'Max7vertices', window=self)
             alg.runSamplingPhiTheta(self.graph.getLengths(),
                                     self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
                                     self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
@@ -919,12 +919,11 @@ class MplWindow(UI_MainWindow, MainWindow):
         self.computeCouplerCurves()
         self.printLog('Searching more embeddings:')
         prev_max = self.runPHC()
-        alg = AlgRealEmbeddings(self.graph.getLengths(), self.graph._fixedTriangle_vertices, window=self)
+        alg = AlgRealEmbeddings(self.graph.getLengths(), 'Max7vertices', window=self)
         alg.findMoreEmbeddings(self.graph.getLengths(), 
                                self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
                                self._possibleParametrizedVertices.values(), 
                                prev_max, 
-                               48, 
                                name=self.lineEditName.text())
         
         if not self.interrupt.checkState():

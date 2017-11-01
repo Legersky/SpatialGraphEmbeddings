@@ -5,6 +5,10 @@ import numpy as np
 from phcpy.solutions import strsol2dict, is_real
 from sympy import symbols
 
+from random import random
+import hashlib
+import time
+
 import ast
 import subprocess
 
@@ -12,13 +16,25 @@ import math
 
 
 class GraphEmbedding(object):
-    def __init__(self, lengths, fixedTriangle, vertexWithFootAtOrigin=None,  window=None):
+    def __init__(self, lengths, graph_type,  window=None):
         self._window = window
 #        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
         self._prevSolutions = None
-        self._fixedTriangle_vertices = fixedTriangle
-        self._vertexWithFootAtOrigin = vertexWithFootAtOrigin
+        if graph_type == 'Max7vertices':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = 7
+            self.constructEquations = self.constructEquations_max7vertices
+            self._numAllSolutions = 48
+        if graph_type == 'Max6vertices':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = 4
+            self.constructEquations = self.constructEquations_max6vertices
+            self._numAllSolutions = 16
+        else:
+            raise ValueError('Type %s not supported' % graph_type)
+        hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
+        self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
         
         self.setLengths(lengths)    
 
@@ -114,17 +130,17 @@ class GraphEmbedding(object):
         i = 0
         while True:
             if self._prevSystem and usePrev:
-                process = subprocess.Popen(['python','track.py', str(syst), str(self._prevSystem), str(self._prevSolutions)])
+                process = subprocess.Popen(['python','track.py', str(syst), str(self._prevSystem), str(self._prevSolutions), self._fileNamePref])
                 process.wait()
-                file = open('tmp/track.txt','r') 
+                file = open('tmp/'+self._fileNamePref+'track.txt','r') 
                 solutions_str = file.read()
                 sols = ast.literal_eval(solutions_str)
 #                sols = my_module.track(syst, self._prevSystem, self._prevSolutions, tasks=2)
 
             else:
-                process = subprocess.Popen(['python','solve.py', str(syst)])
+                process = subprocess.Popen(['python','solve.py', str(syst), self._fileNamePref])
                 process.wait()
-                file = open('tmp/solve.txt','r') 
+                file = open('tmp/'+self._fileNamePref+'solve.txt','r') 
                 sols_str = file.read()
                 sols = ast.literal_eval(sols_str)
 #                sols = solve(syst, verbose=1, tasks=2)
@@ -137,10 +153,7 @@ class GraphEmbedding(object):
                 else:
                     result_complex.append(soldic)
             
-            num_real = len(result_real)
-            num_all = len(sols)
-            
-            if num_real % 4 == 0 and num_all==48:
+            if len(result_real)%4==0 and len(sols)==self._numAllSolutions:
                 self._prevSystem = syst
                 self._prevSolutions = sols
                 return {'real':result_real, 'complex':result_complex}
@@ -197,7 +210,7 @@ class GraphEmbedding(object):
         l16 = self.getEdgeLength(1, 6)
         return [math.asin((y1-y2)/float(self.getEdgeLength(1, 2))), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
 
-    def constructEquations(self):
+    def constructEquations_max7vertices(self):
         '''system with correct mixed volume'''        
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
@@ -245,6 +258,46 @@ class GraphEmbedding(object):
             -L15**2 - L34**2 + L45**2 + X1**2 + Y1**2 + Y3**2 - 2*X1*x5 + 2*x4*x5 - 2*Y3*y4 - 2*Y1*y5 + 2*y4*y5 + 2*z4*z5 ,
             -L26**2 - L37**2 + L67**2 + Y2**2 + Y3**2 + 2*x6*x7 - 2*Y2*y6 + 2*z6*z7 ,
             -L15**2 - L26**2 + L56**2 + X1**2 + Y1**2 + Y2**2 - 2*X1*x5 + 2*x5*x6 - 2*Y1*y5 - 2*Y2*y6 + 2*y5*y6 + 2*z5*z6 ,
+        ]
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
+    def constructEquations_max6vertices(self):
+        '''system with correct mixed volume'''        
+        x4, y4, z4 = symbols('x4 y4 z4')
+        x5, y5, z5 = symbols('x5 y5 z5')
+        x6, y6, z6 = symbols('x6 y6 z6')
+        
+#        L12 = self.getEdgeLength(1, 2)
+#        L23 = self.getEdgeLength(2, 3)
+        L34 = self.getEdgeLength(3, 4)
+        L45 = self.getEdgeLength(4, 5)
+        L56 = self.getEdgeLength(5, 6)
+        L16 = self.getEdgeLength(1, 6)
+#        L13 = self.getEdgeLength(1, 3)
+#        L24 = self.getEdgeLength(2, 4)
+        L35 = self.getEdgeLength(3, 5)
+        L46 = self.getEdgeLength(4, 6)
+        L15 = self.getEdgeLength(1, 5)
+        L26 = self.getEdgeLength(2, 6)
+#        
+        yshift = -self.getAltitudeAndFoot(3, 2, 4)[1]
+        v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        X1, Y1, _ = v1
+        _, Y2, _ = v2
+        _, Y3, _ = v3
+        
+        eqs = [
+            L34**2 - Y3**2 - x4**2 - z4**2 ,
+            L35**2 - (Y3 - y5)**2 - x5**2 - z5**2 ,
+            L26**2 - (Y2 - y6)**2 - x6**2 - z6**2 ,
+            L16**2 - L26**2 - X1**2 - Y1**2 + Y2**2 + 2*X1*x6 + 2*Y1*y6 - 2*Y2*y6 ,
+            L15**2 - L35**2 - X1**2 - Y1**2 + Y3**2 + 2*X1*x5 + 2*Y1*y5 - 2*Y3*y5 ,
+            -L34**2 - L35**2 + L45**2 + 2*Y3**2 + 2*x4*x5 - 2*Y3*y5 + 2*z4*z5 ,
+            -L26**2 - L35**2 + L56**2 + Y2**2 + Y3**2 + 2*x5*x6 - 2*Y3*y5 - 2*Y2*y6 + 2*y5*y6 + 2*z5*z6 ,
+            -L26**2 - L34**2 + L46**2 + Y2**2 + Y3**2 + 2*x4*x6 - 2*Y2*y6 + 2*z4*z6 ,
         ]
         res = []
         for eq in eqs:

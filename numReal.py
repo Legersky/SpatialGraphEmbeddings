@@ -10,6 +10,7 @@ from phcpy.solutions import strsol2dict, is_real
 fileNamePref = sys.argv[1]
 prevSystem = ast.literal_eval(sys.argv[2])
 prevSolutions = ast.literal_eval(sys.argv[3])
+numAll = ast.literal_eval(sys.argv[4])
 
 usePrev = True
 tolerance = 1.0e-8
@@ -33,7 +34,7 @@ def findEmbeddings(syst):
         
         num_real = len(result_real)
         
-        if num_real % 4 == 0 and len(sols)==48:
+        if num_real%4==0 and len(sols)==numAll:
             prevSystem = syst
             prevSolutions = sols
             return num_real

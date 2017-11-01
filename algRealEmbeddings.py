@@ -11,12 +11,19 @@ from graphEmbedding import *
 from graphCouplerCurve import *
 
 class AlgRealEmbeddings(object):
-    def __init__(self, lengths, fixedTriangle, window=None):
+    def __init__(self, lengths, graph_type, window=None):
         self._window = window
         self.starting_lengths = lengths
-        self._fixedTriangle = fixedTriangle
+        self._graph_type = graph_type
+        if graph_type == 'Max7vertices':
+            self._numAllSol = 48
+        elif graph_type == 'Max6vertices':
+            self._numAllSol = 16
+        else:
+            raise ValueError('Type %s not supported' % graph_type)
+        
         hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
-        self._fileNamePref = 'tmp/'+str(hash_object.hexdigest())
+        self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
         
         self.verbose = 1
 
@@ -39,7 +46,7 @@ class AlgRealEmbeddings(object):
     def runSamplingPhiThetaWithMargins(self, starting_graph, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, uvwpc, treshold=0):
         return self.runSampling(starting_graph, self.getSamplingIterator(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta), uvwpc, treshold=treshold)
 
-    def runSampling_slow(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
+    def runSampling(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
         solutions = []
         if self._window and animate:
             N = self._window.spinBoxSamples.value()
@@ -47,6 +54,8 @@ class AlgRealEmbeddings(object):
             graphCouplerCurve.computeCouplerCurve(N)
             self._window.setActiveGraph(graphCouplerCurve)
 
+        self.printLog('...')
+        
         for phi, theta in iterator:
             try:
                 starting_graph.setPhiTheta(uvwpc, phi, theta)
@@ -62,14 +71,13 @@ class AlgRealEmbeddings(object):
                 self._window.update_graph2theta()
                 graphCouplerCurve.computeIntersections()
                 self._window.plotScene()
-                
-            self.printLog(str([phi, theta, num_real]), verbose=1)
 
             if num_real>=treshold:
+                self.printLog(str([phi, theta, num_real]), verbose=2)
                 solutions.append([phi, theta, num_real])              
         return solutions
     
-    def runSampling(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
+    def runSampling_faster(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
         if self._window and animate:
             N = self._window.spinBoxSamples.value()
             graphCouplerCurve = GraphCouplerCurve(self.starting_lengths, window=self._window)
@@ -95,13 +103,13 @@ class AlgRealEmbeddings(object):
                 graphCouplerCurve.computeIntersections()
                 self._window.plotScene()
         
-        with open(self._fileNamePref+'eqs.txt','w') as fileEqs:
+        with open('tmp/'+self._fileNamePref+'eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs))
         
-        process = subprocess.Popen(['python', 'numReal.py', self._fileNamePref, str(starting_graph._prevSystem), str(starting_graph._prevSolutions)])
+        process = subprocess.Popen(['python', 'numReal.py', 'tmp/'+self._fileNamePref, str(starting_graph._prevSystem), str(starting_graph._prevSolutions), str(self._numAllSol)])
         process.wait()
         
-        with open(self._fileNamePref+'numReal.txt','r') as file:
+        with open('tmp/'+self._fileNamePref+'numReal.txt','r') as file:
             nums_real_str = file.read()
         
         nums_real = ast.literal_eval(nums_real_str)
@@ -114,7 +122,7 @@ class AlgRealEmbeddings(object):
         return solutions
     
     def computeSamplingPhiTheta(self, starting_lengths, num_phi, num_theta, uvwpc):
-        starting_graph = GraphEmbedding(starting_lengths, self._fixedTriangle, window=self._window)
+        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window)
         
         start = time.time()
         act_num = len(starting_graph.findEmbeddings()['real'])
@@ -236,12 +244,15 @@ class AlgRealEmbeddings(object):
             self._window.showClusters(clusters, centers)
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
 
-    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations,  prev_max, required_num, name=''):
+    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations,  prev_max, required_num=None, name=''):
         self._max_found = False
         self._num_phi = num_phi
         self._num_theta = num_theta
         self._combinations = combinations
-        self._required_num = required_num
+        if required_num==None:
+            self._required_num = self._numAllSol
+        else:
+            self._required_num = required_num
         self._reachedMaxs = []
         self._actMaximum = 0
         
@@ -255,10 +266,8 @@ class AlgRealEmbeddings(object):
             self.printLog(r)                                                
         if self._window:
             self._window.showDialog(report)
-        
-        hash_object = hashlib.md5(str(self._reachedMaxs).encode())
-        
-        fileName = './res/'+name+'_'+str(self._actMaximum)+'_embd_'+str(hash_object.hexdigest())+'.p'
+    
+        fileName = './res/'+self._fileNamePref+'_'+str(self._actMaximum)+'_embd_.p'
         self.printLog('Results saved to: '+fileName)
         pickle.dump([self._actMaximum, self._reachedMaxs], open(fileName, 'wb'))
 
@@ -296,7 +305,7 @@ class AlgRealEmbeddings(object):
                                 self.printLog(r)                                                
                             if self._window:
                                 self._window.showDialog(report)
-#                            self._max_found = True
+                            self._max_found = True
                         
                         elif maximum>prev_max:
                             report  = [
