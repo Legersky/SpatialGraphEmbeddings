@@ -1,10 +1,12 @@
 import numpy as np
 #import math
-from phcpy.solver import solve
-from phcpy.trackers import track
+#from phcpy.solver import solve
+#from phcpy.trackers import track
 from phcpy.solutions import strsol2dict, is_real
 from sympy import symbols
 
+import ast
+import subprocess
 
 import math
 
@@ -112,10 +114,20 @@ class GraphEmbedding(object):
         i = 0
         while True:
             if self._prevSystem and usePrev:
-                sols = track(syst, self._prevSystem, self._prevSolutions, tasks=2)
+                process = subprocess.Popen(['python','track.py', str(syst), str(self._prevSystem), str(self._prevSolutions)])
+                process.wait()
+                file = open('tmp/track.txt','r') 
+                solutions_str = file.read()
+                sols = ast.literal_eval(solutions_str)
+#                sols = my_module.track(syst, self._prevSystem, self._prevSolutions, tasks=2)
+
             else:
-                sols = solve(syst, verbose=1, tasks=2)
-        
+                process = subprocess.Popen(['python','solve.py', str(syst)])
+                process.wait()
+                file = open('tmp/solve.txt','r') 
+                sols_str = file.read()
+                sols = ast.literal_eval(sols_str)
+#                sols = solve(syst, verbose=1, tasks=2)
             result_real = []
             result_complex = []
             for sol in sols:

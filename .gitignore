@@ -11,3 +11,6 @@
 *build*
 *.pyc
 *.axl
+examples/*
+tmp/*
+res/*
