@@ -18,9 +18,12 @@ class AlgRealEmbeddings(object):
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
             self._numAllSol = 48
-            self._combinations = [[5, 6, 1, 7, 4], [4, 5, 1, 7, 3], [5, 7, 4, 6, 1], [2, 6, 1, 7, 3], [2, 7, 6, 3, 1], [3, 1, 2, 4, 7], [4, 1, 3, 5, 7],
-                                  [5, 4, 1, 7, 6], [4, 3, 1, 7, 5], [6, 7, 5, 2, 1], [4, 7, 3, 5, 1], [5, 1, 4, 6, 7], [3, 4, 1, 7, 2], [2, 1, 6, 3, 7],
-                                  [6, 5, 1, 7, 2], [3, 2, 1, 7, 4], [2, 3, 1, 7, 6], [6, 2, 1, 7, 5], [6, 1, 5, 2, 7], [3, 7, 2, 4, 1]]
+            self._combinations = [[2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], [6, 1, 5, 2, 7], [3, 4, 1, 7, 2], [6, 7, 5, 2, 1], [4, 3, 1, 7, 5],
+                                  [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [6, 5, 1, 7, 2], [2, 7, 6, 3, 1],
+                                  [3, 1, 2, 4, 7], [5, 4, 1, 7, 6], [4, 7, 3, 5, 1], [6, 2, 1, 7, 5], [2, 1, 6, 3, 7], [4, 5, 1, 7, 3]]
+#            self._combinations = [[5, 6, 1, 7, 4], [4, 5, 1, 7, 3], [5, 7, 4, 6, 1], [2, 6, 1, 7, 3], [2, 7, 6, 3, 1], [3, 1, 2, 4, 7], [4, 1, 3, 5, 7],
+#                                  [5, 4, 1, 7, 6], [4, 3, 1, 7, 5], [6, 7, 5, 2, 1], [4, 7, 3, 5, 1], [5, 1, 4, 6, 7], [3, 4, 1, 7, 2], [2, 1, 6, 3, 7],
+#                                  [6, 5, 1, 7, 2], [3, 2, 1, 7, 4], [2, 3, 1, 7, 6], [6, 2, 1, 7, 5], [6, 1, 5, 2, 7], [3, 7, 2, 4, 1]]
         elif graph_type == 'Max6vertices':
             self._numAllSol = 16
             self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
@@ -346,8 +349,13 @@ class AlgRealEmbeddings(object):
         self.printLog(outputFilename)
 
     def findMoreEmbeddings_recursion(self, starting_lengths, previous_steps, previous_lengths, prev_max):
-        for uvwpc in self._combinations:
-            if previous_steps[-1][0] != uvwpc and not self._max_found:
+        try:
+            ind = self._combinations.index(previous_steps[-1][0])
+            comb = (self._combinations[ind:]+self._combinations[:ind])[1:]
+        except:
+            comb = self._combinations
+        for uvwpc in comb:
+            if not self._max_found:
                 self.printLog('Working file name: '+self._fileNamePref+'_intermediateResults.txt')
                 self.printLog('Reached maximum: '+str(self._actMaximum))
                 self.printLog('Previous steps: '+str(previous_steps[1:]))
