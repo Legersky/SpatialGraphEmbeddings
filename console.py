@@ -16,8 +16,6 @@ lengths = {'12': 1.99993774567597,
                          '57': 10.53627365999783,
                          '67': 10.53647884635266}
 
-fixedTriangle_vertices = [2, 3, 1]
-
 possibleParametrizedVertices = {'[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
      '[2, 3, 1, 7, 6]': [2, 3, 1, 7, 6],
      '[2, 6, 1, 7, 3]': [2, 6, 1, 7, 3],
@@ -40,9 +38,10 @@ possibleParametrizedVertices = {'[2, 1, 6, 3, 7]': [2, 1, 6, 3, 7],
      '[6, 7, 5, 2, 1]': [6, 7, 5, 2, 1]
      }
 
-alg = AlgRealEmbeddings(lengths, 'Max7vertices')
-alg.runSamplingPhiTheta(lengths, 20, 20, possibleParametrizedVertices['[2, 3, 1, 7, 6]'])
-
+alg = AlgRealEmbeddings('Max7vertices', name='7vert')
+alg.findMoreEmbeddings(lengths, 
+                       20, 20, 
+                       possibleParametrizedVertices.values(), onlyOne=False)
 
 
 

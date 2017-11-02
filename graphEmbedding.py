@@ -16,7 +16,7 @@ import math
 
 
 class GraphEmbedding(object):
-    def __init__(self, lengths, graph_type,  window=None):
+    def __init__(self, lengths, graph_type, tmpFileName=None,  window=None):
         self._window = window
 #        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
@@ -26,16 +26,18 @@ class GraphEmbedding(object):
             self._vertexWithFootAtOrigin = 7
             self.constructEquations = self.constructEquations_max7vertices
             self._numAllSolutions = 48
-        if graph_type == 'Max6vertices':
+        elif graph_type == 'Max6vertices':
             self._fixedTriangle_vertices = [2, 3, 1]
             self._vertexWithFootAtOrigin = 4
             self.constructEquations = self.constructEquations_max6vertices
             self._numAllSolutions = 16
         else:
             raise ValueError('Type %s not supported' % graph_type)
-        hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
-        self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
-        
+        if tmpFileName==None:
+            hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
+            self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
+        else:
+            self._fileNamePref = graph_type+'_'+str(tmpFileName)
         self.setLengths(lengths)    
 
     def setLengths(self, lengths):
@@ -93,7 +95,7 @@ class GraphEmbedding(object):
         if cos_alpha>=-1 and cos_alpha<=1:
             return [Lvw*math.sin(math.acos(cos_alpha)), cos_alpha*Lvw]
         else:
-            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+'with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
+            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+' with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
     
     def coordinatesOfTriangle(self, u, v, w, yshift=0):
         '''Returns coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u'''
@@ -239,9 +241,12 @@ class GraphEmbedding(object):
 #        X1, Y1, _ = self._fixedTriangle[2]
 #        _, Y2, _ = self._fixedTriangle[0]
 #        _, Y3, _ = self._fixedTriangle[1]
-#        
-        yshift = -self.getAltitudeAndFoot(3, 2, 7)[1]
-        v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        try:
+            yshift = -self.getAltitudeAndFoot(3, 2, 7)[1]
+            v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        except:
+            raise TriangleInequalityError('Triangle inequality violated!')
+        
         X1, Y1, _ = v1
         _, Y2, _ = v2
         _, Y3, _ = v3
@@ -283,8 +288,11 @@ class GraphEmbedding(object):
         L15 = self.getEdgeLength(1, 5)
         L26 = self.getEdgeLength(2, 6)
 #        
-        yshift = -self.getAltitudeAndFoot(3, 2, 4)[1]
-        v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        try:
+            yshift = -self.getAltitudeAndFoot(3, 2, 4)[1]
+            v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+        except:
+            raise TriangleInequalityError('Triangle inequality violated!')
         X1, Y1, _ = v1
         _, Y2, _ = v2
         _, Y3, _ = v3
@@ -303,3 +311,7 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
+
+class TriangleInequalityError(ValueError):
+    def __init__(self, errorMsg):
+        super(TriangleInequalityError, self).__init__(errorMsg)

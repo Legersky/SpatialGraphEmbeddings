@@ -43,7 +43,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         self._V6fromPHC = []
 #        self._log = ''
 #        self.setRequiresRecomputing()
-        self.setActiveGraph(GraphCouplerCurve(window=self))
+        self.setActiveGraph(GraphCouplerCurve( window=self))
         self.init_widgets()
         self.init_mpl()
 #        self.init_data()
@@ -635,12 +635,16 @@ class MplWindow(UI_MainWindow, MainWindow):
 
         self.canvas.draw()
 
-    def printLog(self,s, verbose=0):
+    def printLog(self,s, verbose=0, newLine=True):
 #        self._log += s +'\n'
 #        self.plainTextEdit.setPlainText(self._log)
         if verbose<=self.verbose:
-            self.plainTextEdit.appendPlainText(str(s))
-            print s
+            if newLine:
+                print s
+                self.plainTextEdit.appendPlainText(str(s))
+            else:
+                print s,
+                self.plainTextEdit.insertPlainText(str(s))
         self.plainTextEdit.moveCursor(QTextCursor.End)
         self.plainTextEdit.ensureCursorVisible()
         QApplication.processEvents()
@@ -905,7 +909,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         while n<48 and (not self.interrupt.checkState() or first):
             first = False
             self.printLog('Sampling phi and theta')
-            alg = AlgRealEmbeddings(self.graph.getLengths(), 'Max7vertices', window=self)
+            alg = AlgRealEmbeddings('Max7vertices', window=self)
             alg.runSamplingPhiTheta(self.graph.getLengths(),
                                     self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
                                     self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
@@ -918,13 +922,11 @@ class MplWindow(UI_MainWindow, MainWindow):
     def findMoreEmbeddings(self):
         self.computeCouplerCurves()
         self.printLog('Searching more embeddings:')
-        prev_max = self.runPHC()
-        alg = AlgRealEmbeddings(self.graph.getLengths(), 'Max7vertices', window=self)
+        alg = AlgRealEmbeddings('Max7vertices', window=self, name=self.lineEditName.text())
         alg.findMoreEmbeddings(self.graph.getLengths(), 
                                self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
-                               self._possibleParametrizedVertices.values(), 
-                               prev_max, 
-                               name=self.lineEditName.text())
+                               self._possibleParametrizedVertices.values(),
+                               )
         
         if not self.interrupt.checkState():
             self.printLog('Rotating:')

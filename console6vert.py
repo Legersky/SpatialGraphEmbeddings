@@ -13,6 +13,8 @@ v1, v2, v3, v4, v5, v6 =[
                         [1.00000000000000, 1.10000000000000, 0]
                          ]
 
+
+
 def dist( u, v):
     return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
     
@@ -29,31 +31,20 @@ lengths = {(1, 2) : dist(v1,v2),
             (1, 5) : dist(v1,v5), 
             (2, 6) : dist(v2,v6)}
 
-#G = GraphEmbedding(lengths, 'Max6vertices')
-##sols = G.findEmbeddings()
-##print len(sols['real'])
-#
-#
-#syst = G.getEquations()
-#
-#start = time.time()
-#
-#sols = solve(syst,tasks=2)
-#result_real = []
-#result_complex = []
-#
-#for sol in sols:
-#    soldic = strsol2dict(sol)
-#    if is_real(sol, 1.0e-8):
-#        result_real.append(soldic)
-#    else:
-#        result_complex.append(soldic)
-#            
-#end = time.time()
-#print len(result_real)
-#
-#print 'time: ',(end - start)
 
+
+#lengths = {(1, 2): 0.500000000000000,
+# (1, 3): 2.57956626232203,
+# (1, 5): 3.688024581966244,
+# (1, 6): 1.077032961426901,
+# (2, 3): 2.100000000000001,
+# (2, 4): 1.726849688322423,
+# (2, 6): 1.00498756211209,
+# (3, 4): 2.800000000000002,
+# (3, 5): 3.076949318462398,
+# (4, 5): 4.16000000000000,
+# (4, 6): 2.70000000000000,
+# (5, 6): 3.50000000000000}
 
 possibleParametrizedVertices = {'[2, 1, 6, 3, 4]': [2, 1, 6, 3, 4],
                              '[2, 3, 1, 4, 6]': [2, 3, 1, 4, 6],
@@ -73,16 +64,11 @@ possibleParametrizedVertices = {'[2, 1, 6, 3, 4]': [2, 1, 6, 3, 4],
                              '[6, 5, 1, 4, 2]': [6, 5, 1, 4, 2]}
 
 
-
-
-alg = AlgRealEmbeddings(lengths, 'Max6vertices')
+alg = AlgRealEmbeddings('Max6vertices', name='6vert')
 alg.findMoreEmbeddings(lengths, 
                        20, 20, 
                        possibleParametrizedVertices.values(), 
-                       0, 
-                       name='6vert')
-
-
+                       onlyOne=False)
 
 
 
