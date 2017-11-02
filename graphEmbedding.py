@@ -64,7 +64,7 @@ class GraphEmbedding(object):
                 return float(self._lengths[(v, u)])
     
     def setEdgeLength(self, Luv, u, v):
-        if Luv<=1e-8:
+        if Luv<=0:
             raise ValueError('Length of '+str([u, v])+' cannot be set to '+str(Luv))
         if Luv>1e6:
             self._window.showError('Length'+str(Luv)+ ' of '+str([u, v])+' is too big')

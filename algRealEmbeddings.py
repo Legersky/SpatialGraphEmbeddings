@@ -13,13 +13,18 @@ from graphEmbedding import *
 from graphCouplerCurve import *
 
 class AlgRealEmbeddings(object):
-    def __init__(self, graph_type, window=None, name=None):
+    def __init__(self, graph_type, num_phi=20, num_theta=20, window=None, name=None):
         self._window = window
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
             self._numAllSol = 48
+            self._combinations = [[5, 6, 1, 7, 4], [4, 5, 1, 7, 3], [5, 7, 4, 6, 1], [2, 6, 1, 7, 3], [2, 7, 6, 3, 1], [3, 1, 2, 4, 7], [4, 1, 3, 5, 7],
+                                  [5, 4, 1, 7, 6], [4, 3, 1, 7, 5], [6, 7, 5, 2, 1], [4, 7, 3, 5, 1], [5, 1, 4, 6, 7], [3, 4, 1, 7, 2], [2, 1, 6, 3, 7],
+                                  [6, 5, 1, 7, 2], [3, 2, 1, 7, 4], [2, 3, 1, 7, 6], [6, 2, 1, 7, 5], [6, 1, 5, 2, 7], [3, 7, 2, 4, 1]]
         elif graph_type == 'Max6vertices':
             self._numAllSol = 16
+            self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
+                                  [6, 5, 1, 4, 2], [2, 3, 1, 4, 6], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 4, 2, 5, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4], [2, 1, 6, 3, 4]]
         else:
             raise ValueError('Type %s not supported' % graph_type)
         
@@ -28,6 +33,9 @@ class AlgRealEmbeddings(object):
             self._fileNamePref = name+'_'+str(hash_object.hexdigest())[0:8]
         else:
             self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())[0:8]
+        
+        self._num_phi = num_phi
+        self._num_theta = num_theta
         
         self.verbose = 1
 
@@ -95,7 +103,7 @@ class AlgRealEmbeddings(object):
                 starting_graph.setPhiTheta(uvwpc, phi, theta)
                 eqs.append(str(starting_graph.getEquations()))
                 phiThetas.append([phi, theta])
-            except TriangleInequalityError:
+            except ValueError:
                 pass
 #            num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
             
@@ -186,10 +194,17 @@ class AlgRealEmbeddings(object):
                 solutions.append(phiThetas[i]+ [num_real])              
         return solutions
     
-    def computeSamplingPhiTheta(self, starting_lengths, num_phi, num_theta, uvwpc):
-        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
-        
+    def sampleToGetMoreEmbd(self, starting_lengths, uvwpc):
         start = time.time()
+        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc)
+        res = self.clusterPhiTheta(argmax, maximum, starting_graph, uvwpc)
+        
+        end = time.time()
+        self.printLog('time: '+str(end - start))
+        return res
+        
+    def computeSamplingPhiTheta(self, starting_graph, uvwpc):        
         act_num = len(starting_graph.findEmbeddings()['real'])
         act_phi, act_theta = starting_graph.getPhiTheta(uvwpc)
        
@@ -198,24 +213,22 @@ class AlgRealEmbeddings(object):
         l_phi,  r_phi = -math.pi/2.0 + margin, math.pi/2.0 - margin
         l_theta, r_theta = 0 + margin/2.0, math.pi - margin/2.0
         
-        sols = self.runSamplingPhiThetaWithMargins(starting_graph, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, uvwpc, treshold=act_num)
+        sols = self.runSamplingPhiThetaWithMargins(starting_graph, self._num_phi, self._num_theta,  l_phi,  r_phi, l_theta,  r_theta, uvwpc, treshold=act_num)
         sols.append([act_phi, act_theta, act_num])
-        end = time.time()
-        self.printLog('\n time 1st round: '+str(end - start))
-        self.printLog('Maximum number of embeddings in 1st round:')
 
+        self.printLog('Maximum number of embeddings in 1st round:')
         maximum = max([num for phi, theta, num in sols])
         self.printLog(str(maximum))
         max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]
         
-        step_phi = (r_phi-l_phi)/float(2*num_phi)
-        step_theta = (r_theta-l_theta)/float(2*num_theta)
+        step_phi = (r_phi-l_phi)/float(2*self._num_phi)
+        step_theta = (r_theta-l_theta)/float(2*self._num_theta)
         argmax = []
         
         for phi, theta, num in max_positions:
             if num>=maximum:
                 argmax.append([phi, theta])
-            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(starting_graph, num_phi/4, num_theta/4,
+            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(starting_graph, self._num_phi/4, self._num_theta/4,
                                                                           phi - step_phi,  phi + step_phi,
                                                                           theta - step_theta,  theta + step_theta, uvwpc, 
                                                                           treshold=maximum):
@@ -228,6 +241,9 @@ class AlgRealEmbeddings(object):
                     argmax.append([phi2, theta2])
                     self.printLog(str(num2), verbose=2)
         
+        return argmax, maximum
+        
+    def clusterPhiTheta(self, argmax, maximum, starting_graph, uvwpc):
         if len(argmax)==1:
             clusters = [argmax]
         else:
@@ -237,7 +253,7 @@ class AlgRealEmbeddings(object):
                 labels = DBSCAN(eps=eps).fit_predict(argmax)
                 if len([1 for el in labels if el==-1])>len(labels)/10:
                     eps += 0.05
-                    self.printLog('Increasing eps for clustering')
+                    self.printLog('Increasing eps for clustering', 2)
                 else:
                     break
                 if i==99:
@@ -249,9 +265,7 @@ class AlgRealEmbeddings(object):
             for label, point in zip(labels, argmax):
                 if label>=0:
                     clusters[label].append(point)
-        
-#        print clusters
-        
+
         res_lengths= []
         res_infos = []
         centers = []
@@ -267,7 +281,10 @@ class AlgRealEmbeddings(object):
                 s_y += y
             phi_c, theta_c = s_x/float(len(cluster)), s_y/float(len(cluster))
             starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
-            n = len(starting_graph.findEmbeddings()['real'])
+            try:
+                n = len(starting_graph.findEmbeddings()['real'])
+            except TriangleInequalityError:
+                n = 0
             if n < maximum:
                 min_dist = dist_angle([phi_c, theta_c], cluster[0])
                 phi_tmp = cluster[0][0]
@@ -287,34 +304,21 @@ class AlgRealEmbeddings(object):
             
             res_lengths.append(copy.copy(starting_graph.getLengths()))
             res_infos.append(str([phi_c, theta_c]) + '\n embeddings: '+str(maximum))
-        
-#        if maximum<act_num:
-#            res_lengths= [lengths]
-#            self.printLog('original kept:\n'+str([act_phi, act_theta]))
-#            res_infos = ['original kept:\n'+str([act_phi, act_theta])]
-#            centers = [[act_phi, act_theta]]
-#            maximum = act_num
-
-        end = time.time()
         self.printLog('Maximum number of embeddings:')
         self.printLog(str(maximum))
-
-        self.printLog('time: '+str(end - start))
         
         return [clusters, centers, res_lengths, res_infos, maximum]
 
-    def runSamplingPhiTheta(self, starting_lengths, num_phi, num_theta, uvwpc):
-        [clusters, centers, res_lengths, res_infos, maximum] = self.computeSamplingPhiTheta(starting_lengths, num_phi, num_theta, uvwpc)        
+    def runSamplingPhiTheta(self, starting_lengths, uvwpc):
+        [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(starting_lengths, uvwpc)        
         if self._window:
             self._window.showClusters(clusters, centers)
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
         return [clusters, centers, res_lengths, res_infos, maximum]
 
-    def findMoreEmbeddings(self, starting_lengths, num_phi, num_theta, combinations,  required_num=None, onlyOne=True):
+    def findMoreEmbeddings(self, starting_lengths, required_num=None, onlyOne=True):
         self._max_found = False
-        self._num_phi = num_phi
-        self._num_theta = num_theta
-        self._combinations = combinations
+
         if required_num==None:
             self._required_num = self._numAllSol
         else:
@@ -325,7 +329,7 @@ class AlgRealEmbeddings(object):
         G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref)
         sols = G.findEmbeddings()
         self._actMaximum = len(sols['real'])
-        
+        fromStr = 'from_'+str(self._actMaximum)
         self.printLog('Finding more embeddings')
         self.printLog('File name: '+self._fileNamePref+'\nStarting lengths:')
         self.printLog(starting_lengths)
@@ -335,32 +339,23 @@ class AlgRealEmbeddings(object):
         previous_lengths = [copy.copy(starting_lengths)]
         self.findMoreEmbeddings_recursion(starting_lengths, previous_steps, previous_lengths, self._actMaximum)
         
-        outputFilename = './res/'+str(self._actMaximum)+'_embd_'+self._fileNamePref+'.txt'
+        outputFilename = './res/'+str(self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
         os.rename('./res/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
         
         self.printLog('Reached maximums are in:')
         self.printLog(outputFilename)
-#        report  = ['Reached maximum: ', self._actMaximum, 'Steps and lengths:', self._reachedMaxs]
-#        for r in report:
-#            self.printLog(r)                                                
-#        if self._window:
-#            self._window.showDialog(report)
-    
-#        fileName = './res/'+self._fileNamePref+'_'+str(self._actMaximum)+'_embd_.p'
-#        self.printLog('Results saved to: '+fileName)
-#        pickle.dump([self._actMaximum, self._reachedMaxs], open(fileName, 'wb'))
 
     def findMoreEmbeddings_recursion(self, starting_lengths, previous_steps, previous_lengths, prev_max):
         for uvwpc in self._combinations:
             if previous_steps[-1][0] != uvwpc and not self._max_found:
-                self.printLog('File name: '+self._fileNamePref)
+                self.printLog('Working file name: '+self._fileNamePref+'_intermediateResults.txt')
                 self.printLog('Reached maximum: '+str(self._actMaximum))
                 self.printLog('Previous steps: '+str(previous_steps[1:]))
                 self.printLog('Actual step: ' + str(uvwpc))
 
                 
                 lengths_tmp = copy.copy(starting_lengths)
-                [clusters, centers, res_lengths, res_infos, maximum] = self.computeSamplingPhiTheta(lengths_tmp, self._num_phi, self._num_theta, uvwpc)
+                [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(lengths_tmp, uvwpc)
 
                 cl = 0                
                 for lengths in res_lengths:
@@ -370,13 +365,11 @@ class AlgRealEmbeddings(object):
                         all_lengths = previous_lengths + [copy.copy(lengths)]
                         
                         if maximum>self._actMaximum:
-#                            self._reachedMaxs = []
                             self._actMaximum = maximum
                             with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'w') as f:
                                 f.write('')
                         
                         if maximum==self._actMaximum:
-#                            self._reachedMaxs.append([steps, all_lengths])
                             with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'a') as f:
                                 report  = [
                                         str(maximum)+'\n', 
@@ -414,6 +407,37 @@ class AlgRealEmbeddings(object):
                             if self._window:
                                 self._window.showDialog(report)
                             self.findMoreEmbeddings_recursion(lengths, steps, all_lengths, maximum)
+
+    def findAllMaximumByOneIteration(self, starting_lengths):
+        fileName = './res/'+self._fileNamePref+'.txt'
+        self.printLog('Applying all possible subgraphs parametrizations to')
+        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        sols = starting_graph.findEmbeddings()
+        reached_max = len(sols['real'])       
+        self.printLog(starting_lengths)
+        self.printLog('with '+str(reached_max)+ ' embeddings\n')
+        self.printLog('Working file:')
+        self.printLog(fileName)
+        
+        for uvwpc in self._combinations:
+            starting_graph.setLengths(starting_lengths)
+            [argmax, maximum] = self.computeSamplingPhiTheta(starting_graph, uvwpc)
+            if maximum>reached_max:
+                reached_max = maximum
+                with open(fileName, 'w') as f:
+                    f.write('')
+                    
+            if maximum==reached_max:
+                with open(fileName, 'a') as f:
+                    for phi, theta in argmax:
+                        starting_graph.setPhiTheta(uvwpc, phi, theta)
+                        f.write(str(starting_graph.getLengths())+'\n')
+        
+        os.rename(fileName, './res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
+        self.printLog('Result saved to:')
+        self.printLog('./res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
+        
+
 
     def printLog(self, s, verbose=0, newLine=True):
         if verbose<=self.verbose:

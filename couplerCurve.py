@@ -922,11 +922,8 @@ class MplWindow(UI_MainWindow, MainWindow):
     def findMoreEmbeddings(self):
         self.computeCouplerCurves()
         self.printLog('Searching more embeddings:')
-        alg = AlgRealEmbeddings('Max7vertices', window=self, name=self.lineEditName.text())
-        alg.findMoreEmbeddings(self.graph.getLengths(), 
-                               self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
-                               self._possibleParametrizedVertices.values(),
-                               )
+        alg = AlgRealEmbeddings('Max7vertices', window=self, num_phi=self.spinBoxSamplesPhi.value(), num_theta=self.spinBoxSamplesTheta.value(), name=self.lineEditName.text())
+        alg.findMoreEmbeddings(self.graph.getLengths())
         
         if not self.interrupt.checkState():
             self.printLog('Rotating:')
