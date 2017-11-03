@@ -18,8 +18,8 @@ lengths = {'12': 1.99993774567597,
 
 
 alg = AlgRealEmbeddings('Max7vertices', name='7vert')
-alg.findMoreEmbeddings(lengths, onlyOne=False)
-
+#alg.findMoreEmbeddings_tree(lengths, onlyOne=False)
+alg.findMoreEmbeddings(lengths)
 
 #lengths_48 = {(1, 2): 1.99993774567597,
 #                 (1, 3): 1.934705447796130,

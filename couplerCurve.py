@@ -909,9 +909,8 @@ class MplWindow(UI_MainWindow, MainWindow):
         while n<48 and (not self.interrupt.checkState() or first):
             first = False
             self.printLog('Sampling phi and theta')
-            alg = AlgRealEmbeddings('Max7vertices', window=self)
+            alg = AlgRealEmbeddings('Max7vertices', numm_phi=self.spinBoxSamplesPhi.value(), num_theta=self.spinBoxSamplesTheta.value(), window=self)
             alg.runSamplingPhiTheta(self.graph.getLengths(),
-                                    self.spinBoxSamplesPhi.value(), self.spinBoxSamplesTheta.value(), 
                                     self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
             self.printLog('Sampling finished, see sequence')
             

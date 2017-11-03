@@ -43,7 +43,7 @@ def findEmbeddings(syst):
             i += 1
 #            print 'PHC failed, trying again: '+str(i)
         if i>=3:
-#            print 'PHC failed 10 times'
+            print 'PHC failed 10 times'
             return -1
 
 res = []

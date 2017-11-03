@@ -1,7 +1,7 @@
 import time
 import math
 import copy
-import pickle
+#import pickle
 from sklearn.cluster import DBSCAN
 import hashlib
 import sys
@@ -26,8 +26,10 @@ class AlgRealEmbeddings(object):
 #                                  [6, 5, 1, 7, 2], [3, 2, 1, 7, 4], [2, 3, 1, 7, 6], [6, 2, 1, 7, 5], [6, 1, 5, 2, 7], [3, 7, 2, 4, 1]]
         elif graph_type == 'Max6vertices':
             self._numAllSol = 16
-            self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
-                                  [6, 5, 1, 4, 2], [2, 3, 1, 4, 6], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 4, 2, 5, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4], [2, 1, 6, 3, 4]]
+            self._combinations =  [[2, 6, 1, 4, 3], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [2, 1, 6, 3, 4], [5, 6, 1, 4, 3], [2, 4, 6, 3, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4],
+                                   [6, 5, 1, 4, 2], [3, 4, 2, 5, 1], [2, 3, 1, 4, 6], [5, 1, 3, 6, 4], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 2, 1, 4, 5], [6, 1, 5, 2, 4]]
+#            self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
+#                                  [6, 5, 1, 4, 2], [2, 3, 1, 4, 6], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 4, 2, 5, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4], [2, 1, 6, 3, 4]]
         else:
             raise ValueError('Type %s not supported' % graph_type)
         
@@ -199,7 +201,7 @@ class AlgRealEmbeddings(object):
     
     def sampleToGetMoreEmbd(self, starting_lengths, uvwpc):
         start = time.time()
-        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
         argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc)
         res = self.clusterPhiTheta(argmax, maximum, starting_graph, uvwpc)
         
@@ -286,12 +288,12 @@ class AlgRealEmbeddings(object):
             starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
             try:
                 n = len(starting_graph.findEmbeddings()['real'])
-            except TriangleInequalityError:
+            except ValueError:
                 n = 0
-            if n < maximum:
-                min_dist = dist_angle([phi_c, theta_c], cluster[0])
+            if n < maximum or n==0:
                 phi_tmp = cluster[0][0]
                 theta_tmp = cluster[0][1]
+                min_dist = dist_angle([phi_c, theta_c], [phi_tmp,  theta_tmp])
                 for x, y in cluster:
                     d = dist_angle([phi_c, theta_c], [x, y])
                     if d < min_dist:
@@ -301,10 +303,10 @@ class AlgRealEmbeddings(object):
                 self.printLog('Center of cluster does not have maximum number of solutions \n -> nearest point chosen instead.')
                 phi_c = phi_tmp
                 theta_c = theta_tmp
-                starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
+                
 
             centers.append([phi_c, theta_c])
-            
+            starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
             res_lengths.append(copy.copy(starting_graph.getLengths()))
             res_infos.append(str([phi_c, theta_c]) + '\n embeddings: '+str(maximum))
         self.printLog('Maximum number of embeddings:')
@@ -319,7 +321,7 @@ class AlgRealEmbeddings(object):
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
         return [clusters, centers, res_lengths, res_infos, maximum]
 
-    def findMoreEmbeddings(self, starting_lengths, required_num=None, onlyOne=True):
+    def findMoreEmbeddings_tree(self, starting_lengths, required_num=None, onlyOne=True):
         self._max_found = False
 
         if required_num==None:
@@ -333,7 +335,7 @@ class AlgRealEmbeddings(object):
         sols = G.findEmbeddings()
         self._actMaximum = len(sols['real'])
         fromStr = 'from_'+str(self._actMaximum)
-        self.printLog('Finding more embeddings')
+        self.printLog('Finding more embeddings - tree search')
         self.printLog('File name: '+self._fileNamePref+'\nStarting lengths:')
         self.printLog(starting_lengths)
         self.printLog(str(self._actMaximum)+ ' embeddings\n\n')
@@ -402,7 +404,6 @@ class AlgRealEmbeddings(object):
                                 self._max_found = True
                         
                         elif maximum>prev_max:
-                            prev_max = maximum
                             report  = [
                                         'MAXIMUM INCREASED to '+str(maximum), 
                                         'Applied steps:',
@@ -444,7 +445,96 @@ class AlgRealEmbeddings(object):
         os.rename(fileName, './res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
         self.printLog('Result saved to:')
         self.printLog('./res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
+
+    def findMoreEmbeddings(self, starting_lengths, required_num=None):
+        if required_num==None:
+            required_num = self._numAllSol
         
+        G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref)
+        sols = G.findEmbeddings()
+        actMaximum = len(sols['real'])
+        fromStr = 'from_'+str(actMaximum)
+        
+        
+        self.printLog('Finding more embeddings - linear')
+        self.printLog('File name: '+self._fileNamePref+'\nStarting lengths:')
+        self.printLog(starting_lengths)
+        self.printLog(str(actMaximum)+ ' embeddings\n\n')
+        
+        N = len(self._combinations)
+       
+        lens_to_check = [[[copy.copy(starting_lengths)], 0, actMaximum]]
+        maxSaved = actMaximum
+
+        found = False
+        while lens_to_check and not found:
+            lengths_seq, comb_counter, embds = lens_to_check.pop()
+            lengths = copy.copy(lengths_seq[-1])
+            num_not_changed = 0
+            prev_max = embds
+            while num_not_changed<N and not found:
+                uvwpc = self._combinations[comb_counter % N]
+                self.printLog('\nWorking file name: '+self._fileNamePref+'_intermediateResults.txt')
+                self.printLog('Reached maximum: '+str(actMaximum))
+                self.printLog('Iteration: '+str(comb_counter))
+                self.printLog('Actual step: ' + str(uvwpc))
+                [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc)
+                lengths = copy.copy(res_lengths[0])
+                lengths_seq.append(lengths)
+                
+                if maximum>actMaximum:
+                    actMaximum = maximum
+                    self.printLog('MAXIMUM INCREASED TO %d' % maximum)
+                    with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'w') as f:
+                        f.write('')
+                        
+                if maximum==actMaximum:
+                    with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'a') as f:
+                        report  = [
+                                str(maximum)+'\n', 
+                                str(comb_counter)+'iterations \n'
+                                 ]
+                        f.writelines(report)
+                        f.writelines([str(L)+'\n' for L in lengths_seq])
+                        f.write('\n')
+                        
+                if maximum == required_num:
+                    report  = [
+                                str(required_num)+' EMBEDDINGS FOUND:', 
+                                'Iterations:',
+                                comb_counter,
+                                'Lengths:',
+                                lengths
+                                 ]
+                    for r in report:
+                        self.printLog(r)                                                
+                    if self._window:
+                        self._window.showDialog(report)
+                    found = True
+                
+                if prev_max<maximum:
+                    num_not_changed = 0
+                else:
+                    num_not_changed += 1
+                prev_max = maximum
+                
+                comb_counter += 1
+#                for lens in res_lengths[1:]:
+#                    addLengths(maximum, lengths_seq[:-1], comb_counter)
+                for lens in res_lengths[1:]:
+                    if maximum>maxSaved:
+                        lens_to_check = []
+                        maxSaved = maximum
+                    if maximum==maxSaved:
+                        lens_to_check.append([copy.copy(lengths_seq[:-1]+[lens]), comb_counter, maximum])                    
+
+        
+        outputFilename = './res/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+        os.rename('./res/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
+        
+        self.printLog('Reached maximum is in:')
+        self.printLog(outputFilename)
+
 
 
     def printLog(self, s, verbose=0, newLine=True):

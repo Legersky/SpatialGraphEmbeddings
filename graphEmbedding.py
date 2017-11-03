@@ -164,7 +164,7 @@ class GraphEmbedding(object):
                 i += 1
                 self.printLog('PHC failed, trying again: '+str(i), verbose=1)
             if i>=10:
-                if errorMsg:
+                if self._window and errorMsg:
                     self._window.showError('PHC failed 10 times')
                 print 'PHC failed 10 times'
                 return {'real':[], 'complex':[]}
@@ -197,11 +197,13 @@ class GraphEmbedding(object):
     def getPhiTheta(self, uvwpc):      
         u, v, w, p, c = uvwpc
         
-        altitude_w = self.getAltitudeAndFoot(u, v, w)[0]
+        foot_u = self.getAltitudeAndFoot(v, u, w)[1]
+#        altitude_w = self.getAltitudeAndFoot(u, v, w)[0]
         Luw = self.getEdgeLength(u, w)
         Luc = self.getEdgeLength(u, c)
         Lcw = self.getEdgeLength(w, c)
-        return [math.acos(altitude_w/float(Luw)), math.acos((Luw**2+Lcw**2-Luc**2)/float(2*Luw*Lcw))]
+#        return [math.acos(altitude_w/float(Luw)), math.acos((Luw**2+Lcw**2-Luc**2)/float(2*Luw*Lcw))]
+        return [math.asin(foot_u/float(Luw)), math.acos((Luw**2+Lcw**2-Luc**2)/float(2*Luw*Lcw))]
 
     def getPhiTheta_old(self):
         v1, v2, v3 = self.coordinatesOfTriangle(1, 2, 3)
