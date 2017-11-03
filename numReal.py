@@ -8,10 +8,13 @@ from phcpy.solutions import strsol2dict, is_real
 #subprocess.Popen(['python', 'numReal.py', fileNameEqs, str(self._prevSystem), str(self._prevSolutions)])
 
 fileNamePref = sys.argv[1]
-prevSystem = ast.literal_eval(sys.argv[2])
-prevSolutions = ast.literal_eval(sys.argv[3])
-numAll = ast.literal_eval(sys.argv[4])
-
+filePrev = sys.argv[2]
+#prevSystem = ast.literal_eval(sys.argv[2])
+#prevSolutions = ast.literal_eval(sys.argv[3])
+#numAll = ast.literal_eval(sys.argv[4])
+with open(filePrev, 'r') as fPrev:
+    prevSystem, prevSolutions, numAll = [ast.literal_eval(line) for line in fPrev]
+    
 usePrev = True
 tolerance = 1.0e-8
  
@@ -34,7 +37,7 @@ def findEmbeddings(syst):
         
         num_real = len(result_real)
         
-        if num_real%4==0 and len(sols)==numAll:
+        if num_real%4==0:    # and len(sols)==numAll:
             prevSystem = syst
             prevSolutions = sols
             return num_real
@@ -43,7 +46,7 @@ def findEmbeddings(syst):
             i += 1
 #            print 'PHC failed, trying again: '+str(i)
         if i>=3:
-            print 'PHC failed 10 times'
+            print 'PHC failed 3 times'
             return -1
 
 res = []

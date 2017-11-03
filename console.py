@@ -16,10 +16,15 @@ lengths = {'12': 1.99993774567597,
                          '57': 10.53627365999783,
                          '67': 10.53647884635266}
 
-
-alg = AlgRealEmbeddings('Max7vertices', name='7vert')
+L48 = {(1, 2): 4.386290254987836, (2, 7): 11.232184203672034, (4, 7): 10.53572330314948, (2, 6): 3.9339443719412293, (6, 7): 10.524651892285146, (5, 6): 0.5264150074538269, (5, 7): 10.53627365999783, (1, 4): 2.003436460984393, (1, 5): 2.00289249524296, (1, 3): 7.313166095425311, (1, 6): 1.9387341135890943, (4, 5): 1.001530148504854, (3, 7): 12.677349678708367, (3, 4): 7.531555561165634, (2, 3): 8.669332474798372}
+G = GraphEmbedding(L48, 'Max7vertices')
+sols = G.findEmbeddings()['real']
+print len(sols)
+print sols[0]
+print G._fixedTriangle
+#alg = AlgRealEmbeddings('Max7vertices', name='7vert')
 #alg.findMoreEmbeddings_tree(lengths, onlyOne=False)
-alg.findMoreEmbeddings(lengths)
+#alg.findMoreEmbeddings(lengths)
 
 #lengths_48 = {(1, 2): 1.99993774567597,
 #                 (1, 3): 1.934705447796130,

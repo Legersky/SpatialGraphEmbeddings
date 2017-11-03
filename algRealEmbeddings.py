@@ -30,6 +30,10 @@ class AlgRealEmbeddings(object):
                                    [6, 5, 1, 4, 2], [3, 4, 2, 5, 1], [2, 3, 1, 4, 6], [5, 1, 3, 6, 4], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 2, 1, 4, 5], [6, 1, 5, 2, 4]]
 #            self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
 #                                  [6, 5, 1, 4, 2], [2, 3, 1, 4, 6], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 4, 2, 5, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4], [2, 1, 6, 3, 4]]
+        elif graph_type == 'Max8vertices':
+            self._numAllSol = 160
+            self._combinations = [[3, 7, 2, 4, 1], [6, 8, 2, 5, 1], [4, 5, 1, 7, 3], [8, 7, 2, 5, 6], [4, 3, 1, 7, 5], [6, 2, 1, 8, 5], [3, 2, 1, 7, 4], [8, 5, 7, 6, 2], 
+                                  [4, 1, 3, 5, 7], [6, 5, 1, 8, 2], [3, 1, 2, 4, 7], [8, 2, 7, 6, 5], [4, 7, 3, 5, 1], [6, 1, 2, 5, 8], [3, 4, 1, 7, 2], [8, 6, 2, 5, 7]]
         else:
             raise ValueError('Type %s not supported' % graph_type)
         
@@ -41,6 +45,8 @@ class AlgRealEmbeddings(object):
         
         self._num_phi = num_phi
         self._num_theta = num_theta
+        self._num_phi_second = num_phi/8
+        self._num_theta_second = num_theta/8
         
         self.verbose = 1
 
@@ -120,18 +126,24 @@ class AlgRealEmbeddings(object):
                 graphCouplerCurve.computeIntersections()
                 self._window.plotScene()
         
-        filenameTmp = 'tmp/'+self._fileNamePref
-        N = len(eqs)/2
         
+        
+        filenameTmp = 'tmp/'+self._fileNamePref
+        with open(filenameTmp+'_prev.txt', 'w') as filePrev:
+            filePrev.write(str(starting_graph._prevSystem)+'\n')
+            filePrev.write(str(starting_graph._prevSolutions)+'\n')
+            filePrev.write(str(self._numAllSol)+'\n')
+        
+        N = len(eqs)/2
         with open(filenameTmp+'_1_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[0:N]))
         
-        process_1 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_1_', str(starting_graph._prevSystem), str(starting_graph._prevSolutions), str(self._numAllSol)])
+        process_1 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_1_', filenameTmp+'_prev.txt'])
         
         with open(filenameTmp+'_2_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[N:]))
         
-        process_2 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_2_', str(starting_graph._prevSystem), str(starting_graph._prevSolutions), str(self._numAllSol)])
+        process_2 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_2_', filenameTmp+'_prev.txt'])
          
         
         process_1.wait()
@@ -184,7 +196,13 @@ class AlgRealEmbeddings(object):
         with open('tmp/'+self._fileNamePref+'eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs))
         
-        process = subprocess.Popen(['python', 'numReal.py', 'tmp/'+self._fileNamePref, str(starting_graph._prevSystem), str(starting_graph._prevSolutions), str(self._numAllSol)])
+        filenameTmp = 'tmp/'+self._fileNamePref
+        with open(filenameTmp+'_prev.txt', 'w') as filePrev:
+            filePrev.write(str(starting_graph._prevSystem)+'\n')
+            filePrev.write(str(starting_graph._prevSolutions)+'\n')
+            filePrev.write(str(self._numAllSol)+'\n')
+            
+        process = subprocess.Popen(['python', 'numReal.py', 'tmp/'+self._fileNamePref, filenameTmp+'_prev.txt'])
         process.wait()
         
         with open('tmp/'+self._fileNamePref+'numReal.txt','r') as file:
@@ -233,7 +251,7 @@ class AlgRealEmbeddings(object):
         for phi, theta, num in max_positions:
             if num>=maximum:
                 argmax.append([phi, theta])
-            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(starting_graph, self._num_phi/4, self._num_theta/4,
+            for phi2, theta2, num2 in self.runSamplingPhiThetaWithMargins(starting_graph, self._num_phi_second, self._num_theta_second,
                                                                           phi - step_phi,  phi + step_phi,
                                                                           theta - step_theta,  theta + step_theta, uvwpc, 
                                                                           treshold=maximum):
@@ -526,7 +544,8 @@ class AlgRealEmbeddings(object):
                         lens_to_check = []
                         maxSaved = maximum
                     if maximum==maxSaved:
-                        lens_to_check.append([copy.copy(lengths_seq[:-1]+[lens]), comb_counter, maximum])                    
+                        lens_to_check.append([copy.copy(lengths_seq[:-1]+[lens]), comb_counter, maximum]) 
+                self.printLog('Number of lengths in stack: %d' % len(lens_to_check))
 
         
         outputFilename = './res/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'

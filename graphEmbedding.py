@@ -31,6 +31,11 @@ class GraphEmbedding(object):
             self._vertexWithFootAtOrigin = 4
             self.constructEquations = self.constructEquations_max6vertices
             self._numAllSolutions = 16
+        elif graph_type == 'Max8vertices':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = None
+            self.constructEquations = self.constructEquations_max8vertices
+            self._numAllSolutions = 160
         else:
             raise ValueError('Type %s not supported' % graph_type)
         if tmpFileName==None:
@@ -132,7 +137,12 @@ class GraphEmbedding(object):
         i = 0
         while True:
             if self._prevSystem and usePrev:
-                process = subprocess.Popen(['python','track.py', str(syst), str(self._prevSystem), str(self._prevSolutions), self._fileNamePref])
+                filenameTmp = 'tmp/'+self._fileNamePref+'_prev.txt'
+                with open(filenameTmp, 'w') as filePrev:
+                    filePrev.write(str(self._prevSystem)+'\n')
+                    filePrev.write(str(self._prevSolutions)+'\n')
+                    
+                process = subprocess.Popen(['python','track.py', str(syst), filenameTmp, self._fileNamePref])
                 process.wait()
                 file = open('tmp/'+self._fileNamePref+'track.txt','r') 
                 solutions_str = file.read()
@@ -154,6 +164,9 @@ class GraphEmbedding(object):
                     result_real.append(soldic)
                 else:
                     result_complex.append(soldic)
+            
+#            print len(result_real)
+#            print len(sols)
             
             if len(result_real)%4==0 and len(sols)==self._numAllSolutions:
                 self._prevSystem = syst
@@ -270,6 +283,65 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
+
+    def constructEquations_max8vertices(self):
+        '''system with correct mixed volume'''        
+#        x1, y1, z1 = symbols('x1 y1 z1')
+#        x3, y3, z3 = symbols('x3 y3 z3')
+        x4, y4, z4 = symbols('x4 y4 z4')
+        x5, y5, z5 = symbols('x5 y5 z5')
+        x6, y6, z6 = symbols('x6 y6 z6')
+        x7, y7, z7 = symbols('x7 y7 z7')
+        x8, y8, z8 = symbols('x8 y8 z8')
+        
+        L12 = self.getEdgeLength('12')
+        L13 = self.getEdgeLength('13')
+        L14 = self.getEdgeLength('14')
+        L15 = self.getEdgeLength('15')
+        L16 = self.getEdgeLength('16')
+
+        L27 = self.getEdgeLength('27')
+        L37 = self.getEdgeLength('37')
+        L47 = self.getEdgeLength('47')
+        L57 = self.getEdgeLength('57')
+        
+        L28 = self.getEdgeLength('28')
+        L58 = self.getEdgeLength('58')
+        L68 = self.getEdgeLength('68')
+        L78 = self.getEdgeLength('78')
+        
+        L23 = self.getEdgeLength('23')
+        L34 = self.getEdgeLength('34')
+        L45 = self.getEdgeLength('45')
+        L56 = self.getEdgeLength('56')
+        L26 = self.getEdgeLength('26')
+        
+        y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        x1 = np.sqrt(L12**2  - y1**2 )
+        eqs = [
+#            L12**2 - x1**2 - y1**2 ,
+            -(L23 - y4)**2 + L34**2 - x4**2 - z4**2 ,
+            -L12**2 + L15**2 + 2*x1*x5 - x5**2 + 2*y1*y5 - y5**2 - z5**2 ,
+            L26**2 - x6**2 - y6**2 - z6**2 ,
+            L27**2 - x7**2 - y7**2 - z7**2 ,
+            L28**2 - x8**2 - y8**2 - z8**2 ,
+            L12**2 - L15**2 + L23**2 - L34**2 + L45**2 - 2*x1*x5 + 2*x4*x5 - 2*L23*y4 - 2*y1*y5 + 2*y4*y5 + 2*z4*z5 ,
+            -L12**2 + L16**2 - L26**2 + 2*x1*x6 + 2*y1*y6 ,
+            L12**2 - L15**2 - L26**2 + L56**2 - 2*x1*x5 + 2*x5*x6 - 2*y1*y5 + 2*y5*y6 + 2*z5*z6 ,
+            L12**2 - L15**2 - L28**2 + L58**2 - 2*x1*x5 + 2*x5*x8 - 2*y1*y5 + 2*y5*y8 + 2*z5*z8 ,
+            -L26**2 - L28**2 + L68**2 + 2*x6*x8 + 2*y6*y8 + 2*z6*z8 ,
+            -L12**2 + L14**2 + L23**2 - L34**2 + 2*x1*x4 - 2*L23*y4 + 2*y1*y4 ,
+#            -L12**2 + L13**2 - L23**2 + 2*L23*y1 ,
+            -L23**2 - L27**2 + L37**2 + 2*L23*y7 ,
+            L23**2 - L27**2 - L34**2 + L47**2 + 2*x4*x7 - 2*L23*y4 + 2*y4*y7 + 2*z4*z7 ,
+            L12**2 - L15**2 - L27**2 + L57**2 - 2*x1*x5 + 2*x5*x7 - 2*y1*y5 + 2*y5*y7 + 2*z5*z7 ,
+            -L27**2 - L28**2 + L78**2 + 2*x7*x8 + 2*y7*y8 + 2*z7*z8
+        ]
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
 
     def constructEquations_max6vertices(self):
         '''system with correct mixed volume'''        
