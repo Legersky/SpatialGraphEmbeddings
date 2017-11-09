@@ -21,6 +21,9 @@ class GraphEmbedding(object):
 #        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
         self._prevSolutions = None
+        
+        self._verbose = 1
+        
         if graph_type == 'Max7vertices':
             self._fixedTriangle_vertices = [2, 3, 1]
             self._vertexWithFootAtOrigin = 7
@@ -38,6 +41,7 @@ class GraphEmbedding(object):
             self._numAllSolutions = 160
         else:
             raise ValueError('Type %s not supported' % graph_type)
+        self._graph_type = graph_type
         if tmpFileName==None:
             hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
             self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
@@ -86,7 +90,8 @@ class GraphEmbedding(object):
         if self._window:
             self._window.printLog(str(s), verbose=verbose)
         else:
-            print s
+            if verbose<= self._verbose:
+                print s
 
     def getEquations(self):
         return self.constructEquations()
@@ -226,6 +231,40 @@ class GraphEmbedding(object):
         l12 = self.getEdgeLength(1, 2)
         l16 = self.getEdgeLength(1, 6)
         return [math.asin((y1-y2)/float(self.getEdgeLength(1, 2))), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
+
+    def getEmbedding(self):
+        sols = self.findEmbeddings()
+        sol = sols['real'][0]
+        if self._graph_type=='Max6vertices':
+            res = [[0, 0, 0] for i in range(0, 6)]
+            for k in sol:
+                if k[0]=='x':
+                    res[int(k[1])-1][0] = sol[k].real
+                if k[0]=='y':
+                    res[int(k[1])-1][1] = sol[k].real
+                if k[0]=='z':
+                    res[int(k[1])-1][2] = sol[k].real
+            yshift = -self.getAltitudeAndFoot(3, 2, 4)[1]
+            v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+            res[0] = v1
+            res[1] = v2
+            res[2] = v3
+            return res
+        if self._graph_type=='Max7vertices':
+            res = [[0, 0, 0] for i in range(0, 7)]
+            for k in sol:
+                if k[0]=='x':
+                    res[int(k[1])-1][0] = sol[k].real
+                if k[0]=='y':
+                    res[int(k[1])-1][1] = sol[k].real
+                if k[0]=='z':
+                    res[int(k[1])-1][2] = sol[k].real
+            yshift = -self.getAltitudeAndFoot(3, 2, 7)[1]
+            v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1, yshift)
+            res[0] = v1
+            res[1] = v2
+            res[2] = v3
+            return res
 
     def constructEquations_max7vertices(self):
         '''system with correct mixed volume'''        

@@ -13,11 +13,15 @@ from graphEmbedding import *
 from graphCouplerCurve import *
 
 class AlgRealEmbeddings(object):
-    def __init__(self, graph_type, num_phi=20, num_theta=20, window=None, name=None):
+    def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4,  window=None, name=None):
         self._window = window
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
             self._numAllSol = 48
+#            self._combinations = [[6, 1, 5, 2, 7], [6, 7, 5, 2, 1], [6, 5, 1, 7, 2], [6, 2, 1, 7, 5], [2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], 
+#                                  [3, 4, 1, 7, 2], [4, 3, 1, 7, 5],
+#                                  [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [2, 7, 6, 3, 1],
+#                                  [3, 1, 2, 4, 7], [5, 4, 1, 7, 6], [4, 7, 3, 5, 1], [2, 1, 6, 3, 7], [4, 5, 1, 7, 3]]
             self._combinations = [[2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], [6, 1, 5, 2, 7], [3, 4, 1, 7, 2], [6, 7, 5, 2, 1], [4, 3, 1, 7, 5],
                                   [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [6, 5, 1, 7, 2], [2, 7, 6, 3, 1],
                                   [3, 1, 2, 4, 7], [5, 4, 1, 7, 6], [4, 7, 3, 5, 1], [6, 2, 1, 7, 5], [2, 1, 6, 3, 7], [4, 5, 1, 7, 3]]
@@ -45,8 +49,8 @@ class AlgRealEmbeddings(object):
         
         self._num_phi = num_phi
         self._num_theta = num_theta
-        self._num_phi_second = num_phi/8
-        self._num_theta_second = num_theta/8
+        self._num_phi_second = num_phi/factor_second
+        self._num_theta_second = num_theta/factor_second
         
         self.verbose = 1
 
@@ -339,9 +343,11 @@ class AlgRealEmbeddings(object):
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
         return [clusters, centers, res_lengths, res_infos, maximum]
 
-    def findMoreEmbeddings_tree(self, starting_lengths, required_num=None, onlyOne=True):
+    def findMoreEmbeddings_tree(self, starting_lengths, required_num=None, onlyOne=True,  combinations=None):
         self._max_found = False
-
+        if combinations:
+            tmp_comb = copy.copy(self._combinations)
+            self._combinations = combinations
         if required_num==None:
             self._required_num = self._numAllSol
         else:
@@ -367,6 +373,9 @@ class AlgRealEmbeddings(object):
         
         self.printLog('Reached maximums are in:')
         self.printLog(outputFilename)
+        
+        if combinations:
+            self._combinations = tmp_comb
 
     def findMoreEmbeddings_recursion(self, starting_lengths, previous_steps, previous_lengths, prev_max):
         try:
@@ -406,7 +415,7 @@ class AlgRealEmbeddings(object):
                                          ]
                                 f.writelines(report)
                         
-                        if maximum == self._required_num:
+                        if maximum >= self._required_num:
                             report  = [
                                         str(self._required_num)+' EMBEDDINGS FOUND:', 
                                         'Applied steps:',
@@ -464,7 +473,7 @@ class AlgRealEmbeddings(object):
         self.printLog('Result saved to:')
         self.printLog('./res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
 
-    def findMoreEmbeddings(self, starting_lengths, required_num=None):
+    def findMoreEmbeddings(self, starting_lengths, required_num=None,  combinations=None,  allowed_repetition=1):
         if required_num==None:
             required_num = self._numAllSol
         
@@ -473,50 +482,65 @@ class AlgRealEmbeddings(object):
         actMaximum = len(sols['real'])
         fromStr = 'from_'+str(actMaximum)
         
-        
+        if combinations:
+            tmp_comb = copy.copy(self._combinations)
+            self._combinations = combinations
+    
         self.printLog('Finding more embeddings - linear')
         self.printLog('File name: '+self._fileNamePref+'\nStarting lengths:')
         self.printLog(starting_lengths)
         self.printLog(str(actMaximum)+ ' embeddings\n\n')
         
+        starting_lengths_str = str(starting_lengths)
+        with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'w') as f:
+            f.write('starting lengths:\n')
+            f.write(starting_lengths_str+'\n\n')
         N = len(self._combinations)
        
-        lens_to_check = [[[copy.copy(starting_lengths)], 0, actMaximum]]
+        lens_to_check = [[copy.copy(starting_lengths), 0, actMaximum, 0]]
         maxSaved = actMaximum
 
         found = False
         while lens_to_check and not found:
-            lengths_seq, comb_counter, embds = lens_to_check.pop()
-            lengths = copy.copy(lengths_seq[-1])
-            num_not_changed = 0
+            lengths, comb_counter, embds, num_not_changed = lens_to_check.pop()
+            self.printLog('\n---------------------------------------------------------------')
+            self.printLog('---------------------------------------------------------------')
+            self.printLog('New lengths poped from the stack.')
+#            lengths = copy.copy(lengths_seq)
             prev_max = embds
-            while num_not_changed<N and not found:
-                uvwpc = self._combinations[comb_counter % N]
-                self.printLog('\nWorking file name: '+self._fileNamePref+'_intermediateResults.txt')
-                self.printLog('Reached maximum: '+str(actMaximum))
-                self.printLog('Iteration: '+str(comb_counter))
-                self.printLog('Actual step: ' + str(uvwpc))
-                [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc)
-                lengths = copy.copy(res_lengths[0])
-                lengths_seq.append(lengths)
+            while num_not_changed<N*allowed_repetition and not found:
+                try:
+                    uvwpc = self._combinations[comb_counter % N]
+                    self.printLog('\nWorking file name: '+self._fileNamePref+'_intermediateResults.txt')
+                    self.printLog('Reached maximum: '+str(actMaximum))
+                    self.printLog('Iteration: '+str(comb_counter))
+                    self.printLog('Actual step: ' + str(uvwpc))
+                    [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc)
+                    lengths = copy.copy(res_lengths[0])
+                except ValueError as e:
+                    self.printLog(str(e))
+                    maximum = prev_max
+                    res_lengths = [lengths]
                 
                 if maximum>actMaximum:
                     actMaximum = maximum
                     self.printLog('MAXIMUM INCREASED TO %d' % maximum)
                     with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'w') as f:
-                        f.write('')
+                        f.write('starting lengths:\n')
+                        f.write(starting_lengths_str+'\n\n')
                         
                 if maximum==actMaximum:
                     with open('./res/'+self._fileNamePref+'_intermediateResults.txt', 'a') as f:
                         report  = [
                                 str(maximum)+'\n', 
-                                str(comb_counter)+'iterations \n'
+                                str(comb_counter)+' iterations \n', 
+                                str(lengths)+'\n'
                                  ]
                         f.writelines(report)
-                        f.writelines([str(L)+'\n' for L in lengths_seq])
+#                        f.writelines([str(L)+'\n' for L in lengths_seq])
                         f.write('\n')
                         
-                if maximum == required_num:
+                if maximum >= required_num:
                     report  = [
                                 str(required_num)+' EMBEDDINGS FOUND:', 
                                 'Iterations:',
@@ -535,16 +559,15 @@ class AlgRealEmbeddings(object):
                 else:
                     num_not_changed += 1
                 prev_max = maximum
-                
+                self.printLog('Number of iterations without increase: %d' % num_not_changed)
                 comb_counter += 1
 #                for lens in res_lengths[1:]:
 #                    addLengths(maximum, lengths_seq[:-1], comb_counter)
-                for lens in res_lengths[1:]:
-                    if maximum>maxSaved:
-                        lens_to_check = []
-                        maxSaved = maximum
-                    if maximum==maxSaved:
-                        lens_to_check.append([copy.copy(lengths_seq[:-1]+[lens]), comb_counter, maximum]) 
+                if maximum>maxSaved:
+                    lens_to_check = []
+                    maxSaved = maximum
+                if maximum==maxSaved:
+                    lens_to_check = lens_to_check + [[lens, comb_counter-1, maximum, num_not_changed-1] for lens in res_lengths[1:]]
                 self.printLog('Number of lengths in stack: %d' % len(lens_to_check))
 
         
@@ -553,6 +576,9 @@ class AlgRealEmbeddings(object):
         
         self.printLog('Reached maximum is in:')
         self.printLog(outputFilename)
+        
+        if combinations:
+            self._combinations = tmp_comb
 
 
 
