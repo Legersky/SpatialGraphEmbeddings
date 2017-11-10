@@ -17,21 +17,21 @@ b = 0.05
 #v6 = [uniform(a, b), 1.0+uniform(a, b), uniform(a, b)]
 #v7 = [uniform(a, b),0.5 +  uniform(a, b), 1.0+uniform(a, b)]
 
-#v1 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), -3.0+ uniform(a, b)]
-#v2 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-#v3 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-#v4 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-#v5 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-#v6 = [1.0+uniform(a, b), 1.0+uniform(a, b), uniform(a, b)]
-#v7 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), 1.0+uniform(a, b)]
-
-v1 = [0.6, 0.6, -3.0]
+v1 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), -3.0+ uniform(a, b)]
 v2 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-v4 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
 v3 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
+v4 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
 v5 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
-v6 = [1.0, 1.0, 0]
-v7 = [0.6, 0.6, 1.0]
+v6 = [1.0+uniform(a, b), 1.0+uniform(a, b), uniform(a, b)]
+v7 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), 1.0+uniform(a, b)]
+
+#v1 = [0.6, 0.6, -3.0]
+#v2 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
+#v4 = [-1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
+#v3 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
+#v5 = [1.0+uniform(a, b), uniform(a, b), uniform(a, b)]
+#v6 = [1.0, 1.0, 0]
+#v7 = [0.6, 0.6, 1.0]
 
 
 lengths = {(1, 2) : dist(v1,v2),
@@ -39,11 +39,11 @@ lengths = {(1, 2) : dist(v1,v2),
            (1, 4) : dist(v1,v4),
            (1, 5) : dist(v1,v5),
            (1, 6) : dist(v1,v6),
-           (7, 2) : dist(v7,v2),
-           (7, 3) : dist(v7,v3),
-           (7, 4) : dist(v7,v4),
-           (7, 5) : dist(v7,v5),
-           (7, 6) : dist(v7,v6),
+           (2, 7) : dist(v7,v2),
+           ( 3, 7) : dist(v7,v3),
+           ( 4, 7) : dist(v7,v4),
+           ( 5, 7) : dist(v7,v5),
+           ( 6, 7) : dist(v7,v6),
             (2, 3) : dist(v2,v3), 
             (3, 4) : dist(v3,v4), 
             (4, 5) : dist(v4,v5), 

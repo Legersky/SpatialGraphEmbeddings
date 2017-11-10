@@ -38,6 +38,12 @@ class AlgRealEmbeddings(object):
             self._numAllSol = 160
             self._combinations = [[3, 7, 2, 4, 1], [6, 8, 2, 5, 1], [4, 5, 1, 7, 3], [8, 7, 2, 5, 6], [4, 3, 1, 7, 5], [6, 2, 1, 8, 5], [3, 2, 1, 7, 4], [8, 5, 7, 6, 2], 
                                   [4, 1, 3, 5, 7], [6, 5, 1, 8, 2], [3, 1, 2, 4, 7], [8, 2, 7, 6, 5], [4, 7, 3, 5, 1], [6, 1, 2, 5, 8], [3, 4, 1, 7, 2], [8, 6, 2, 5, 7]]
+        elif graph_type == 'Ring8vertices':
+            self._numAllSol = 128
+            self._combinations = [[7, 2, 1, 8, 6], [5, 1, 4, 6, 8], [2, 7, 1, 8, 3], [6, 1, 5, 7, 8], [7, 6, 1, 8, 2], [3, 8, 2, 4, 1], [2, 3, 1, 8, 7], [4, 1, 3, 5, 8],          
+                                  [5, 8, 4, 6, 1], [2, 8, 7, 3, 1], [3, 4, 1, 8, 2], [6, 7, 1, 8, 5], [7, 1, 6, 2, 8], [5, 6, 1, 8, 4], [2, 1, 7, 3, 8], [4, 8, 3, 5, 1], 
+                                  [3, 2, 1, 8, 4], [6, 5, 1, 8, 7], [7, 8, 6, 2, 1], [4, 5, 1, 8, 3], [3, 1, 2, 4, 8], [4, 3, 1, 8, 5], [6, 8, 5, 7, 1], [5, 4, 1, 8, 6]]
+
         else:
             raise ValueError('Type %s not supported' % graph_type)
         
@@ -553,6 +559,7 @@ class AlgRealEmbeddings(object):
                     if self._window:
                         self._window.showDialog(report)
                     found = True
+                res = lengths
                 
                 if prev_max<maximum:
                     num_not_changed = 0
@@ -567,7 +574,7 @@ class AlgRealEmbeddings(object):
                     lens_to_check = []
                     maxSaved = maximum
                 if maximum==maxSaved:
-                    lens_to_check = lens_to_check + [[lens, comb_counter-1, maximum, num_not_changed-1] for lens in res_lengths[1:]]
+                    lens_to_check = lens_to_check + [[lens, comb_counter, maximum, num_not_changed] for lens in res_lengths[1:]]
                 self.printLog('Number of lengths in stack: %d' % len(lens_to_check))
 
         
@@ -579,6 +586,8 @@ class AlgRealEmbeddings(object):
         
         if combinations:
             self._combinations = tmp_comb
+        
+        return res
 
 
 

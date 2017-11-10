@@ -39,6 +39,11 @@ class GraphEmbedding(object):
             self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_max8vertices
             self._numAllSolutions = 160
+        elif graph_type == 'Ring8vertices':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = None
+            self.constructEquations = self.constructEquations_ring8vertices
+            self._numAllSolutions = 128
         else:
             raise ValueError('Type %s not supported' % graph_type)
         self._graph_type = graph_type
@@ -380,6 +385,59 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
+
+    def constructEquations_ring8vertices(self):
+        '''system with correct mixed volume'''    
+        x4, y4, z4 = symbols('x4 y4 z4')
+        x5, y5, z5 = symbols('x5 y5 z5')
+        x6, y6, z6 = symbols('x6 y6 z6')
+        x7, y7, z7 = symbols('x7 y7 z7')
+        x8, y8, z8 = symbols('x8 y8 z8')
+        
+        L12 = self.getEdgeLength(1, 2)
+        L13 = self.getEdgeLength(1, 3)
+        L14 = self.getEdgeLength(1, 4)
+        L15 = self.getEdgeLength(1, 5)
+        L16 = self.getEdgeLength(1, 6)
+        L17 = self.getEdgeLength(1, 7)
+        L23 = self.getEdgeLength(2, 3)
+        L27 = self.getEdgeLength(2, 7)
+        L28 = self.getEdgeLength(2, 8)
+        L34 = self.getEdgeLength(3, 4)
+        L38 = self.getEdgeLength(3, 8)
+        L45 = self.getEdgeLength(4, 5)
+        L48 = self.getEdgeLength(4, 8)
+        L56 = self.getEdgeLength(5, 6)
+        L58 = self.getEdgeLength(5, 8)
+        L68 = self.getEdgeLength(6, 8)
+        L78 = self.getEdgeLength(7, 8)
+        L67 = self.getEdgeLength(6, 7)
+        
+        y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        x1 = np.sqrt(L12**2  - y1**2 )
+        eqs = [
+                -L12**2 + L14**2 + 2*x1*x4 - x4**2 + 2*y1*y4 - y4**2 - z4**2 ,
+                -L12**2 + L15**2 + 2*x1*x5 - x5**2 + 2*y1*y5 - y5**2 - z5**2 ,
+                -L12**2 + L16**2 + 2*x1*x6 - x6**2 + 2*y1*y6 - y6**2 - z6**2 ,
+                L27**2 - x7**2 - y7**2 - z7**2 ,
+                L28**2 - x8**2 - y8**2 - z8**2 ,
+#                -L12**2 + L13**2 - L23**2 + 2*L23*y1 ,
+                -L12**2 + L17**2 - L27**2 + 2*x1*x7 + 2*y1*y7 ,
+                L12**2 - L14**2 - L23**2 + L34**2 - 2*x1*x4 + 2*L23*y4 - 2*y1*y4 ,
+                -L23**2 - L28**2 + L38**2 + 2*L23*y8 ,
+                2*L12**2 - L14**2 - L15**2 + L45**2 - 2*x1*x4 - 2*x1*x5 + 2*x4*x5 - 2*y1*y4 - 2*y1*y5 + 2*y4*y5 + 2*z4*z5 ,
+                L12**2 - L14**2 - L28**2 + L48**2 - 2*x1*x4 + 2*x4*x8 - 2*y1*y4 + 2*y4*y8 + 2*z4*z8 ,
+                2*L12**2 - L15**2 - L16**2 + L56**2 - 2*x1*x5 - 2*x1*x6 + 2*x5*x6 - 2*y1*y5 - 2*y1*y6 + 2*y5*y6 + 2*z5*z6 ,
+                L12**2 - L15**2 - L28**2 + L58**2 - 2*x1*x5 + 2*x5*x8 - 2*y1*y5 + 2*y5*y8 + 2*z5*z8 ,
+                L12**2 - L16**2 - L28**2 + L68**2 - 2*x1*x6 + 2*x6*x8 - 2*y1*y6 + 2*y6*y8 + 2*z6*z8 ,
+                -L27**2 - L28**2 + L78**2 + 2*x7*x8 + 2*y7*y8 + 2*z7*z8 ,
+                L12**2 - L16**2 - L27**2 + L67**2 - 2*x1*x6 + 2*x6*x7 - 2*y1*y6 + 2*y6*y7 + 2*z6*z7 
+        ]
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
 
 
     def constructEquations_max6vertices(self):
