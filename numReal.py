@@ -25,9 +25,9 @@ def findEmbeddings(syst):
     i = 0
     while True:
         if prevSystem and usePrev:
-            sols = track(syst, prevSystem, prevSolutions, tasks=2)
+            sols = track(syst, prevSystem, prevSolutions, tasks=8)
         else:
-            sols = solve(syst, verbose=0, tasks=2)
+            sols = solve(syst, verbose=0, tasks=8)
 
         result_real = []
         for sol in sols:

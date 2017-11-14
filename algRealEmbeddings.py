@@ -148,12 +148,12 @@ class AlgRealEmbeddings(object):
         with open(filenameTmp+'_1_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[0:N]))
         
-        process_1 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_1_', filenameTmp+'_prev.txt'])
+        process_1 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_1_', filenameTmp+'_prev.txt'])
         
         with open(filenameTmp+'_2_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[N:]))
         
-        process_2 = subprocess.Popen(['python', 'numReal.py', filenameTmp+'_2_', filenameTmp+'_prev.txt'])
+        process_2 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_2_', filenameTmp+'_prev.txt'])
          
         
         process_1.wait()
@@ -212,7 +212,7 @@ class AlgRealEmbeddings(object):
             filePrev.write(str(starting_graph._prevSolutions)+'\n')
             filePrev.write(str(self._numAllSol)+'\n')
             
-        process = subprocess.Popen(['python', 'numReal.py', 'tmp/'+self._fileNamePref, filenameTmp+'_prev.txt'])
+        process = subprocess.Popen(['python2', 'numReal.py', 'tmp/'+self._fileNamePref, filenameTmp+'_prev.txt'])
         process.wait()
         
         with open('tmp/'+self._fileNamePref+'numReal.txt','r') as file:
@@ -227,19 +227,20 @@ class AlgRealEmbeddings(object):
                 solutions.append(phiThetas[i]+ [num_real])              
         return solutions
     
-    def sampleToGetMoreEmbd(self, starting_lengths, uvwpc):
+    def sampleToGetMoreEmbd(self, starting_lengths, uvwpc, start_graph_num):
         start = time.time()
         starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
-        argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc)
+        argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc, start_graph_num)
         res = self.clusterPhiTheta(argmax, maximum, starting_graph, uvwpc)
         
         end = time.time()
         self.printLog('time: '+str(end - start))
         return res
         
-    def computeSamplingPhiTheta(self, starting_graph, uvwpc):        
-        act_num = len(starting_graph.findEmbeddings()['real'])
+    def computeSamplingPhiTheta(self, starting_graph, uvwpc,  start_graph_num):        
+        act_num = max([start_graph_num, len(starting_graph.findEmbeddings()['real'])])
         act_phi, act_theta = starting_graph.getPhiTheta(uvwpc)
+        print [act_phi, act_theta,  act_num]
        
         margin_degree = 5
         margin = margin_degree*math.pi/180.0
@@ -256,7 +257,7 @@ class AlgRealEmbeddings(object):
         
         step_phi = (r_phi-l_phi)/float(2*self._num_phi)
         step_theta = (r_theta-l_theta)/float(2*self._num_theta)
-        argmax = []
+        argmax = [[act_phi, act_theta]]
         
         for phi, theta, num in max_positions:
             if num>=maximum:
@@ -265,6 +266,11 @@ class AlgRealEmbeddings(object):
                                                                           phi - step_phi,  phi + step_phi,
                                                                           theta - step_theta,  theta + step_theta, uvwpc, 
                                                                           treshold=maximum):
+                if num2>maximum:
+                    tmp_G = GraphEmbedding(copy.copy(starting_graph.getLengths()), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+                    tmp_G.setPhiTheta(uvwpc, phi, theta)
+                    num2 = min([num2,  len(tmp_G.findEmbeddings()['real'])])
+                    del tmp_G
                 if num2>maximum:
                     maximum = num2
                     argmax = []
@@ -342,8 +348,8 @@ class AlgRealEmbeddings(object):
         
         return [clusters, centers, res_lengths, res_infos, maximum]
 
-    def runSamplingPhiTheta(self, starting_lengths, uvwpc):
-        [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(starting_lengths, uvwpc)        
+    def runSamplingPhiTheta(self, starting_lengths, uvwpc, start_graph_num=0):
+        [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(starting_lengths, uvwpc, start_graph_num)        
         if self._window:
             self._window.showClusters(clusters, centers)
             self._window.setGraphSequence([GraphCouplerCurve(lengths, window=self._window) for lengths in res_lengths], res_infos)
@@ -398,7 +404,7 @@ class AlgRealEmbeddings(object):
 
                 
                 lengths_tmp = copy.copy(starting_lengths)
-                [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(lengths_tmp, uvwpc)
+                [clusters, centers, res_lengths, res_infos, maximum] = self.sampleToGetMoreEmbd(lengths_tmp, uvwpc,  0)
 
                 cl = 0                
                 for lengths in res_lengths:
@@ -463,7 +469,7 @@ class AlgRealEmbeddings(object):
         
         for uvwpc in self._combinations:
             starting_graph.setLengths(starting_lengths)
-            [argmax, maximum] = self.computeSamplingPhiTheta(starting_graph, uvwpc)
+            [argmax, maximum] = self.computeSamplingPhiTheta(starting_graph, uvwpc, 0)
             if maximum>reached_max:
                 reached_max = maximum
                 with open(fileName, 'w') as f:
@@ -521,7 +527,7 @@ class AlgRealEmbeddings(object):
                     self.printLog('Reached maximum: '+str(actMaximum))
                     self.printLog('Iteration: '+str(comb_counter))
                     self.printLog('Actual step: ' + str(uvwpc))
-                    [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc)
+                    [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc,  prev_max)
                     lengths = copy.copy(res_lengths[0])
                 except ValueError as e:
                     self.printLog(str(e))
@@ -589,6 +595,48 @@ class AlgRealEmbeddings(object):
         
         return res
 
+    def sampleEdge(self, starting_lengths, edge, num_samples):
+        min_length = 0.5*min(starting_lengths.values())
+        max_length = 2*max(starting_lengths.values())
+        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        step = (max_length - min_length)/float(num_samples)
+        L = min_length
+        max_L = []
+        for i in range(0, num_samples+1):
+            try:
+                starting_graph.setEdgeLength(L, edge[0], edge[1])
+                m = len(starting_graph.findEmbeddings()['real'])
+                max_L.append([m, L])
+            except TriangleInequalityError:
+                pass
+            except ValueError:
+                pass
+            L += step
+    
+        max_L_second = []
+        maximum = max([_m for _m, _ in max_L])
+        max_1st = maximum
+#        print 'max after 1st phase: ', maximum, max_L
+        step_second = step/float(num_samples)
+        for m, L in max_L:
+            if m>max_1st/2:
+                L_second = L - step/2.0
+                for i in range(0, num_samples+1):
+                    try:
+                        starting_graph.setEdgeLength(L_second, edge[0], edge[1])
+                        m = len(starting_graph.findEmbeddings()['real'])
+                        if maximum<m:
+                            maximum = m
+                            max_L_second = []
+                        if maximum==m:
+                            max_L_second.append(L_second)
+                    except TriangleInequalityError:
+                        pass
+                    except ValueError:
+                        pass
+                    L_second += step_second
+
+        return maximum, max_L_second
 
 
     def printLog(self, s, verbose=0, newLine=True):

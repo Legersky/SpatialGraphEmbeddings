@@ -2,13 +2,14 @@ import numpy as np
 #import math
 #from phcpy.solver import solve
 #from phcpy.trackers import track
-from phcpy.solutions import strsol2dict, is_real
+
+    
 from sympy import symbols
 
 from random import random
 import hashlib
 import time
-
+import os
 import ast
 import subprocess
 
@@ -21,7 +22,6 @@ class GraphEmbedding(object):
 #        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
         self._prevSolutions = None
-        
         self._verbose = 1
         
         if graph_type == 'Max7vertices':
@@ -145,35 +145,86 @@ class GraphEmbedding(object):
     def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True, usePrev=True):
         syst = self.getEquations()
         i = 0
+        try:
+            from phcpy.solutions import strsol2dict, is_real
+            usePHCexe = False
+        except:
+            usePHCexe = True
         while True:
-            if self._prevSystem and usePrev:
+            if self._prevSystem and usePrev and not usePHCexe:
+#                if usePHCexe:
+#                    print 'second time'
+#                    with open('tmp/'+self._fileNamePref+'_aux.txt', 'w') as fileAux:
+#                        fileAux.write('3\n')
+#                        fileAux.write('tmp/'+self._fileNamePref+'_syst.txt\n')
+#                        fileAux.write('tmp/'+self._fileNamePref+'_sol.phc\n')
+#                        fileAux.write('tmp/'+self._fileNamePref+'_syst_prev.txt\n')
+#                        fileAux.write('0\n')
+#                        fileAux.write('n\n')
+#                        fileAux.write('\n')
+#                        fileAux.write('0\n')
+#                    print 'tmp/'+self._fileNamePref+'_aux.txt'
+#                    process = subprocess.Popen(['./phc -q -t4 < tmp/'+self._fileNamePref+'_aux.txt'],  shell = True, executable='/bin/bash')
+#                    process.wait()
                 filenameTmp = 'tmp/'+self._fileNamePref+'_prev.txt'
                 with open(filenameTmp, 'w') as filePrev:
                     filePrev.write(str(self._prevSystem)+'\n')
                     filePrev.write(str(self._prevSolutions)+'\n')
                     
-                process = subprocess.Popen(['python','track.py', str(syst), filenameTmp, self._fileNamePref])
+                process = subprocess.Popen(['python2','track.py', str(syst), filenameTmp, self._fileNamePref])
                 process.wait()
                 file = open('tmp/'+self._fileNamePref+'track.txt','r') 
                 solutions_str = file.read()
                 sols = ast.literal_eval(solutions_str)
-#                sols = my_module.track(syst, self._prevSystem, self._prevSolutions, tasks=2)
 
             else:
-                process = subprocess.Popen(['python','solve.py', str(syst), self._fileNamePref])
-                process.wait()
-                file = open('tmp/'+self._fileNamePref+'solve.txt','r') 
-                sols_str = file.read()
-                sols = ast.literal_eval(sols_str)
+                if usePHCexe:
+                    with open('tmp/'+self._fileNamePref+'_syst.txt', 'w') as fileSyst:
+                        fileSyst.write(str(len(syst))+'\n')
+                        for eq in syst:
+                            fileSyst.write(eq+'\n')
+                    process = subprocess.Popen(['./phc','-b', '-t4', 'tmp/'+self._fileNamePref+'_syst.txt', 'tmp/'+self._fileNamePref+'_sol.phc'])
+                    process.wait()
+                else:
+                    process = subprocess.Popen(['python2','solve.py', str(syst), self._fileNamePref])
+                    process.wait()
+                    with open('tmp/'+self._fileNamePref+'solve.txt','r') as file:
+                        sols_str = file.read()
+                    sols = ast.literal_eval(sols_str)
 #                sols = solve(syst, verbose=1, tasks=2)
+
             result_real = []
             result_complex = []
-            for sol in sols:
-                soldic = strsol2dict(sol)
-                if is_real(sol, tolerance):
-                    result_real.append(soldic)
-                else:
-                    result_complex.append(soldic)
+            if usePHCexe:             
+                process = subprocess.Popen(['./phc','-x', 'tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'sols.txt'])
+                process.wait()
+                
+                sols_str = ''
+                with open('tmp/'+self._fileNamePref+'sols.txt','r') as file:
+                    for line in file:
+                        sols_str += line
+                os.remove('tmp/'+self._fileNamePref+'sols.txt')
+                os.remove('tmp/'+self._fileNamePref+'_sol.phc')
+                sols_str = sols_str.replace('*1','').replace('THE SOLUTIONS :', '')
+                
+                sols = ast.literal_eval(sols_str)
+                for sol in sols:
+                    allReal = True
+                    for k in sol.keys():
+                        if k[0] in ['x', 'y', 'z'] and abs(sol[k].imag) > tolerance:
+                            allReal = False
+                            break
+                    if allReal:
+                        result_real.append(sol)
+                    else:
+                        result_complex.append(sol)
+            else:
+                for sol in sols:
+                    soldic = strsol2dict(sol)
+                    if is_real(sol, tolerance):
+                        result_real.append(soldic)
+                    else:
+                        result_complex.append(soldic)
             
 #            print len(result_real)
 #            print len(sols)
@@ -181,6 +232,7 @@ class GraphEmbedding(object):
             if len(result_real)%4==0 and len(sols)==self._numAllSolutions:
                 self._prevSystem = syst
                 self._prevSolutions = sols
+#                os.rename('tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'_syst_prev.txt')
                 return {'real':result_real, 'complex':result_complex}
             else:
                 usePrev = False
@@ -361,7 +413,10 @@ class GraphEmbedding(object):
         L26 = self.getEdgeLength('26')
         
         y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
         x1 = np.sqrt(L12**2  - y1**2 )
+            
         eqs = [
 #            L12**2 - x1**2 - y1**2 ,
             -(L23 - y4)**2 + L34**2 - x4**2 - z4**2 ,
@@ -414,7 +469,10 @@ class GraphEmbedding(object):
         L67 = self.getEdgeLength(6, 7)
         
         y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
         x1 = np.sqrt(L12**2  - y1**2 )
+        
         eqs = [
                 -L12**2 + L14**2 + 2*x1*x4 - x4**2 + 2*y1*y4 - y4**2 - z4**2 ,
                 -L12**2 + L15**2 + 2*x1*x5 - x5**2 + 2*y1*y5 - y5**2 - z5**2 ,

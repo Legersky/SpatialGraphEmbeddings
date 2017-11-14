@@ -14,6 +14,6 @@ with open(filePrev, 'r') as fPrev:
     syst, sols = [ast.literal_eval(line) for line in fPrev]
 
 file = open('tmp/'+pref+'track.txt','w') 
-sol = track(syst2,syst,sols, tasks=2)
+sol = track(syst2,syst,sols, tasks=8)
 
 file.write(str(sol))
