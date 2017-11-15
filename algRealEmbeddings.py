@@ -2,7 +2,10 @@ import time
 import math
 import copy
 #import pickle
-from sklearn.cluster import DBSCAN
+try:
+    from cluster import DBSCAN
+except:
+    from sklearn.cluster import DBSCAN
 import hashlib
 import sys
 from random import random
