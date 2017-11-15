@@ -4,7 +4,10 @@ from phcpy.trackers import track
 from phcpy.solver import solve
 from phcpy.solutions import strsol2dict, is_real
 
-
+try:
+    from phcpy import _number_of_cores_ as tasks_num
+except:
+    tasks_num = 2
 #subprocess.Popen(['python', 'numReal.py', fileNameEqs, str(self._prevSystem), str(self._prevSolutions)])
 
 fileNamePref = sys.argv[1]
@@ -25,9 +28,9 @@ def findEmbeddings(syst):
     i = 0
     while True:
         if prevSystem and usePrev:
-            sols = track(syst, prevSystem, prevSolutions, tasks=8)
+            sols = track(syst, prevSystem, prevSolutions, tasks=tasks_num)
         else:
-            sols = solve(syst, verbose=0, tasks=8)
+            sols = solve(syst, verbose=0, tasks=tasks_num)
 
         result_real = []
         for sol in sols:

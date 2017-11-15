@@ -237,8 +237,13 @@ class AlgRealEmbeddings(object):
         self.printLog('time: '+str(end - start))
         return res
         
-    def computeSamplingPhiTheta(self, starting_graph, uvwpc,  start_graph_num):        
-        act_num = max([start_graph_num, len(starting_graph.findEmbeddings()['real'])])
+    def computeSamplingPhiTheta(self, starting_graph, uvwpc,  start_graph_num):   
+        n = len(starting_graph.findEmbeddings()['real'])
+        if n==0:
+            act_num = start_graph_num
+        else:
+            act_num = min([n, start_graph_num])
+        
         act_phi, act_theta = starting_graph.getPhiTheta(uvwpc)
         print [act_phi, act_theta,  act_num]
        
