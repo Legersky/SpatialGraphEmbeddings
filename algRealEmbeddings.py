@@ -294,7 +294,9 @@ class AlgRealEmbeddings(object):
             self.printLog('\nClustering phase')
             eps = 0.1
             for i in range(0, 100):
-                labels = DBSCAN(eps=eps).fit_predict(argmax)
+                db = DBSCAN(eps=eps).fit(argmax)
+                labels = db.labels_
+#                labels = DBSCAN(eps=eps).fit_predict(argmax)
                 if len([1 for el in labels if el==-1])>len(labels)/10:
                     eps += 0.05
                     self.printLog('Increasing eps for clustering', 2)
