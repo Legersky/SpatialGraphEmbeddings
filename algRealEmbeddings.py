@@ -3,7 +3,7 @@ import math
 import copy
 #import pickle
 try:
-    from sklearn_local.cluster import DBSCAN
+    from sklearn.cluster import DBSCAN
     print 'import from local'
 except:
     from sklearn.cluster import DBSCAN
