@@ -2,11 +2,9 @@ import time
 import math
 import copy
 #import pickle
-try:
-    from sklearn.cluster import DBSCAN
-    print 'import from local'
-except:
-    from sklearn.cluster import DBSCAN
+
+from sklearn.cluster import DBSCAN
+
 import hashlib
 import sys
 from random import random
@@ -83,36 +81,36 @@ class AlgRealEmbeddings(object):
     def runSamplingPhiThetaWithMargins(self, starting_graph, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta, uvwpc, treshold=0):
         return self.runSampling(starting_graph, self.getSamplingIterator(num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta), uvwpc, treshold=treshold)
 
-    def runSampling_slower(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
-        solutions = []
-        if self._window and animate:
-            N = self._window.spinBoxSamples.value()
-            graphCouplerCurve = GraphCouplerCurve(starting_graph.getLengths(), window=self._window)
-            graphCouplerCurve.computeCouplerCurve(N)
-            self._window.setActiveGraph(graphCouplerCurve)
-
-        self.printLog('...', newLine=False)
-        
-        for phi, theta in iterator:
-            try:
-                starting_graph.setPhiTheta(uvwpc, phi, theta)
-                num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
-            except Exception as e:
-                self.printLog(str(e))
-                num_real = 0
-            
-            if self._window and animate:
-                graphCouplerCurve.setPhiTheta([2, 3, 1, 7, 6], phi, theta)
-                graphCouplerCurve.updateFixedTriangle()
-                self._window.update_graph2phi()
-                self._window.update_graph2theta()
-                graphCouplerCurve.computeIntersections()
-                self._window.plotScene()
-
-            if num_real>=treshold:
-                self.printLog(str([phi, theta, num_real]), verbose=2)
-                solutions.append([phi, theta, num_real])              
-        return solutions
+#    def runSampling_slower(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
+#        solutions = []
+#        if self._window and animate:
+#            N = self._window.spinBoxSamples.value()
+#            graphCouplerCurve = GraphCouplerCurve(starting_graph.getLengths(), window=self._window)
+#            graphCouplerCurve.computeCouplerCurve(N)
+#            self._window.setActiveGraph(graphCouplerCurve)
+#
+#        self.printLog('...', newLine=False)
+#        
+#        for phi, theta in iterator:
+#            try:
+#                starting_graph.setPhiTheta(uvwpc, phi, theta)
+#                num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
+#            except Exception as e:
+#                self.printLog(str(e))
+#                num_real = 0
+#            
+#            if self._window and animate:
+#                graphCouplerCurve.setPhiTheta([2, 3, 1, 7, 6], phi, theta)
+#                graphCouplerCurve.updateFixedTriangle()
+#                self._window.update_graph2phi()
+#                self._window.update_graph2theta()
+#                graphCouplerCurve.computeIntersections()
+#                self._window.plotScene()
+#
+#            if num_real>=treshold:
+#                self.printLog(str([phi, theta, num_real]), verbose=2)
+#                solutions.append([phi, theta, num_real])              
+#        return solutions
 
     def runSampling(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
         if self._window and animate:
@@ -173,6 +171,11 @@ class AlgRealEmbeddings(object):
         
         nums_real_2 = ast.literal_eval(nums_real_str_2)
         
+        os.remove(filenameTmp+'_prev.txt')
+        os.remove(filenameTmp+'_1_eqs.txt')
+        os.remove(filenameTmp+'_2_eqs.txt')
+        os.remove(filenameTmp+'_1_'+'numReal.txt')
+        os.remove(filenameTmp+'_2_'+'numReal.txt')
         
         solutions = []
         for i, num_real in enumerate(nums_real_1+nums_real_2):
@@ -181,55 +184,55 @@ class AlgRealEmbeddings(object):
                 solutions.append(phiThetas[i]+ [num_real])              
         return solutions
 
-    def runSampling_nonparallel(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
-        if self._window and animate:
-            N = self._window.spinBoxSamples.value()
-            graphCouplerCurve = GraphCouplerCurve(starting_graph.getLengths(), window=self._window)
-            graphCouplerCurve.computeCouplerCurve(N)
-            self._window.setActiveGraph(graphCouplerCurve)
-        self.printLog('...', newLine=False)
-        eqs = []
-        phiThetas = []
-        for phi, theta in iterator:
-            try:
-                starting_graph.setPhiTheta(uvwpc, phi, theta)
-                eqs.append(str(starting_graph.getEquations()))
-                phiThetas.append([phi, theta])
-            except TriangleInequalityError:
-                pass
-#            num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
-            
-            if self._window and animate:
-                graphCouplerCurve.setPhiTheta([2, 3, 1, 7, 6], phi, theta)
-                graphCouplerCurve.updateFixedTriangle()
-                self._window.update_graph2phi()
-                self._window.update_graph2theta()
-                graphCouplerCurve.computeIntersections()
-                self._window.plotScene()
-        
-        with open('tmp/'+self._fileNamePref+'eqs.txt','w') as fileEqs:
-            fileEqs.write('\n'.join(eqs))
-        
-        filenameTmp = 'tmp/'+self._fileNamePref
-        with open(filenameTmp+'_prev.txt', 'w') as filePrev:
-            filePrev.write(str(starting_graph._prevSystem)+'\n')
-            filePrev.write(str(starting_graph._prevSolutions)+'\n')
-            filePrev.write(str(self._numAllSol)+'\n')
-            
-        process = subprocess.Popen(['python2', 'numReal.py', 'tmp/'+self._fileNamePref, filenameTmp+'_prev.txt'])
-        process.wait()
-        
-        with open('tmp/'+self._fileNamePref+'numReal.txt','r') as file:
-            nums_real_str = file.read()
-        
-        nums_real = ast.literal_eval(nums_real_str)
-        
-        solutions = []
-        for i, num_real in enumerate(nums_real):
-            if num_real>=treshold:
-                self.printLog(str(phiThetas[i]+ [num_real]), verbose=2)
-                solutions.append(phiThetas[i]+ [num_real])              
-        return solutions
+#    def runSampling_nonparallel(self, starting_graph, iterator, uvwpc, treshold=0, animate=False):
+#        if self._window and animate:
+#            N = self._window.spinBoxSamples.value()
+#            graphCouplerCurve = GraphCouplerCurve(starting_graph.getLengths(), window=self._window)
+#            graphCouplerCurve.computeCouplerCurve(N)
+#            self._window.setActiveGraph(graphCouplerCurve)
+#        self.printLog('...', newLine=False)
+#        eqs = []
+#        phiThetas = []
+#        for phi, theta in iterator:
+#            try:
+#                starting_graph.setPhiTheta(uvwpc, phi, theta)
+#                eqs.append(str(starting_graph.getEquations()))
+#                phiThetas.append([phi, theta])
+#            except TriangleInequalityError:
+#                pass
+##            num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
+#            
+#            if self._window and animate:
+#                graphCouplerCurve.setPhiTheta([2, 3, 1, 7, 6], phi, theta)
+#                graphCouplerCurve.updateFixedTriangle()
+#                self._window.update_graph2phi()
+#                self._window.update_graph2theta()
+#                graphCouplerCurve.computeIntersections()
+#                self._window.plotScene()
+#        
+#        with open('tmp/'+self._fileNamePref+'eqs.txt','w') as fileEqs:
+#            fileEqs.write('\n'.join(eqs))
+#        
+#        filenameTmp = 'tmp/'+self._fileNamePref
+#        with open(filenameTmp+'_prev.txt', 'w') as filePrev:
+#            filePrev.write(str(starting_graph._prevSystem)+'\n')
+#            filePrev.write(str(starting_graph._prevSolutions)+'\n')
+#            filePrev.write(str(self._numAllSol)+'\n')
+#            
+#        process = subprocess.Popen(['python2', 'numReal.py', 'tmp/'+self._fileNamePref, filenameTmp+'_prev.txt'])
+#        process.wait()
+#        
+#        with open('tmp/'+self._fileNamePref+'numReal.txt','r') as file:
+#            nums_real_str = file.read()
+#        
+#        nums_real = ast.literal_eval(nums_real_str)
+#        
+#        solutions = []
+#        for i, num_real in enumerate(nums_real):
+#            if num_real>=treshold:
+#                self.printLog(str(phiThetas[i]+ [num_real]), verbose=2)
+#                solutions.append(phiThetas[i]+ [num_real])              
+#        return solutions
     
     def sampleToGetMoreEmbd(self, starting_lengths, uvwpc, start_graph_num):
         start = time.time()

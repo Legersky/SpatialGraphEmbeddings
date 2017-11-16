@@ -173,51 +173,57 @@ class GraphEmbedding(object):
                     
                 process = subprocess.Popen(['python2','track.py', str(syst), filenameTmp, self._fileNamePref])
                 process.wait()
-                file = open('tmp/'+self._fileNamePref+'track.txt','r') 
-                solutions_str = file.read()
+                with open('tmp/'+self._fileNamePref+'track.txt','r') as file:
+                    solutions_str = file.read()
                 sols = ast.literal_eval(solutions_str)
+                
+                os.remove(filenameTmp)
+                os.remove('tmp/'+self._fileNamePref+'track.txt')
 
             else:
                 if usePHCexe:
-                    with open('tmp/'+self._fileNamePref+'_syst.txt', 'w') as fileSyst:
-                        fileSyst.write(str(len(syst))+'\n')
-                        for eq in syst:
-                            fileSyst.write(eq+'\n')
-                    process = subprocess.Popen(['./phc','-b', '-t4', 'tmp/'+self._fileNamePref+'_syst.txt', 'tmp/'+self._fileNamePref+'_sol.phc'])
-                    process.wait()
+                    pass
+#                    with open('tmp/'+self._fileNamePref+'_syst.txt', 'w') as fileSyst:
+#                        fileSyst.write(str(len(syst))+'\n')
+#                        for eq in syst:
+#                            fileSyst.write(eq+'\n')
+#                    process = subprocess.Popen(['./phc','-b', '-t4', 'tmp/'+self._fileNamePref+'_syst.txt', 'tmp/'+self._fileNamePref+'_sol.phc'])
+#                    process.wait()
                 else:
                     process = subprocess.Popen(['python2','solve.py', str(syst), self._fileNamePref])
                     process.wait()
                     with open('tmp/'+self._fileNamePref+'solve.txt','r') as file:
                         sols_str = file.read()
                     sols = ast.literal_eval(sols_str)
+                    os.remove('tmp/'+self._fileNamePref+'solve.txt')
 #                sols = solve(syst, verbose=1, tasks=2)
 
             result_real = []
             result_complex = []
-            if usePHCexe:             
-                process = subprocess.Popen(['./phc','-x', 'tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'sols.txt'])
-                process.wait()
-                
-                sols_str = ''
-                with open('tmp/'+self._fileNamePref+'sols.txt','r') as file:
-                    for line in file:
-                        sols_str += line
-                os.remove('tmp/'+self._fileNamePref+'sols.txt')
-                os.remove('tmp/'+self._fileNamePref+'_sol.phc')
-                sols_str = sols_str.replace('*1','').replace('THE SOLUTIONS :', '')
-                
-                sols = ast.literal_eval(sols_str)
-                for sol in sols:
-                    allReal = True
-                    for k in sol.keys():
-                        if k[0] in ['x', 'y', 'z'] and abs(sol[k].imag) > tolerance:
-                            allReal = False
-                            break
-                    if allReal:
-                        result_real.append(sol)
-                    else:
-                        result_complex.append(sol)
+            if usePHCexe:      
+                pass
+#                process = subprocess.Popen(['./phc','-x', 'tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'sols.txt'])
+#                process.wait()
+#                
+#                sols_str = ''
+#                with open('tmp/'+self._fileNamePref+'sols.txt','r') as file:
+#                    for line in file:
+#                        sols_str += line
+#                os.remove('tmp/'+self._fileNamePref+'sols.txt')
+#                os.remove('tmp/'+self._fileNamePref+'_sol.phc')
+#                sols_str = sols_str.replace('*1','').replace('THE SOLUTIONS :', '')
+#                
+#                sols = ast.literal_eval(sols_str)
+#                for sol in sols:
+#                    allReal = True
+#                    for k in sol.keys():
+#                        if k[0] in ['x', 'y', 'z'] and abs(sol[k].imag) > tolerance:
+#                            allReal = False
+#                            break
+#                    if allReal:
+#                        result_real.append(sol)
+#                    else:
+#                        result_complex.append(sol)
             else:
                 for sol in sols:
                     soldic = strsol2dict(sol)
@@ -541,6 +547,7 @@ class GraphEmbedding(object):
             res.append(str(eq)+';')
         return res
 
+    
 class TriangleInequalityError(ValueError):
     def __init__(self, errorMsg):
         super(TriangleInequalityError, self).__init__(errorMsg)
