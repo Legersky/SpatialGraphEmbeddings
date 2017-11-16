@@ -133,17 +133,17 @@ for e in lengths:
 #            new_lengths[e] = max(Ls)
 
 
-G = GraphEmbedding(new_lengths, 'Max8vertices')
-sols = G.findEmbeddings()
-print 'Embeddings after resampling:'
-print len(sols['real'])
-print new_lengths
+#G = GraphEmbedding(new_lengths, 'Max8vertices')
+#sols = G.findEmbeddings()
+#print 'Embeddings after resampling:'
+#print len(sols['real'])
+#print new_lengths
 #print len(sols['complex'])
 
 #   
-#
-#alg = AlgRealEmbeddings('Max8vertices', name='8vertAfterResampling')
-#alg.findMoreEmbeddings(new_lengths)
+
+alg = AlgRealEmbeddings('Max8vertices', name='8vertResamplingAfterResampling')
+alg.findMoreEmbeddings(new_lengths)
 
 
 
