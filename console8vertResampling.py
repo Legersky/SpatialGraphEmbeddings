@@ -126,11 +126,11 @@ for e in lengths:
     m,  Ls = n_L[e]
 #    print m,  Ls
     if Ls and m== 120:
-#        new_lengths[e] = sum(Ls)/float(len(Ls))
-        if abs(min(Ls)-lengths[e])<abs(max(Ls)-lengths[e]):
-            new_lengths[e] = min(Ls)
-        else:
-            new_lengths[e] = max(Ls)
+        new_lengths[e] = sum(Ls)/float(len(Ls))
+#        if abs(min(Ls)-lengths[e])<abs(max(Ls)-lengths[e]):
+#            new_lengths[e] = min(Ls)
+#        else:
+#            new_lengths[e] = max(Ls)
 
 
 G = GraphEmbedding(new_lengths, 'Max8vertices')
