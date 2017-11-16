@@ -77,18 +77,18 @@ lengths = {(2, 7): 1.4288466263977495, (4, 7): 3.646175820991137, (2, 6): 1.0238
            (1, 4): 4.49321454664234, (1, 3): 12.291475166368201, (1, 6): 3.027506184926906, (3, 7): 12.213160380343274, (5, 8): 0.09529692624044482, 
            (1, 2): 3.214648729657953, (6, 8): 0.0179005231972465, (1, 5): 3.032338165266229, (3, 4): 10.92113783226037, (5, 7): 1.0123496857434562, 
            (5, 6): 0.0949979939254927, (2, 3): 11.53333847125022, (7, 8): 1.0019027335371273}
-G = GraphEmbedding(lengths, 'Max8vertices')
-sols = G.findEmbeddings()
-print '# real:'
-print len(sols['real'])
+#G = GraphEmbedding(lengths, 'Max8vertices')
+#sols = G.findEmbeddings()
+#print '# real:'
+#print len(sols['real'])
 
 
 #print len(sols['complex'])
 
    
 
-#alg = AlgRealEmbeddings('Max8vertices', name='8vert')
-#alg.findMoreEmbeddings(engths)
+alg = AlgRealEmbeddings('Max8vertices', name='new_from_120')
+alg.findMoreEmbeddings(lengths)
 
 
 
