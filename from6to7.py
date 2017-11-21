@@ -7,7 +7,7 @@ def dist( u, v):
 #---------------------random 6 vertex---------------------------------------------
 a = -10
 b = 10
-choice = 'closestToAverageLength'
+choice = 'center'#'closestToAverageLength'
 for i in range(0, 10):
     v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
     v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]

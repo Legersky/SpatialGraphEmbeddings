@@ -341,7 +341,6 @@ class AlgRealEmbeddings(object):
             chosen_lengths = copy.copy(starting_graph.getLengths())
             for x, y in cluster:
                 starting_graph.setPhiTheta(uvwpc, x, y)
-                print len(starting_graph.findEmbeddings(usePrev=False)['real'])
                 d_current = abs(starting_graph.getEdgeLength(u, v)-avg) + abs(starting_graph.getEdgeLength(u, c)-avg)
                 if d_current<d:
                     phi_c, theta_c = x, y
