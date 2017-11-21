@@ -28,7 +28,7 @@ for i in range(0, 10):
                 (1, 5) : dist(v1,v5), 
                 (2, 6) : dist(v2,v6)}
 
-    alg = AlgRealEmbeddings('Max6vertices', num_phi=5, num_theta=5,  name='random6vert')
+    alg = AlgRealEmbeddings('Max6vertices', num_phi=5, num_theta=5,  name='random6vert')#, choice_from_clusters='closestToAverageLength')
 #    alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
     alg.findMoreEmbeddings(lengths)
 

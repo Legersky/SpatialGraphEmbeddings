@@ -570,8 +570,8 @@ class MplWindow(UI_MainWindow, MainWindow):
 #            self._branches_plot.plot([x for x, y, z in points], [y for x, y, z in points], [z for x, y, z in points],  color=color)
 #        
         c_x, c_y, c_z = self.doubleSpinBox_x.value(), self.doubleSpinBox_y.value(), self.doubleSpinBox_z.value()
-        def draw(points, style='black'):
-            self._branches_plot.plot([x+c_x for x, y, z in points], [y+c_y for x, y, z in points], [z+c_z for x, y, z in points],  style)
+        def draw(points, style='black', line_width=1):
+            self._branches_plot.plot([x+c_x for x, y, z in points], [y+c_y for x, y, z in points], [z+c_z for x, y, z in points],  style, linewidth=line_width)
         
         if self.isComputed():
             if not self._firstPlot:
@@ -610,13 +610,13 @@ class MplWindow(UI_MainWindow, MainWindow):
             for c in self.checkBoxBranches:
                 if self.checkBoxBranches[c].checkState():
                     for part in self.graph.getBranch(c):
-                        draw(part, c)
+                        draw(part, c, line_width=2)
             if self.checkBoxMirror.checkState():
                 draw(self.graph.intersections_mirror, 'ro')
                 for c in self.checkBoxBranches:
                     if self.checkBoxBranches[c].checkState():
                         for part in self.graph.getMirrorBranch(c):
-                            draw(part, 'dark'+c)
+                            draw(part, 'dark'+c, line_width=2)
         
             self._branches_plot.set_xlim3d(minbound, maxbound)
             self._branches_plot.set_ylim3d(minbound, maxbound)
@@ -909,7 +909,7 @@ class MplWindow(UI_MainWindow, MainWindow):
         while n<48 and (not self.interrupt.checkState() or first):
             first = False
             self.printLog('Sampling phi and theta')
-            alg = AlgRealEmbeddings('Max7vertices', num_phi=self.spinBoxSamplesPhi.value(), num_theta=self.spinBoxSamplesTheta.value(), window=self)
+            alg = AlgRealEmbeddings('Max7vertices', num_phi=self.spinBoxSamplesPhi.value(), num_theta=self.spinBoxSamplesTheta.value(), choice_from_clusters='closestToAverageLength', window=self)
             alg.runSamplingPhiTheta(self.graph.getLengths(),
                                     self._possibleParametrizedVertices[self.comboBoxParamVert.currentText()])
             self.printLog('Sampling finished, see sequence')

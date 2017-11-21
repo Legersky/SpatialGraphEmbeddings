@@ -2,7 +2,7 @@ import time
 import math
 import copy
 #import pickle
-
+from sets import Set as Set
 from sklearn.cluster import DBSCAN
 
 import hashlib
@@ -15,7 +15,7 @@ from graphEmbedding import *
 from graphCouplerCurve import *
 
 class AlgRealEmbeddings(object):
-    def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4,  window=None, name=None):
+    def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center',  window=None, name=None):
         self._window = window
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
@@ -59,6 +59,11 @@ class AlgRealEmbeddings(object):
         self._num_theta = num_theta
         self._num_phi_second = num_phi/factor_second
         self._num_theta_second = num_theta/factor_second
+        
+        if choice_from_clusters=='center':
+            self.chooseFromClusters = self.chooseFromClusters_centerOfGravity
+        elif choice_from_clusters=='closestToAverageLength':
+            self.chooseFromClusters = self.chooseFromClusters_closestToAverageLength
         
         self.verbose = 1
 
@@ -238,8 +243,8 @@ class AlgRealEmbeddings(object):
         start = time.time()
         starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
         argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc, start_graph_num)
-        res = self.clusterPhiTheta(argmax, maximum, starting_graph, uvwpc)
-        
+        clusters = self.clusterPhiTheta(argmax)
+        res = self.chooseFromClusters(clusters, maximum, starting_graph, uvwpc)
         end = time.time()
         self.printLog('time: '+str(end - start))
         return res
@@ -280,7 +285,7 @@ class AlgRealEmbeddings(object):
                                                                           treshold=maximum):
                 if num2>maximum:
                     tmp_G = GraphEmbedding(copy.copy(starting_graph.getLengths()), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
-                    tmp_G.setPhiTheta(uvwpc, phi, theta)
+                    tmp_G.setPhiTheta(uvwpc, phi2, theta2)
                     num2 = min([num2,  len(tmp_G.findEmbeddings()['real'])])
                     del tmp_G
                 if num2>maximum:
@@ -294,7 +299,7 @@ class AlgRealEmbeddings(object):
         
         return argmax, maximum
         
-    def clusterPhiTheta(self, argmax, maximum, starting_graph, uvwpc):
+    def clusterPhiTheta(self, argmax):
         if len(argmax)==1:
             clusters = [argmax]
         else:
@@ -318,7 +323,41 @@ class AlgRealEmbeddings(object):
             for label, point in zip(labels, argmax):
                 if label>=0:
                     clusters[label].append(point)
-
+        return clusters
+        
+    def chooseFromClusters_closestToAverageLength(self, clusters, maximum, starting_graph, uvwpc):
+        res_lengths= []
+        res_infos = []
+        chosen = []
+        L = starting_graph.getLengths()
+        u, v, w, p, c = uvwpc
+        unchanged_lengths = [L[e] for e in L if not Set([e[0], e[1]]) in Set([Set([u, v]), Set([u, w]), Set([u, p]), Set([u, c])])]
+        avg = sum(unchanged_lengths)/float(len(unchanged_lengths))
+        
+        for cluster in clusters:
+            phi_c, theta_c = cluster[0][0], cluster[0][1]
+            starting_graph.setPhiTheta(uvwpc, phi_c, theta_c)
+            d = abs(starting_graph.getEdgeLength(u, v)-avg) + abs(starting_graph.getEdgeLength(u, c)-avg)
+            chosen_lengths = copy.copy(starting_graph.getLengths())
+            for x, y in cluster:
+                starting_graph.setPhiTheta(uvwpc, x, y)
+                print len(starting_graph.findEmbeddings(usePrev=False)['real'])
+                d_current = abs(starting_graph.getEdgeLength(u, v)-avg) + abs(starting_graph.getEdgeLength(u, c)-avg)
+                if d_current<d:
+                    phi_c, theta_c = x, y
+                    d = d_current
+                    chosen_lengths = copy.copy(starting_graph.getLengths())
+            
+            chosen.append([phi_c, theta_c])
+            res_lengths.append(chosen_lengths)
+            res_infos.append(str([phi_c, theta_c]) + '\n embeddings: '+str(maximum))
+        self.printLog('Maximum number of embeddings:')
+        self.printLog(str(maximum))
+        
+        return [clusters, chosen, res_lengths, res_infos, maximum]
+    
+    
+    def chooseFromClusters_centerOfGravity(self, clusters, maximum, starting_graph, uvwpc):
         res_lengths= []
         res_infos = []
         centers = []
@@ -343,6 +382,9 @@ class AlgRealEmbeddings(object):
                 theta_tmp = cluster[0][1]
                 min_dist = dist_angle([phi_c, theta_c], [phi_tmp,  theta_tmp])
                 for x, y in cluster:
+                    starting_graph.setPhiTheta(uvwpc, x, y)
+                    print len(starting_graph.findEmbeddings(usePrev=False)['real'])
+                    
                     d = dist_angle([phi_c, theta_c], [x, y])
                     if d < min_dist:
                         min_dist = d
