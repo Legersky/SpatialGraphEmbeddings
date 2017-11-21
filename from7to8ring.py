@@ -60,7 +60,7 @@ for lengths_7, name7 in len_name:
               [3, 2, 1, 8, 4], [6, 5, 1, 8, 7], [7, 8, 6, 2, 1], [4, 5, 1, 8, 3], [3, 1, 2, 4, 8], [4, 3, 1, 8, 5], [6, 8, 5, 7, 1], [5, 4, 1, 8, 6]]
 
     print '********************* 1st phase starts *****************************************'
-    alg = AlgRealEmbeddings('Ring8vertices', name='8ring_from_7vert_1st_phase_'+'CLOSEST_'+name7)#, choice_from_clusters='closestToAverageLength')
+    alg = AlgRealEmbeddings('Ring8vertices', name='8ring_from_7vert_1st_phase_'+name7)#, choice_from_clusters='closestToAverageLength')
     name1st=alg._fileNamePref
     lengths_2nd_phase = alg.findMoreEmbeddings(lengths_1st_phase, combinations=[comb for comb in all_comb if comb[0]==8], required_num=96)
 
