@@ -54,6 +54,9 @@ class AlgRealEmbeddings(object):
             self._numAllSol = 32
             self._combinations = [[1, 4, 3, 5, 2], [1, 5, 2, 4, 3], [1, 2, 3, 5, 4], [1, 3, 2, 4, 5], [4, 3, 1, 7, 5], [4, 1, 3, 5, 7], [5, 2, 1, 6, 4], [5, 1, 2, 4, 6],
                                    [6, 2, 7, 5, 3], [6, 3, 2, 7, 5], [6, 7, 2, 3, 5], [6, 2, 3, 5, 7], [7, 3, 6, 4, 2], [7, 2, 3, 6, 4], [7, 6, 3, 2, 4], [7, 3, 2, 4, 6]]
+        elif graph_type == '7vert24':
+            self._numAllSol = 24
+            self._combinations = [[1, 2, 3, 5, 4], [1, 3, 2, 4, 5], [6, 2, 3, 5, 4], [6, 3, 2, 4, 5], [7, 2, 3, 5, 4], [7, 3, 2, 4, 5]]
         else:
             raise ValueError('Type %s not supported' % graph_type)
         
