@@ -44,6 +44,21 @@ class GraphEmbedding(object):
             self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_ring8vertices
             self._numAllSolutions = 128
+        elif graph_type == '7vert32a':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = None
+            self.constructEquations = self.constructEquations_7vert32a
+            self._numAllSolutions = 32
+        elif graph_type == '7vert32b':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = None
+            self.constructEquations = self.constructEquations_7vert32b
+            self._numAllSolutions = 32
+        elif graph_type == '7vert24':
+            self._fixedTriangle_vertices = [2, 3, 1]
+            self._vertexWithFootAtOrigin = None
+            self.constructEquations = self.constructEquations_7vert24
+            self._numAllSolutions = 24
         else:
             raise ValueError('Type %s not supported' % graph_type)
         self._graph_type = graph_type
@@ -561,7 +576,174 @@ class GraphEmbedding(object):
             res.append(str(eq)+';')
         return res
 
+    def constructEquations_7vert32a(self):
+        x1 , y1 , z1 , s1 = symbols('x1 y1 z1 s1')
+        x2 , y2 , z2 , s2 = symbols('x2 y2 z2 s2')
+        x3 , y3 , z3 , s3 = symbols('x3 y3 z3 s3')
+        x4 , y4 , z4 , s4 = symbols('x4 y4 z4 s4')
+        x5 , y5 , z5 , s5 = symbols('x5 y5 z5 s5')
+        x6 , y6 , z6 , s6 = symbols('x6 y6 z6 s6')
+        x7 , y7 , z7 , s7 = symbols('x7 y7 z7 s7')
+
+        L12 = self.getEdgeLength(1, 2)
+        L13 = self.getEdgeLength(1, 3)
+        L14 = self.getEdgeLength(1, 4)
+        L16 = self.getEdgeLength(1, 6)
+        L23 = self.getEdgeLength(2, 3)
+        L24 = self.getEdgeLength(2, 4)
+        L25 = self.getEdgeLength(2, 5)
+        L34 = self.getEdgeLength(3, 4)
+        L35 = self.getEdgeLength(3, 5)
+        L36 = self.getEdgeLength(3, 6)
+        L37 = self.getEdgeLength(3, 7)
+        L47 = self.getEdgeLength(4, 7)
+        L56 = self.getEdgeLength(5, 6)
+        L57 = self.getEdgeLength(5, 7)
+        L67 = self.getEdgeLength(6, 7)
+
+        y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
+        x1 = np.sqrt(L12**2  - y1**2 )
+
+        eqs = [
+#        -L12**2 + L13**2 - L23**2 + 2*L23*y1 ,
+        -L12**2 + L14**2 + 2*x1*x4 + 2*y1*y4 - s4 ,
+        -L12**2 + L16**2 + 2*x1*x6 + 2*y1*y6 - s6 ,
+        L24**2 - s4 ,
+        L25**2 - s5 ,
+        -L23**2 + L34**2 + 2*L23*y4 - s4 ,
+        -L23**2 + L35**2 + 2*L23*y5 - s5 ,
+        -L23**2 + L36**2 + 2*L23*y6 - s6 ,
+        -L23**2 + L37**2 + 2*L23*y7 - s7 ,
+        L47**2 + 2*x4*x7 + 2*y4*y7 + 2*z4*z7 - s4 - s7 ,
+        L56**2 + 2*x5*x6 + 2*y5*y6 + 2*z5*z6 - s5 - s6 ,
+        L57**2 + 2*x5*x7 + 2*y5*y7 + 2*z5*z7 - s5 - s7 ,
+        L67**2 + 2*x6*x7 + 2*y6*y7 + 2*z6*z7 - s6 - s7 ,
+#        L12**2 - x1**2 - y1**2 ,
+        -x4**2 - y4**2 - z4**2 + s4 ,
+        -x5**2 - y5**2 - z5**2 + s5 ,
+        -x6**2 - y6**2 - z6**2 + s6 ,
+        -x7**2 - y7**2 - z7**2 + s7 ,
+        ]
+        
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
     
+    def constructEquations_7vert32b(self):
+        x1 , y1 , z1 , s1 = symbols('x1 y1 z1 s1')
+        x2 , y2 , z2 , s2 = symbols('x2 y2 z2 s2')
+        x3 , y3 , z3 , s3 = symbols('x3 y3 z3 s3')
+        x4 , y4 , z4 , s4 = symbols('x4 y4 z4 s4')
+        x5 , y5 , z5 , s5 = symbols('x5 y5 z5 s5')
+        x6 , y6 , z6 , s6 = symbols('x6 y6 z6 s6')
+        x7 , y7 , z7 , s7 = symbols('x7 y7 z7 s7')
+
+        L12 = self.getEdgeLength(1, 2)
+        L13 = self.getEdgeLength(1, 3)
+        L14 = self.getEdgeLength(1, 4)
+        L15 = self.getEdgeLength(1, 5)
+        L23 = self.getEdgeLength(2, 3)
+        L25 = self.getEdgeLength(2, 5)
+        L26 = self.getEdgeLength(2, 6)
+        L27 = self.getEdgeLength(2, 7)
+        L34 = self.getEdgeLength(3, 4)
+        L36 = self.getEdgeLength(3, 6)
+        L37 = self.getEdgeLength(3, 7)
+        L45 = self.getEdgeLength(4, 5)
+        L47 = self.getEdgeLength(4, 7)
+        L56 = self.getEdgeLength(5, 6)
+        L67 = self.getEdgeLength(6, 7)
+
+        y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
+        x1 = np.sqrt(L12**2  - y1**2 )
+
+        eqs = [
+#        -L12**2 + L13**2 - L23**2 + 2*L23*y1 ,
+        -L12**2 + L14**2 + 2*x1*x4 + 2*y1*y4 - s4 ,
+        -L12**2 + L15**2 + 2*x1*x5 + 2*y1*y5 - s5 ,
+        L25**2 - s5 ,
+        L26**2 - s6 ,
+        L27**2 - s7 ,
+        -L23**2 + L34**2 + 2*L23*y4 - s4 ,
+        -L23**2 + L36**2 + 2*L23*y6 - s6 ,
+        -L23**2 + L37**2 + 2*L23*y7 - s7 ,
+        L45**2 + 2*x4*x5 + 2*y4*y5 + 2*z4*z5 - s4 - s5 ,
+        L47**2 + 2*x4*x7 + 2*y4*y7 + 2*z4*z7 - s4 - s7 ,
+        L56**2 + 2*x5*x6 + 2*y5*y6 + 2*z5*z6 - s5 - s6 ,
+        L67**2 + 2*x6*x7 + 2*y6*y7 + 2*z6*z7 - s6 - s7 ,
+#        L12**2 - x1**2 - y1**2 ,
+        -x4**2 - y4**2 - z4**2 + s4 ,
+        -x5**2 - y5**2 - z5**2 + s5 ,
+        -x6**2 - y6**2 - z6**2 + s6 ,
+        -x7**2 - y7**2 - z7**2 + s7 ,
+        ]
+
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
+    def constructEquations_7vert24(self):
+        x1 , y1 , z1 , s1 = symbols('x1 y1 z1 s1')
+        x2 , y2 , z2 , s2 = symbols('x2 y2 z2 s2')
+        x3 , y3 , z3 , s3 = symbols('x3 y3 z3 s3')
+        x4 , y4 , z4 , s4 = symbols('x4 y4 z4 s4')
+        x5 , y5 , z5 , s5 = symbols('x5 y5 z5 s5')
+        x6 , y6 , z6 , s6 = symbols('x6 y6 z6 s6')
+        x7 , y7 , z7 , s7 = symbols('x7 y7 z7 s7')
+
+        L12 = self.getEdgeLength(1, 2)
+        L13 = self.getEdgeLength(1, 3)
+        L14 = self.getEdgeLength(1, 4)
+        L15 = self.getEdgeLength(1, 5)
+        L23 = self.getEdgeLength(2, 3)
+        L25 = self.getEdgeLength(2, 5)
+        L26 = self.getEdgeLength(2, 6)
+        L27 = self.getEdgeLength(2, 7)
+        L34 = self.getEdgeLength(3, 4)
+        L36 = self.getEdgeLength(3, 6)
+        L37 = self.getEdgeLength(3, 7)
+        L46 = self.getEdgeLength(4, 6)
+        L47 = self.getEdgeLength(4, 7)
+        L56 = self.getEdgeLength(5, 6)
+        L57 = self.getEdgeLength(5, 7)
+
+        y1 = (-L12**2 + L13**2 - L23**2)/float(-2*L23)
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
+        x1 = np.sqrt(L12**2  - y1**2 )
+
+        eqs = [
+#        -L12**2 + L13**2 - L23**2 + 2*L23*y1 ,
+        -L12**2 + L14**2 + 2*x1*x4 + 2*y1*y4 - s4 ,
+        -L12**2 + L15**2 + 2*x1*x5 + 2*y1*y5 - s5 ,
+        L25**2 - s5 ,
+        L26**2 - s6 ,
+        L27**2 - s7 ,
+        -L23**2 + L34**2 + 2*L23*y4 - s4 ,
+        -L23**2 + L36**2 + 2*L23*y6 - s6 ,
+        -L23**2 + L37**2 + 2*L23*y7 - s7 ,
+        L46**2 + 2*x4*x6 + 2*y4*y6 + 2*z4*z6 - s4 - s6 ,
+        L47**2 + 2*x4*x7 + 2*y4*y7 + 2*z4*z7 - s4 - s7 ,
+        L56**2 + 2*x5*x6 + 2*y5*y6 + 2*z5*z6 - s5 - s6 ,
+        L57**2 + 2*x5*x7 + 2*y5*y7 + 2*z5*z7 - s5 - s7 ,
+#        L12**2 - x1**2 - y1**2 ,
+        -x4**2 - y4**2 - z4**2 + s4 ,
+        -x5**2 - y5**2 - z5**2 + s5 ,
+        -x6**2 - y6**2 - z6**2 + s6 ,
+        -x7**2 - y7**2 - z7**2 + s7 ,
+        ]
+
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
 class TriangleInequalityError(ValueError):
     def __init__(self, errorMsg):
         super(TriangleInequalityError, self).__init__(errorMsg)
