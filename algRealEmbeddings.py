@@ -380,10 +380,7 @@ class AlgRealEmbeddings(object):
                 phi_tmp = cluster[0][0]
                 theta_tmp = cluster[0][1]
                 min_dist = dist_angle([phi_c, theta_c], [phi_tmp,  theta_tmp])
-                for x, y in cluster:
-                    starting_graph.setPhiTheta(uvwpc, x, y)
-                    print len(starting_graph.findEmbeddings(usePrev=False)['real'])
-                    
+                for x, y in cluster:                    
                     d = dist_angle([phi_c, theta_c], [x, y])
                     if d < min_dist:
                         min_dist = d

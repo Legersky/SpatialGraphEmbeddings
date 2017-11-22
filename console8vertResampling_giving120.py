@@ -133,7 +133,7 @@ print new_lengths
 
    
 
-alg = AlgRealEmbeddings('Max8vertices', name='8vertAfterResampling')
+alg = AlgRealEmbeddings('Max8vertices', name='8vertAfterResampling_bug_fixed')
 alg.findMoreEmbeddings(new_lengths)
 
 
