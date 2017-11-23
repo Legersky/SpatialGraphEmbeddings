@@ -35,9 +35,9 @@ lengths = {(1, 2) : dist(v1,v2),
             }
 
 G = GraphEmbedding(lengths, '7vert32a')
-print len(G.findEmbeddings()['real'])
-
-alg = AlgRealEmbeddings('7vert32a',  name='7vert32_a_random')
+r = len(G.findEmbeddings()['real'])
+print r
+alg = AlgRealEmbeddings('7vert32a',  name='7vert32_a_random', num_phi=12, num_theta=12)
 #    alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
 alg.findMoreEmbeddings(lengths)
 

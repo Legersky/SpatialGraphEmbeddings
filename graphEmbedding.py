@@ -2,7 +2,7 @@ import numpy as np
 #import math
 #from phcpy.solver import solve
 #from phcpy.trackers import track
-
+from phcpy.solutions import strsol2dict, is_real
     
 from sympy import symbols
 
@@ -23,7 +23,7 @@ class GraphEmbedding(object):
         self._prevSystem = None
         self._prevSolutions = None
         self._verbose = 1
-        
+        self._distSystem = False
         if graph_type == 'Max7vertices':
             self._fixedTriangle_vertices = [2, 3, 1]
             self._vertexWithFootAtOrigin = 7
@@ -170,27 +170,11 @@ class GraphEmbedding(object):
     def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True, usePrev=True):
         syst = self.getEquations()
         i = 0
-        try:
-            from phcpy.solutions import strsol2dict, is_real
-            usePHCexe = False
-        except:
-            usePHCexe = True
+
+        if self._distSystem:
+            y1_
         while True:
-            if self._prevSystem and usePrev and not usePHCexe:
-#                if usePHCexe:
-#                    print 'second time'
-#                    with open('tmp/'+self._fileNamePref+'_aux.txt', 'w') as fileAux:
-#                        fileAux.write('3\n')
-#                        fileAux.write('tmp/'+self._fileNamePref+'_syst.txt\n')
-#                        fileAux.write('tmp/'+self._fileNamePref+'_sol.phc\n')
-#                        fileAux.write('tmp/'+self._fileNamePref+'_syst_prev.txt\n')
-#                        fileAux.write('0\n')
-#                        fileAux.write('n\n')
-#                        fileAux.write('\n')
-#                        fileAux.write('0\n')
-#                    print 'tmp/'+self._fileNamePref+'_aux.txt'
-#                    process = subprocess.Popen(['./phc -q -t4 < tmp/'+self._fileNamePref+'_aux.txt'],  shell = True, executable='/bin/bash')
-#                    process.wait()
+            if self._prevSystem and usePrev:
                 filenameTmp = 'tmp/'+self._fileNamePref+'_prev.txt'
                 with open(filenameTmp, 'w') as filePrev:
                     filePrev.write(str(self._prevSystem)+'\n')
@@ -206,64 +190,26 @@ class GraphEmbedding(object):
                 os.remove('tmp/'+self._fileNamePref+'track.txt')
 
             else:
-                if usePHCexe:
-                    pass
-#                    with open('tmp/'+self._fileNamePref+'_syst.txt', 'w') as fileSyst:
-#                        fileSyst.write(str(len(syst))+'\n')
-#                        for eq in syst:
-#                            fileSyst.write(eq+'\n')
-#                    process = subprocess.Popen(['./phc','-b', '-t4', 'tmp/'+self._fileNamePref+'_syst.txt', 'tmp/'+self._fileNamePref+'_sol.phc'])
-#                    process.wait()
-                else:
-                    process = subprocess.Popen(['python2','solve.py', str(syst), self._fileNamePref])
-                    process.wait()
-                    with open('tmp/'+self._fileNamePref+'solve.txt','r') as file:
-                        sols_str = file.read()
-                    sols = ast.literal_eval(sols_str)
-                    os.remove('tmp/'+self._fileNamePref+'solve.txt')
-#                sols = solve(syst, verbose=1, tasks=2)
+                process = subprocess.Popen(['python2','solve.py', str(syst), self._fileNamePref])
+                process.wait()
+                with open('tmp/'+self._fileNamePref+'solve.txt','r') as file:
+                    sols_str = file.read()
+                sols = ast.literal_eval(sols_str)
+                os.remove('tmp/'+self._fileNamePref+'solve.txt')
 
             result_real = []
             result_complex = []
-            if usePHCexe:      
-                pass
-#                process = subprocess.Popen(['./phc','-x', 'tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'sols.txt'])
-#                process.wait()
-#                
-#                sols_str = ''
-#                with open('tmp/'+self._fileNamePref+'sols.txt','r') as file:
-#                    for line in file:
-#                        sols_str += line
-#                os.remove('tmp/'+self._fileNamePref+'sols.txt')
-#                os.remove('tmp/'+self._fileNamePref+'_sol.phc')
-#                sols_str = sols_str.replace('*1','').replace('THE SOLUTIONS :', '')
-#                
-#                sols = ast.literal_eval(sols_str)
-#                for sol in sols:
-#                    allReal = True
-#                    for k in sol.keys():
-#                        if k[0] in ['x', 'y', 'z'] and abs(sol[k].imag) > tolerance:
-#                            allReal = False
-#                            break
-#                    if allReal:
-#                        result_real.append(sol)
-#                    else:
-#                        result_complex.append(sol)
-            else:
-                for sol in sols:
-                    soldic = strsol2dict(sol)
-                    if is_real(sol, tolerance):
-                        result_real.append(soldic)
-                    else:
-                        result_complex.append(soldic)
-            
-#            print len(result_real)
-#            print len(sols)
-            
+
+            for sol in sols:
+                soldic = strsol2dict(sol)
+                if is_real(sol, tolerance):
+                    result_real.append(soldic)
+                else:
+                    result_complex.append(soldic)
+
             if len(result_real)%4==0 and len(sols)==self._numAllSolutions:
                 self._prevSystem = syst
                 self._prevSolutions = sols
-#                os.rename('tmp/'+self._fileNamePref+'_sol.phc', 'tmp/'+self._fileNamePref+'_syst_prev.txt')
                 return {'real':result_real, 'complex':result_complex}
             else:
                 usePrev = False
@@ -485,6 +431,193 @@ class GraphEmbedding(object):
         for eq in eqs:
             res.append(str(eq)+';')
         return res
+
+    def constructEquations_max8vertices_distSystem(self):
+        '''system with correct mixed volume'''        
+        y1, y2, y3, y4 = symbols('y1 y2 y3 y4')
+        
+        L12 = self.getEdgeLength('12')
+        L13 = self.getEdgeLength('13')
+        L14 = self.getEdgeLength('14')
+        L15 = self.getEdgeLength('15')
+        L16 = self.getEdgeLength('16')
+
+        L27 = self.getEdgeLength('27')
+        L37 = self.getEdgeLength('37')
+        L47 = self.getEdgeLength('47')
+        L57 = self.getEdgeLength('57')
+        
+        L28 = self.getEdgeLength('28')
+        L58 = self.getEdgeLength('58')
+        L68 = self.getEdgeLength('68')
+        L78 = self.getEdgeLength('78')
+        
+        L23 = self.getEdgeLength('23')
+        L34 = self.getEdgeLength('34')
+        L45 = self.getEdgeLength('45')
+        L56 = self.getEdgeLength('56')
+        L26 = self.getEdgeLength('26')
+        
+       
+        eqs = [
+        (-L12**2*L34**2+2*L12**2*L34*L37+2*L12**2*L34*L47-L12**2*L37**2+2*L12**2*L37*L47-L12**2*L47**2+4*L12*L13*L23*L47-2*L12*L13*L27*L34
+        +2*L12*L13*L27*L37-2*L12*L13*L27*L47-2*L12*L13*L34*L47+2*L12*L13*L34*y3-2*L12*L13*L37*L47-2*L12*L13*L37*y3+2*L12*L13*L47**2
+        -2*L12*L13*L47*y3+2*L12*L14*L23*L34-2*L12*L14*L23*L37-2*L12*L14*L23*L47-2*L12*L14*L27*L34-2*L12*L14*L27*L37+2*L12*L14*L27*L47
+        -2*L12*L14*L34*L37+2*L12*L14*L37**2-2*L12*L14*L37*L47+4*L12*L14*L37*y3-2*L12*L23*L34*L47-2*L12*L23*L34*y1-2*L12*L23*L37*L47
+        +2*L12*L23*L37*y1+2*L12*L23*L47**2-2*L12*L23*L47*y1+2*L12*L27*L34**2-2*L12*L27*L34*L37-2*L12*L27*L34*L47+4*L12*L27*L34*y1
+        +2*L12*L34**2*y1+4*L12*L34*L37*L47-2*L12*L34*L37*y1-2*L12*L34*L37*y3-2*L12*L34*L47*y1-2*L12*L34*y1*y3+2*L12*L37**2*y3
+        -2*L12*L37*L47*y3-2*L12*L37*y1*y3+2*L12*L47*y1*y3-L13**2*L27**2+2*L13**2*L27*L47+2*L13**2*L27*y3-L13**2*L47**2+2*L13**2*L47*y3
+        -L13**2*y3**2-2*L13*L14*L23*L27-2*L13*L14*L23*L47+2*L13*L14*L23*y3+2*L13*L14*L27**2+4*L13*L14*L27*L34-2*L13*L14*L27*L37-2*L13*L14*L27*L47
+        -2*L13*L14*L27*y3+2*L13*L14*L37*L47-2*L13*L14*L37*y3-2*L13*L23*L27*L47+2*L13*L23*L27*y1+2*L13*L23*L47**2-2*L13*L23*L47*y1-2*L13*L23*L47*y3
+        -2*L13*L23*y1*y3+2*L13*L27**2*L34-2*L13*L27*L34*L47-2*L13*L27*L34*y1-2*L13*L27*L34*y3-2*L13*L27*L37*y3+4*L13*L27*L47*y3-2*L13*L27*y1*y3
+        +2*L13*L34*L47*y1-2*L13*L34*y1*y3-2*L13*L37*L47*y3+4*L13*L37*y1*y3+2*L13*L37*y3**2-2*L13*L47*y1*y3+2*L13*y1*y3**2-L14**2*L23**2
+        +2*L14**2*L23*L27+2*L14**2*L23*L37-L14**2*L27**2+2*L14**2*L27*L37-L14**2*L37**2+2*L14*L23**2*L47+2*L14*L23**2*y1-2*L14*L23*L27*L34
+        +4*L14*L23*L27*L37-2*L14*L23*L27*L47-2*L14*L23*L27*y1-2*L14*L23*L34*y1-2*L14*L23*L37*L47-2*L14*L23*L37*y1-2*L14*L23*L37*y3+4*L14*L23*L47*y1
+        -2*L14*L23*y1*y3+2*L14*L27**2*L34-2*L14*L27*L34*L37-2*L14*L27*L34*y1-2*L14*L27*L37*y3+2*L14*L27*y1*y3+2*L14*L34*L37*y1+2*L14*L37**2*y3
+        -2*L14*L37*y1*y3-L23**2*L47**2+2*L23**2*L47*y1-L23**2*y1**2+2*L23*L27*L34*L47-2*L23*L27*L34*y1-2*L23*L34*L47*y1+2*L23*L34*y1**2
+        +4*L23*L34*y1*y3+2*L23*L37*L47*y3-2*L23*L37*y1*y3-2*L23*L47*y1*y3+2*L23*y1**2*y3-L27**2*L34**2+2*L27*L34**2*y1+2*L27*L34*L37*y3
+        -2*L27*L34*y1*y3-L34**2*y1**2-2*L34*L37*y1*y3+2*L34*y1**2*y3-L37**2*y3**2+2*L37*y1*y3**2-y1**2*y3**2),
+        (-L12**2*L45**2+2*L12**2*L45*L47+2*L12**2*L45*L57-L12**2*L47**2+2*L12**2*L47*L57-L12**2*L57**2-2*L12*L14*L27*L45+2*L12*L14*L27*L47
+        -2*L12*L14*L27*L57-2*L12*L14*L45*L57+2*L12*L14*L45*y4-2*L12*L14*L47*L57-2*L12*L14*L47*y4+2*L12*L14*L57**2+4*L12*L14*L57*y3-2*L12*L14*L57*y4
+        -2*L12*L15*L27*L45-2*L12*L15*L27*L47+2*L12*L15*L27*L57-2*L12*L15*L45*L47+2*L12*L15*L45*y3+2*L12*L15*L47**2-2*L12*L15*L47*L57-2*L12*L15*L47*y3
+        +4*L12*L15*L47*y4-2*L12*L15*L57*y3+2*L12*L27*L45**2-2*L12*L27*L45*L47-2*L12*L27*L45*L57+4*L12*L27*L45*y1+2*L12*L45**2*y1+4*L12*L45*L47*L57
+        -2*L12*L45*L47*y1-2*L12*L45*L47*y4-2*L12*L45*L57*y1-2*L12*L45*L57*y3-2*L12*L45*y1*y3-2*L12*L45*y1*y4+2*L12*L47**2*y4-2*L12*L47*L57*y3
+        -2*L12*L47*L57*y4+2*L12*L47*y1*y3-2*L12*L47*y1*y4+2*L12*L57**2*y3-2*L12*L57*y1*y3+2*L12*L57*y1*y4-L14**2*L27**2+2*L14**2*L27*L57
+        +2*L14**2*L27*y4-L14**2*L57**2+2*L14**2*L57*y4-L14**2*y4**2+2*L14*L15*L27**2+4*L14*L15*L27*L45-2*L14*L15*L27*L47-2*L14*L15*L27*L57
+        -2*L14*L15*L27*y3-2*L14*L15*L27*y4+2*L14*L15*L47*L57-2*L14*L15*L47*y4-2*L14*L15*L57*y3+2*L14*L15*y3*y4+2*L14*L27**2*L45-2*L14*L27*L45*L57
+        -2*L14*L27*L45*y1-2*L14*L27*L45*y4-2*L14*L27*L47*y4-2*L14*L27*L57*y3+4*L14*L27*L57*y4+2*L14*L27*y1*y3-2*L14*L27*y1*y4+2*L14*L45*L57*y1
+        -2*L14*L45*y1*y4-2*L14*L47*L57*y4+4*L14*L47*y1*y4+2*L14*L47*y4**2+2*L14*L57**2*y3-2*L14*L57*y1*y3-2*L14*L57*y1*y4-2*L14*L57*y3*y4
+        -2*L14*y1*y3*y4+2*L14*y1*y4**2-L15**2*L27**2+2*L15**2*L27*L47+2*L15**2*L27*y3-L15**2*L47**2+2*L15**2*L47*y3-L15**2*y3**2+2*L15*L27**2*L45
+        -2*L15*L27*L45*L47-2*L15*L27*L45*y1-2*L15*L27*L45*y3+4*L15*L27*L47*y3-2*L15*L27*L47*y4-2*L15*L27*L57*y3-2*L15*L27*y1*y3+2*L15*L27*y1*y4+2*L15*L45*L47*y1
+        -2*L15*L45*y1*y3+2*L15*L47**2*y4-2*L15*L47*L57*y3-2*L15*L47*y1*y3-2*L15*L47*y1*y4-2*L15*L47*y3*y4+4*L15*L57*y1*y3+2*L15*L57*y3**2+2*L15*y1*y3**2
+        -2*L15*y1*y3*y4-L27**2*L45**2+2*L27*L45**2*y1+2*L27*L45*L47*y4+2*L27*L45*L57*y3-2*L27*L45*y1*y3-2*L27*L45*y1*y4-L45**2*y1**2-2*L45*L47*y1*y4
+        -2*L45*L57*y1*y3+2*L45*y1**2*y3+2*L45*y1**2*y4+4*L45*y1*y3*y4-L47**2*y4**2+2*L47*L57*y3*y4-2*L47*y1*y3*y4+2*L47*y1*y4**2-L57**2*y3**2+2*L57*y1*y3**2
+        -2*L57*y1*y3*y4-y1**2*y3**2+2*y1**2*y3*y4-y1**2*y4**2),
+        (-L12**2*L56**2+2*L12**2*L56*L58+2*L12**2*L56*L68-L12**2*L58**2+2*L12**2*L58*L68-L12**2*L68**2+2*L12*L15*L26*L56-2*L12*L15*L26*L58
+        -2*L12*L15*L26*L68-2*L12*L15*L28*L56+2*L12*L15*L28*L58-2*L12*L15*L28*L68-2*L12*L15*L56*L68-2*L12*L15*L58*L68+2*L12*L15*L68**2
+        +4*L12*L15*L68*y4+4*L12*L16*L26*L58-2*L12*L16*L28*L56-2*L12*L16*L28*L58+2*L12*L16*L28*L68-2*L12*L16*L56*L58+2*L12*L16*L56*y4
+        +2*L12*L16*L58**2-2*L12*L16*L58*L68-2*L12*L16*L58*y4-2*L12*L16*L68*y4-2*L12*L26*L56*L58-2*L12*L26*L56*y2+2*L12*L26*L58**2
+        -2*L12*L26*L58*L68-2*L12*L26*L58*y2+2*L12*L26*L68*y2+2*L12*L28*L56**2-2*L12*L28*L56*L58-2*L12*L28*L56*L68+4*L12*L28*L56*y2
+        +2*L12*L56**2*y2+4*L12*L56*L58*L68-2*L12*L56*L58*y2-2*L12*L56*L68*y2-2*L12*L56*L68*y4-2*L12*L56*y2*y4-2*L12*L58*L68*y4
+        +2*L12*L58*y2*y4+2*L12*L68**2*y4-2*L12*L68*y2*y4-L15**2*L26**2+2*L15**2*L26*L28+2*L15**2*L26*L68-L15**2*L28**2+2*L15**2*L28*L68
+        -L15**2*L68**2-2*L15*L16*L26*L28-2*L15*L16*L26*L58+2*L15*L16*L26*y4+2*L15*L16*L28**2+4*L15*L16*L28*L56-2*L15*L16*L28*L58-2*L15*L16*L28*L68
+        -2*L15*L16*L28*y4+2*L15*L16*L58*L68-2*L15*L16*L68*y4+2*L15*L26**2*L58+2*L15*L26**2*y2-2*L15*L26*L28*L56-2*L15*L26*L28*L58+4*L15*L26*L28*L68
+        -2*L15*L26*L28*y2-2*L15*L26*L56*y2-2*L15*L26*L58*L68+4*L15*L26*L58*y2-2*L15*L26*L68*y2-2*L15*L26*L68*y4-2*L15*L26*y2*y4+2*L15*L28**2*L56
+        -2*L15*L28*L56*L68-2*L15*L28*L56*y2-2*L15*L28*L68*y4+2*L15*L28*y2*y4+2*L15*L56*L68*y2+2*L15*L68**2*y4-2*L15*L68*y2*y4-L16**2*L28**2
+        +2*L16**2*L28*L58+2*L16**2*L28*y4-L16**2*L58**2+2*L16**2*L58*y4-L16**2*y4**2-2*L16*L26*L28*L58+2*L16*L26*L28*y2+2*L16*L26*L58**2
+        -2*L16*L26*L58*y2-2*L16*L26*L58*y4-2*L16*L26*y2*y4+2*L16*L28**2*L56-2*L16*L28*L56*L58-2*L16*L28*L56*y2-2*L16*L28*L56*y4+4*L16*L28*L58*y4
+        -2*L16*L28*L68*y4-2*L16*L28*y2*y4+2*L16*L56*L58*y2-2*L16*L56*y2*y4-2*L16*L58*L68*y4-2*L16*L58*y2*y4+4*L16*L68*y2*y4+2*L16*L68*y4**2+2*L16*y2*y4**2
+        -L26**2*L58**2+2*L26**2*L58*y2-L26**2*y2**2+2*L26*L28*L56*L58-2*L26*L28*L56*y2-2*L26*L56*L58*y2+2*L26*L56*y2**2+4*L26*L56*y2*y4+2*L26*L58*L68*y4
+        -2*L26*L58*y2*y4-2*L26*L68*y2*y4+2*L26*y2**2*y4-L28**2*L56**2+2*L28*L56**2*y2+2*L28*L56*L68*y4-2*L28*L56*y2*y4-L56**2*y2**2-2*L56*L68*y2*y4+2*L56*y2**2*y4
+        -L68**2*y4**2+2*L68*y2*y4**2-y2**2*y4**2),
+        (-L12**2*L57**2+2*L12**2*L57*L58+2*L12**2*L57*L78-L12**2*L58**2+2*L12**2*L58*L78-L12**2*L78**2+2*L12*L15*L27*L57-2*L12*L15*L27*L58-2*L12*L15*L27*L78
+        -2*L12*L15*L28*L57+2*L12*L15*L28*L58-2*L12*L15*L28*L78-2*L12*L15*L57*L78-2*L12*L15*L58*L78+2*L12*L15*L78**2+4*L12*L15*L78*y4-2*L12*L27*L57*L58-2*L12*L27*L57*y2
+        +2*L12*L27*L58**2-2*L12*L27*L58*L78+4*L12*L27*L58*y1-2*L12*L27*L58*y2+2*L12*L27*L78*y2+2*L12*L28*L57**2-2*L12*L28*L57*L58-2*L12*L28*L57*L78-2*L12*L28*L57*y1
+        +4*L12*L28*L57*y2-2*L12*L28*L58*y1+2*L12*L28*L78*y1+2*L12*L57**2*y2+4*L12*L57*L58*L78-2*L12*L57*L58*y1-2*L12*L57*L58*y2-2*L12*L57*L78*y2-2*L12*L57*L78*y4
+        +2*L12*L57*y1*y4-2*L12*L57*y2*y4+2*L12*L58**2*y1-2*L12*L58*L78*y1-2*L12*L58*L78*y4-2*L12*L58*y1*y4+2*L12*L58*y2*y4+2*L12*L78**2*y4-2*L12*L78*y1*y4
+        -2*L12*L78*y2*y4-L15**2*L27**2+2*L15**2*L27*L28+2*L15**2*L27*L78-L15**2*L28**2+2*L15**2*L28*L78-L15**2*L78**2+2*L15*L27**2*L58+2*L15*L27**2*y2
+        -2*L15*L27*L28*L57-2*L15*L27*L28*L58+4*L15*L27*L28*L78-2*L15*L27*L28*y1-2*L15*L27*L28*y2-2*L15*L27*L57*y2-2*L15*L27*L58*L78-2*L15*L27*L58*y1
+        +4*L15*L27*L58*y2-2*L15*L27*L78*y2-2*L15*L27*L78*y4+2*L15*L27*y1*y4-2*L15*L27*y2*y4+2*L15*L28**2*L57+2*L15*L28**2*y1-2*L15*L28*L57*L78+4*L15*L28*L57*y1
+        -2*L15*L28*L57*y2-2*L15*L28*L58*y1-2*L15*L28*L78*y1-2*L15*L28*L78*y4-2*L15*L28*y1*y4+2*L15*L28*y2*y4+2*L15*L57*L78*y2+2*L15*L58*L78*y1+2*L15*L78**2*y4
+        -2*L15*L78*y1*y4-2*L15*L78*y2*y4-L27**2*L58**2+2*L27**2*L58*y2-L27**2*y2**2+2*L27*L28*L57*L58-2*L27*L28*L57*y2-2*L27*L28*L58*y1+2*L27*L28*y1*y2
+        -2*L27*L57*L58*y2+2*L27*L57*y2**2+4*L27*L57*y2*y4+2*L27*L58**2*y1+2*L27*L58*L78*y4-2*L27*L58*y1*y2-2*L27*L58*y1*y4-2*L27*L58*y2*y4-2*L27*L78*y2*y4
+        -2*L27*y1*y2*y4+2*L27*y2**2*y4-L28**2*L57**2+2*L28**2*L57*y1-L28**2*y1**2+2*L28*L57**2*y2-2*L28*L57*L58*y1+2*L28*L57*L78*y4-2*L28*L57*y1*y2
+        -2*L28*L57*y1*y4-2*L28*L57*y2*y4+2*L28*L58*y1**2+4*L28*L58*y1*y4-2*L28*L78*y1*y4+2*L28*y1**2*y4-2*L28*y1*y2*y4-L57**2*y2**2+2*L57*L58*y1*y2
+        -2*L57*L78*y2*y4-2*L57*y1*y2*y4+2*L57*y2**2*y4-L58**2*y1**2-2*L58*L78*y1*y4+2*L58*y1**2*y4-2*L58*y1*y2*y4-L78**2*y4**2+4*L78*y1*y2*y4+2*L78*y1*y4**2
+        +2*L78*y2*y4**2-y1**2*y4**2+2*y1*y2*y4**2-y2**2*y4**2)
+        ]
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
+    def inequalities_max8vertices(self):
+        L12 = self.getEdgeLength('12')
+        L13 = self.getEdgeLength('13')
+        L14 = self.getEdgeLength('14')
+        L15 = self.getEdgeLength('15')
+        L16 = self.getEdgeLength('16')
+
+        L27 = self.getEdgeLength('27')
+        L37 = self.getEdgeLength('37')
+        L47 = self.getEdgeLength('47')
+        L57 = self.getEdgeLength('57')
+
+        L28 = self.getEdgeLength('28')
+        L58 = self.getEdgeLength('58')
+        L68 = self.getEdgeLength('68')
+        L78 = self.getEdgeLength('78')
+
+        L23 = self.getEdgeLength('23')
+        L34 = self.getEdgeLength('34')
+        L45 = self.getEdgeLength('45')
+        L56 = self.getEdgeLength('56')
+        L26 = self.getEdgeLength('26')
+        cond_y1_left=[L12+L27-2*math.sqrt(L12*L27), L13+L37-2*math.sqrt(L13*L37), L14+L47-2*math.sqrt(L14*L47), L15+L57-2*math.sqrt(L15*L57),
+                       -(1/4)*(-2*L12*L23+2*L12*L27-2*L12*L37-2*L13*L23-2*L13*L27+2*L13*L37+2*L23**2-2*L23*L27-2*L23*L37
+                               +2*math.sqrt(L12**2*L23**2-2*L12**2*L23*L27-2*L12**2*L23*L37+L12**2*L27**2-2*L12**2*L27*L37
+                                            +L12**2*L37**2-2*L12*L13*L23**2+4*L12*L13*L23*L27+4*L12*L13*L23*L37-2*L12*L13*L27**2+4*L12*L13*L27*L37
+                                            -2*L12*L13*L37**2-2*L12*L23**3+4*L12*L23**2*L27+4*L12*L23**2*L37-2*L12*L23*L27**2+4*L12*L23*L27*L37
+                                            -2*L12*L23*L37**2+L13**2*L23**2-2*L13**2*L23*L27-2*L13**2*L23*L37+L13**2*L27**2-2*L13**2*L27*L37+L13**2*L37**2
+                                            -2*L13*L23**3+4*L13*L23**2*L27+4*L13*L23**2*L37-2*L13*L23*L27**2+4*L13*L23*L27*L37-2*L13*L23*L37**2+L23**4
+                                            -2*L23**3*L27-2*L23**3*L37+L23**2*L27**2-2*L23**2*L27*L37+L23**2*L37**2))/L23,
+                        -(1/4)*(-2*L13*L34+2*L13*L37-2*L13*L47-2*L14*L34-2*L14*L37+2*L14*L47+2*L34**2-2*L34*L37-2*L34*L47
+                                +2*math.sqrt(L13**2*L34**2-2*L13**2*L34*L37-2*L13**2*L34*L47+L13**2*L37**2-2*L13**2*L37*L47+L13**2*L47**2
+                                             -2*L13*L14*L34**2+4*L13*L14*L34*L37+4*L13*L14*L34*L47-2*L13*L14*L37**2+4*L13*L14*L37*L47-2*L13*L14*L47**2
+                                             -2*L13*L34**3+4*L13*L34**2*L37+4*L13*L34**2*L47-2*L13*L34*L37**2+4*L13*L34*L37*L47-2*L13*L34*L47**2
+                                             +L14**2*L34**2-2*L14**2*L34*L37-2*L14**2*L34*L47+L14**2*L37**2-2*L14**2*L37*L47+L14**2*L47**2
+                                             -2*L14*L34**3+4*L14*L34**2*L37+4*L14*L34**2*L47-2*L14*L34*L37**2+4*L14*L34*L37*L47-2*L14*L34*L47**2
+                                             +L34**4-2*L34**3*L37-2*L34**3*L47+L34**2*L37**2-2*L34**2*L37*L47+L34**2*L47**2))/L34,
+                        -(1/4)*(-2*L14*L45+2*L14*L47-2*L14*L57-2*L15*L45-2*L15*L47+2*L15*L57+2*L45**2-2*L45*L47-2*L45*L57
+                                +2*math.sqrt(L14**2*L45**2-2*L14**2*L45*L47-2*L14**2*L45*L57+L14**2*L47**2-2*L14**2*L47*L57+L14**2*L57**2
+                                             -2*L14*L15*L45**2+4*L14*L15*L45*L47+4*L14*L15*L45*L57-2*L14*L15*L47**2+4*L14*L15*L47*L57
+                                             -2*L14*L15*L57**2-2*L14*L45**3+4*L14*L45**2*L47+4*L14*L45**2*L57-2*L14*L45*L47**2+4*L14*L45*L47*L57
+                                             -2*L14*L45*L57**2+L15**2*L45**2-2*L15**2*L45*L47-2*L15**2*L45*L57+L15**2*L47**2-2*L15**2*L47*L57
+                                             +L15**2*L57**2-2*L15*L45**3+4*L15*L45**2*L47+4*L15*L45**2*L57-2*L15*L45*L47**2+4*L15*L45*L47*L57
+                                             -2*L15*L45*L57**2+L45**4-2*L45**3*L47-2*L45**3*L57+L45**2*L47**2-2*L45**2*L47*L57+L45**2*L57**2))/L45]
+
+        cond_y1_right=[L12+L27+2*math.sqrt(L12*L27), L13+L37+2*math.sqrt(L13*L37), L14+L47+2*math.sqrt(L14*L47), L15+L57+2*math.sqrt(L15*L57), 
+                       -(1/4)*(-2*L12*L23+2*L12*L27-2*L12*L37-2*L13*L23-2*L13*L27+2*L13*L37+2*L23**2-2*L23*L27-2*L23*L37
+                               -2*math.sqrt(L12**2*L23**2-2*L12**2*L23*L27-2*L12**2*L23*L37+L12**2*L27**2-2*L12**2*L27*L37+L12**2*L37**2-2*L12*L13*L23**2
+                                            +4*L12*L13*L23*L27+4*L12*L13*L23*L37-2*L12*L13*L27**2+4*L12*L13*L27*L37-2*L12*L13*L37**2-2*L12*L23**3
+                                            +4*L12*L23**2*L27+4*L12*L23**2*L37-2*L12*L23*L27**2+4*L12*L23*L27*L37-2*L12*L23*L37**2+L13**2*L23**2
+                                            -2*L13**2*L23*L27-2*L13**2*L23*L37+L13**2*L27**2-2*L13**2*L27*L37+L13**2*L37**2-2*L13*L23**3+4*L13*L23**2*L27
+                                            +4*L13*L23**2*L37-2*L13*L23*L27**2+4*L13*L23*L27*L37-2*L13*L23*L37**2+L23**4-2*L23**3*L27-2*L23**3*L37
+                                            +L23**2*L27**2-2*L23**2*L27*L37+L23**2*L37**2))/L23,
+                        -(1/4)*(-2*L13*L34+2*L13*L37-2*L13*L47-2*L14*L34-2*L14*L37+2*L14*L47+2*L34**2-2*L34*L37-2*L34*L47
+                                -2*math.sqrt(L13**2*L34**2-2*L13**2*L34*L37-2*L13**2*L34*L47+L13**2*L37**2-2*L13**2*L37*L47+L13**2*L47**2
+                                             -2*L13*L14*L34**2+4*L13*L14*L34*L37+4*L13*L14*L34*L47-2*L13*L14*L37**2+4*L13*L14*L37*L47-2*L13*L14*L47**2
+                                             -2*L13*L34**3+4*L13*L34**2*L37+4*L13*L34**2*L47-2*L13*L34*L37**2+4*L13*L34*L37*L47-2*L13*L34*L47**2
+                                             +L14**2*L34**2-2*L14**2*L34*L37-2*L14**2*L34*L47+L14**2*L37**2-2*L14**2*L37*L47+L14**2*L47**2-2*L14*L34**3
+                                             +4*L14*L34**2*L37+4*L14*L34**2*L47-2*L14*L34*L37**2+4*L14*L34*L37*L47-2*L14*L34*L47**2+L34**4-2*L34**3*L37
+                                             -2*L34**3*L47+L34**2*L37**2-2*L34**2*L37*L47+L34**2*L47**2))/L34,
+                        -(1/4)*(-2*L14*L45+2*L14*L47-2*L14*L57-2*L15*L45-2*L15*L47+2*L15*L57+2*L45**2-2*L45*L47-2*L45*L57
+                                -2*math.sqrt(L14**2*L45**2-2*L14**2*L45*L47-2*L14**2*L45*L57+L14**2*L47**2-2*L14**2*L47*L57+L14**2*L57**2
+                                             -2*L14*L15*L45**2+4*L14*L15*L45*L47+4*L14*L15*L45*L57-2*L14*L15*L47**2+4*L14*L15*L47*L57-2*L14*L15*L57**2
+                                             -2*L14*L45**3+4*L14*L45**2*L47+4*L14*L45**2*L57-2*L14*L45*L47**2+4*L14*L45*L47*L57-2*L14*L45*L57**2
+                                             +L15**2*L45**2-2*L15**2*L45*L47-2*L15**2*L45*L57+L15**2*L47**2-2*L15**2*L47*L57+L15**2*L57**2
+                                             -2*L15*L45**3+4*L15*L45**2*L47+4*L15*L45**2*L57-2*L15*L45*L47**2+4*L15*L45*L47*L57-2*L15*L45*L57**2+L45**4
+                                             -2*L45**3*L47-2*L45**3*L57+L45**2*L47**2-2*L45**2*L47*L57+L45**2*L57**2))/L45]
+
+        Int_y1=[max(cond_y1_left),min(cond_y1_right)]
+
+        ##y1 is embeddable iff Int_y1[0]<=y1<=Int_y1[1]
+
+        cond_y4_left=[L12+L15-2*math.sqrt(L12*L15), L26+L56-2*math.sqrt(L26*L56), L27+L57-2*math.sqrt(L27*L57),
+                       -(1/4)*(2*L12*L15-2*L12*L16-2*L12*L56-2*L15*L16-2*L15*L26+2*L16**2-2*L16*L26-2*L16*L56+2*L26*L56
+                               +2*math.sqrt(L12**2*L15**2-2*L12**2*L15*L16-2*L12**2*L15*L56+L12**2*L16**2-2*L12**2*L16*L56+L12**2*L56**2-2*L12*L15**2*L16
+                                            -2*L12*L15**2*L26+4*L12*L15*L16**2+4*L12*L15*L16*L26+4*L12*L15*L16*L56+4*L12*L15*L26*L56-2*L12*L16**3
+                                            -2*L12*L16**2*L26+4*L12*L16**2*L56+4*L12*L16*L26*L56-2*L12*L16*L56**2-2*L12*L26*L56**2+L15**2*L16**2
+                                            -2*L15**2*L16*L26+L15**2*L26**2-2*L15*L16**3+4*L15*L16**2*L26-2*L15*L16**2*L56-2*L15*L16*L26**2
+                                            +4*L15*L16*L26*L56-2*L15*L26**2*L56+L16**4-2*L16**3*L26-2*L16**3*L56+L16**2*L26**2+4*L16**2*L26*L56+L16**2*L56**2-2*L16*L26**2*L56-2*L16*L26*L56**2+L26**2*L56**2))/L16, -(1/4)*(2*L26*L56-2*L26*L58-2*L26*L68-2*L28*L56+2*L28*L58-2*L28*L68-2*L56*L68-2*L58*L68+2*L68**2+2*math.sqrt(L26**2*L56**2-2*L26**2*L56*L58-2*L26**2*L56*L68+L26**2*L58**2-2*L26**2*L58*L68+L26**2*L68**2-2*L26*L28*L56**2+4*L26*L28*L56*L58+4*L26*L28*L56*L68-2*L26*L28*L58**2+4*L26*L28*L58*L68-2*L26*L28*L68**2-2*L26*L56**2*L68+4*L26*L56*L58*L68+4*L26*L56*L68**2-2*L26*L58**2*L68+4*L26*L58*L68**2-2*L26*L68**3+L28**2*L56**2-2*L28**2*L56*L58-2*L28**2*L56*L68+L28**2*L58**2-2*L28**2*L58*L68+L28**2*L68**2-2*L28*L56**2*L68+4*L28*L56*L58*L68+4*L28*L56*L68**2-2*L28*L58**2*L68+4*L28*L58*L68**2-2*L28*L68**3+L56**2*L68**2-2*L56*L58*L68**2-2*L56*L68**3+L58**2*L68**2-2*L58*L68**3+L68**4))/L68, -(1/4)*(2*L27*L57-2*L27*L58-2*L27*L78-2*L28*L57+2*L28*L58-2*L28*L78-2*L57*L78-2*L58*L78+2*L78**2+2*math.sqrt(L27**2*L57**2-2*L27**2*L57*L58-2*L27**2*L57*L78+L27**2*L58**2-2*L27**2*L58*L78+L27**2*L78**2-2*L27*L28*L57**2+4*L27*L28*L57*L58+4*L27*L28*L57*L78-2*L27*L28*L58**2+4*L27*L28*L58*L78-2*L27*L28*L78**2-2*L27*L57**2*L78+4*L27*L57*L58*L78+4*L27*L57*L78**2-2*L27*L58**2*L78+4*L27*L58*L78**2-2*L27*L78**3+L28**2*L57**2-2*L28**2*L57*L58-2*L28**2*L57*L78+L28**2*L58**2-2*L28**2*L58*L78+L28**2*L78**2-2*L28*L57**2*L78+4*L28*L57*L58*L78+4*L28*L57*L78**2-2*L28*L58**2*L78+4*L28*L58*L78**2-2*L28*L78**3+L57**2*L78**2-2*L57*L58*L78**2-2*L57*L78**3+L58**2*L78**2-2*L58*L78**3+L78**4))/L78]
+
+        cond_y4_right=[L12+L15+2*math.sqrt(L12*L15), L26+L56+2*math.sqrt(L26*L56), L27+L57+2*math.sqrt(L27*L57), -(1/4)*(2*L12*L15-2*L12*L16-2*L12*L56-2*L15*L16-2*L15*L26+2*L16**2-2*L16*L26-2*L16*L56+2*L26*L56-2*math.sqrt(L12**2*L15**2-2*L12**2*L15*L16-2*L12**2*L15*L56+L12**2*L16**2-2*L12**2*L16*L56+L12**2*L56**2-2*L12*L15**2*L16-2*L12*L15**2*L26+4*L12*L15*L16**2+4*L12*L15*L16*L26+4*L12*L15*L16*L56+4*L12*L15*L26*L56-2*L12*L16**3-2*L12*L16**2*L26+4*L12*L16**2*L56+4*L12*L16*L26*L56-2*L12*L16*L56**2-2*L12*L26*L56**2+L15**2*L16**2-2*L15**2*L16*L26+L15**2*L26**2-2*L15*L16**3+4*L15*L16**2*L26-2*L15*L16**2*L56-2*L15*L16*L26**2+4*L15*L16*L26*L56-2*L15*L26**2*L56+L16**4-2*L16**3*L26-2*L16**3*L56+L16**2*L26**2+4*L16**2*L26*L56+L16**2*L56**2-2*L16*L26**2*L56-2*L16*L26*L56**2+L26**2*L56**2))/L16, -(1/4)*(2*L26*L56-2*L26*L58-2*L26*L68-2*L28*L56+2*L28*L58-2*L28*L68-2*L56*L68-2*L58*L68+2*L68**2-2*math.sqrt(L26**2*L56**2-2*L26**2*L56*L58-2*L26**2*L56*L68+L26**2*L58**2-2*L26**2*L58*L68+L26**2*L68**2-2*L26*L28*L56**2+4*L26*L28*L56*L58+4*L26*L28*L56*L68-2*L26*L28*L58**2+4*L26*L28*L58*L68-2*L26*L28*L68**2-2*L26*L56**2*L68+4*L26*L56*L58*L68+4*L26*L56*L68**2-2*L26*L58**2*L68+4*L26*L58*L68**2-2*L26*L68**3+L28**2*L56**2-2*L28**2*L56*L58-2*L28**2*L56*L68+L28**2*L58**2-2*L28**2*L58*L68+L28**2*L68**2-2*L28*L56**2*L68+4*L28*L56*L58*L68+4*L28*L56*L68**2-2*L28*L58**2*L68+4*L28*L58*L68**2-2*L28*L68**3+L56**2*L68**2-2*L56*L58*L68**2-2*L56*L68**3+L58**2*L68**2-2*L58*L68**3+L68**4))/L68, -(1/4)*(2*L27*L57-2*L27*L58-2*L27*L78-2*L28*L57+2*L28*L58-2*L28*L78-2*L57*L78-2*L58*L78+2*L78**2-2*math.sqrt(L27**2*L57**2-2*L27**2*L57*L58-2*L27**2*L57*L78+L27**2*L58**2-2*L27**2*L58*L78+L27**2*L78**2-2*L27*L28*L57**2+4*L27*L28*L57*L58+4*L27*L28*L57*L78-2*L27*L28*L58**2+4*L27*L28*L58*L78-2*L27*L28*L78**2-2*L27*L57**2*L78+4*L27*L57*L58*L78+4*L27*L57*L78**2-2*L27*L58**2*L78+4*L27*L58*L78**2-2*L27*L78**3+L28**2*L57**2-2*L28**2*L57*L58-2*L28**2*L57*L78+L28**2*L58**2-2*L28**2*L58*L78+L28**2*L78**2-2*L28*L57**2*L78+4*L28*L57*L58*L78+4*L28*L57*L78**2-2*L28*L58**2*L78+4*L28*L58*L78**2-2*L28*L78**3+L57**2*L78**2-2*L57*L58*L78**2-2*L57*L78**3+L58**2*L78**2-2*L58*L78**3+L78**4))/L78]
+
+        Int_y4=[max(cond_y4_left),min(cond_y4_right)]
+
+        ##y1 is embeddable iff Int_y4[0]<=y4<=Int_y4[1]
+        ## the mechanism is embeddable if both y1/y4 are so
+        ## should we use small tolerance (eg <10^(-5))?
 
     def constructEquations_ring8vertices(self):
         '''system with correct mixed volume'''    
