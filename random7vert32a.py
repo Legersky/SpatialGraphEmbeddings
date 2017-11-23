@@ -33,13 +33,16 @@ lengths = {(1, 2) : dist(v1,v2),
         (5, 7) : dist(v5,v7),
         (6, 7) : dist(v6,v7)
             }
-
+lengths = {(1, 2): 10.9464978614277, (4, 7): 8.7388471903030389, (1, 3): 6.27469003969716, (6, 7): 9.284894093430244, (5, 6): 9.229604229826325, (5, 7): 7.8831186688053965, (1, 4): 8.062543016998301, (1, 6): 11.559732906664415, (3, 6): 8.255957517599734, (2, 3): 8.827097289782333, (3, 7): 5.617334110160578, (2, 5): 9.741464052378111, (3, 4): 6.1089666048644204, (2, 4): 8.949700966931744, (3, 5): 5.5980614315661095}
+for e in lengths:
+    lengths[e] = round(lengths[e],2)
+print lengths
 G = GraphEmbedding(lengths, '7vert32a')
 r = len(G.findEmbeddings()['real'])
 print r
-alg = AlgRealEmbeddings('7vert32a',  name='7vert32_a_random', num_phi=12, num_theta=12)
-#    alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
-alg.findMoreEmbeddings(lengths)
+#alg = AlgRealEmbeddings('7vert32a',  name='7vert32_a_random', num_phi=12, num_theta=12)
+##    alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
+#alg.findMoreEmbeddings(lengths)
 
 
 
