@@ -40,6 +40,10 @@ class AlgRealEmbeddings(object):
             self._numAllSol = 160
             self._combinations = [[3, 7, 2, 4, 1], [6, 8, 2, 5, 1], [4, 5, 1, 7, 3], [8, 7, 2, 5, 6], [4, 3, 1, 7, 5], [6, 2, 1, 8, 5], [3, 2, 1, 7, 4], [8, 5, 7, 6, 2], 
                                   [4, 1, 3, 5, 7], [6, 5, 1, 8, 2], [3, 1, 2, 4, 7], [8, 2, 7, 6, 5], [4, 7, 3, 5, 1], [6, 1, 2, 5, 8], [3, 4, 1, 7, 2], [8, 6, 2, 5, 7]]
+        elif graph_type == 'Max8vertices_distSyst':
+            self._numAllSol = 80
+            self._combinations = [[3, 7, 2, 4, 1], [6, 8, 2, 5, 1], [4, 5, 1, 7, 3], [8, 7, 2, 5, 6], [4, 3, 1, 7, 5], [6, 2, 1, 8, 5], [3, 2, 1, 7, 4], [8, 5, 7, 6, 2], 
+                                  [4, 1, 3, 5, 7], [6, 5, 1, 8, 2], [3, 1, 2, 4, 7], [8, 2, 7, 6, 5], [4, 7, 3, 5, 1], [6, 1, 2, 5, 8], [3, 4, 1, 7, 2], [8, 6, 2, 5, 7]]
         elif graph_type == 'Ring8vertices':
             self._numAllSol = 128
             self._combinations = [[7, 2, 1, 8, 6], [5, 1, 4, 6, 8], [2, 7, 1, 8, 3], [6, 1, 5, 7, 8], [7, 6, 1, 8, 2], [3, 8, 2, 4, 1], [2, 3, 1, 8, 7], [4, 1, 3, 5, 8],          
@@ -143,11 +147,14 @@ class AlgRealEmbeddings(object):
             self._window.setActiveGraph(graphCouplerCurve)
         self.printLog('...', newLine=False)
         eqs = []
+        intervals = []
         phiThetas = []
         for phi, theta in iterator:
             try:
                 starting_graph.setPhiTheta(uvwpc, phi, theta)
                 eqs.append(str(starting_graph.getEquations()))
+                if self._graph_type=='Max8vertices_distSyst':
+                    intervals.append(starting_graph.inequalities_max8vertices())
                 phiThetas.append([phi, theta])
             except ValueError:
                 pass
@@ -173,14 +180,13 @@ class AlgRealEmbeddings(object):
         with open(filenameTmp+'_1_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[0:N]))
         
-        process_1 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_1_', filenameTmp+'_prev.txt'])
+        process_1 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_1_', filenameTmp+'_prev.txt', str(intervals[0:N])])
         
         with open(filenameTmp+'_2_eqs.txt','w') as fileEqs:
             fileEqs.write('\n'.join(eqs[N:]))
         
-        process_2 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_2_', filenameTmp+'_prev.txt'])
-         
-        
+        process_2 = subprocess.Popen(['python2', 'numReal.py', filenameTmp+'_2_', filenameTmp+'_prev.txt', str(intervals[N:])])
+
         process_1.wait()
         process_2.wait()
         
@@ -275,7 +281,7 @@ class AlgRealEmbeddings(object):
             act_num = min([n, start_graph_num])
         
         act_phi, act_theta = starting_graph.getPhiTheta(uvwpc)
-        print [act_phi, act_theta,  act_num]
+#        print [act_phi, act_theta,  act_num]
        
         margin_degree = 5
         margin = margin_degree*math.pi/180.0
@@ -450,7 +456,11 @@ class AlgRealEmbeddings(object):
         previous_lengths = [copy.copy(starting_lengths)]
         self.findMoreEmbeddings_recursion(starting_lengths, previous_steps, previous_lengths, self._actMaximum)
         
-        outputFilename = './res/'+str(self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+        if self._graph_type=='Max8vertices_distSyst':
+            outputFilename = './res/'+str(2*self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+        else:
+            outputFilename = './res/'+str(self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+
         os.rename('./res/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
         
         self.printLog('Reached maximums are in:')
@@ -471,6 +481,8 @@ class AlgRealEmbeddings(object):
                 self.printLog('Reached maximum: '+str(self._actMaximum))
                 self.printLog('Previous steps: '+str(previous_steps[1:]))
                 self.printLog('Actual step: ' + str(uvwpc))
+                if self._graph_type=='Max8vertices_distSyst':
+                    self.printLog('USING DISTANCE SYSTEM')
 
                 
                 lengths_tmp = copy.copy(starting_lengths)
@@ -551,9 +563,14 @@ class AlgRealEmbeddings(object):
                         starting_graph.setPhiTheta(uvwpc, phi, theta)
                         f.write(str(starting_graph.getLengths())+'\n')
         
-        os.rename(fileName, './res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
+        if self._graph_type=='Max8vertices_distSyst':
+            outputFilename = './res/generated_'+str(2*reached_max)+'_embd_'+self._fileNamePref+'.txt'
+        else:
+            outputFilename = './res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt'
+        
+        os.rename(fileName, outputFilename)
         self.printLog('Result saved to:')
-        self.printLog('./res/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt')
+        self.printLog(outputFilename)
 
     def findMoreEmbeddings(self, starting_lengths, required_num=None,  combinations=None,  allowed_repetition=1):
         if required_num==None:
@@ -563,6 +580,10 @@ class AlgRealEmbeddings(object):
         sols = G.findEmbeddings()
         actMaximum = len(sols['real'])
         fromStr = 'from_'+str(actMaximum)
+        if self._graph_type=='Max8vertices_distSyst':
+            fromStr = 'from_'+str(2*actMaximum)
+        else:
+            fromStr = 'from_'+str(actMaximum)
         
         if combinations:
             tmp_comb = copy.copy(self._combinations)
@@ -597,6 +618,8 @@ class AlgRealEmbeddings(object):
                     self.printLog('Reached maximum: '+str(actMaximum))
                     self.printLog('Iteration: '+str(comb_counter))
                     self.printLog('Actual step: ' + str(uvwpc))
+                    if self._graph_type=='Max8vertices_distSyst':
+                        self.printLog('USING DISTANCE SYSTEM')
                     [_, _, res_lengths, _, maximum] = self.sampleToGetMoreEmbd(lengths, uvwpc,  prev_max)
                     lengths = copy.copy(res_lengths[0])
                 except ValueError as e:
@@ -653,8 +676,10 @@ class AlgRealEmbeddings(object):
                     lens_to_check = lens_to_check + [[lens, comb_counter, maximum, num_not_changed] for lens in res_lengths[1:]]
                 self.printLog('Number of lengths in stack: %d' % len(lens_to_check))
 
-        
-        outputFilename = './res/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+        if self._graph_type=='Max8vertices_distSyst':
+            outputFilename = './res/'+str(2*actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+        else:
+            outputFilename = './res/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
         os.rename('./res/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
         
         self.printLog('Reached maximum is in:')
@@ -668,6 +693,7 @@ class AlgRealEmbeddings(object):
     def sampleEdge(self, starting_lengths, edge, num_samples):
         min_length = 0.5*min(starting_lengths.values())
         max_length = 2*max(starting_lengths.values())
+        orig_length = starting_lengths[edge]
         starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
         step = (max_length - min_length)/float(num_samples)
         L = min_length
@@ -676,13 +702,22 @@ class AlgRealEmbeddings(object):
             try:
                 starting_graph.setEdgeLength(L, edge[0], edge[1])
                 m = len(starting_graph.findEmbeddings()['real'])
+                print m
                 max_L.append([m, L])
             except TriangleInequalityError:
                 pass
             except ValueError:
                 pass
             L += step
-    
+        try:
+            starting_graph.setEdgeLength(orig_length, edge[0], edge[1])
+            m = len(starting_graph.findEmbeddings()['real'])
+            print m
+            max_L.append([m, orig_length])
+        except TriangleInequalityError:
+            pass
+        except ValueError:
+            pass
         max_L_second = []
         maximum = max([_m for _m, _ in max_L])
         max_1st = maximum
