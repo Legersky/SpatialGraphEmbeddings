@@ -152,9 +152,9 @@ class AlgRealEmbeddings(object):
         for phi, theta in iterator:
             try:
                 starting_graph.setPhiTheta(uvwpc, phi, theta)
-                eqs.append(str(starting_graph.getEquations()))
                 if self._graph_type=='Max8vertices_distSyst':
                     intervals.append(starting_graph.inequalities_max8vertices())
+                eqs.append(str(starting_graph.getEquations()))
                 phiThetas.append([phi, theta])
             except ValueError:
                 pass
