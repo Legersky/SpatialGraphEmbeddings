@@ -40,7 +40,7 @@ def findEmbeddings(syst):
         
         num_real = len(result_real)
         
-        if num_real%4==0:    # and len(sols)==numAll:
+        if num_real%4==0 and len(sols)==numAll:
             prevSystem = syst
             prevSolutions = sols
             return num_real
@@ -56,7 +56,7 @@ def findEmbeddings_dist(syst,  interval):
     global prevSystem
     global usePrev
     global prevSolutions
-    i = 0
+#    i = 0
     y1_left,  y1_right, y4_left,  y4_right = interval
 #    print fileNamePref
     while True:
@@ -73,17 +73,17 @@ def findEmbeddings_dist(syst,  interval):
 
         num_real = len(result_real)
         
-        if num_real%2==0:    # and len(sols)==numAll:
+        if num_real%2==0 and len(sols)==numAll:
             prevSystem = syst
             prevSolutions = sols
-            return num_real
-        else:
-            usePrev = False
-            i += 1
-#            print 'PHC failed, trying again: '+str(i)
-        if i>=3:
-            print 'PHC failed 3 times', 
-            return -1
+        return num_real
+#        else:
+#            usePrev = False
+#            i += 1
+##            print 'PHC failed, trying again: '+str(i)
+#        if i>=3:
+#            print 'PHC failed 3 times', 
+#            return -1
 
 
 res = []

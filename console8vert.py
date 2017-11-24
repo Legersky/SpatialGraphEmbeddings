@@ -92,38 +92,50 @@ lengths = {
 #           (1, 4): 4.49321454664234, (1, 3): 12.291475166368201, (1, 6): 3.027506184926906, (3, 7): 12.213160380343274, (5, 8): 0.09529692624044482, 
 #           (1, 2): 3.214648729657953, (6, 8): 0.0179005231972465, (1, 5): 3.032338165266229, (3, 4): 10.92113783226037, (5, 7): 1.0123496857434562, 
 #           (5, 6): 0.0949979939254927, (2, 3): 11.53333847125022, (7, 8): 1.0019027335371273}
+lengths = {(2, 7): 1.4227978952015625, (4, 7): 5.057447630639855, (2, 6): 1.023780094558546, (4, 5): 4.807738870190033, (2, 8): 1.0207343645750873,
+           (1, 4): 5.839343839684612, (1, 3): 6.488490144195361, (1, 6): 3.0325698054328925, (3, 7): 5.680353239018572, (5, 8): 0.09532453043842402, 
+           (1, 2): 3.2123773450929978, (6, 8): 0.02859064935597548, (1, 5): 3.03233816526623, (3, 4): 5.4761739725514733, (5, 7): 1.0123496857434564,
+           (5, 6): 0.09495461781546082, (2, 3): 5.125898298728279, (7, 8): 1.0093055344717898}
+
+#start = time.time()
+#print 'Magnitude system:'
+#alg = AlgRealEmbeddings('Max8vertices', name='test_magn_syst')
+#alg.sampleToGetMoreEmbd(lengths, [8, 2, 7, 6, 5],  0)
+#end = time.time()
+#print 'Final time: '+str(end - start)
+#
+#
+#start = time.time()
+#print 'Distance system:'
+#alg = AlgRealEmbeddings('Max8vertices_distSyst', name='test_dist_syst')
+#alg.sampleToGetMoreEmbd(lengths, [8, 2, 7, 6, 5],  0)
+#end = time.time()
+#print 'Final time: '+str(end - start)
 
 
 start = time.time()
 print 'Magnitude system:'
-alg = AlgRealEmbeddings('Max8vertices', name='test_magn_syst')
-alg.sampleToGetMoreEmbd(lengths, [8, 2, 7, 6, 5],  0)
+G = GraphEmbedding(lengths, 'Max8vertices')
+sols = G.findEmbeddings()
+print '# real:'
+m = len(sols['real'])
+print m
 end = time.time()
-print 'Final time: '+str(end - start)
-
+print 'time: '+str(end - start)
 
 start = time.time()
-print 'Distance system:'
-alg = AlgRealEmbeddings('Max8vertices_distSyst', name='test_dist_syst')
-alg.sampleToGetMoreEmbd(lengths, [8, 2, 7, 6, 5],  0)
+print '\nDistance system'
+G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
+sols = G.findEmbeddings()
+print '# embeddable (dist syst):'
+print len(sols['real'])
 end = time.time()
-print 'Final time: '+str(end - start)
+print 'time: '+str(end - start)
 
-
-
-#start = time.time()
-#print '\nDistance system'
-#G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
-#sols = G.findEmbeddings()
-#print '# embeddable (dist syst):'
-#print len(sols['real'])
-#end = time.time()
-#print 'time: '+str(end - start)
-
-#if m==2*len(sols['real']):
-#    print 'OK'
-#else:
-#    print 'PROBLEM!!!'
+if m==2*len(sols['real']):
+    print 'OK'
+else:
+    print 'PROBLEM!!!'
 
 #print len(sols['complex'])
 #lengths = {(1, 2): 3.2232294709034446, (4, 7): 3.8174034354261854, (2, 6): 1.023865485629374, (4, 5): 3.4734613814676014, (2, 8): 1.0229346087848081,
