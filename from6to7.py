@@ -64,5 +64,5 @@ for i in range(0, 10):
 
     print '*********************2nd phase starts*****************************************'
 
-    alg2 = AlgRealEmbeddings('Max7vertices', num_phi=12, num_theta=12, choice_from_clusters=choice, name='2nd_phase_'+name1st)
-    alg2.findMoreEmbeddings(lengths_2nd_phase)
+    alg2 = AlgRealEmbeddings('Max7vertices', choice_from_clusters=choice, name='2nd_phase_'+name1st)
+    alg2.findMoreEmbeddings(lengths_2nd_phase, num_phi=12, num_theta=12)
