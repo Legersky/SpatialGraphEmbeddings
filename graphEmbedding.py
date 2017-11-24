@@ -184,7 +184,7 @@ class GraphEmbedding(object):
                 #print 'interval y4:'
                 #print y4_left,  y4_right
             except TriangleInequalityError:
-                self.printLog('intervals could not be  computes')
+                self.printLog('intervals could not be computed')
                 return {'real':[], 'complex':[None for _ in range(0, 80)]}
         else:
             num_conjugated = 4
