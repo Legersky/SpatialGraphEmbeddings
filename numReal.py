@@ -49,7 +49,7 @@ def findEmbeddings(syst):
             i += 1
 #            print 'PHC failed, trying again: '+str(i)
         if i>=3:
-            print 'PHC failed 3 times'
+            print 'PHC failed 3 times', 
             return -1
 
 def findEmbeddings_dist(syst,  interval):
@@ -82,7 +82,7 @@ def findEmbeddings_dist(syst,  interval):
             i += 1
 #            print 'PHC failed, trying again: '+str(i)
         if i>=3:
-            print 'PHC failed 3 times'
+            print 'PHC failed 3 times', 
             return -1
 
 
