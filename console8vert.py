@@ -17,22 +17,22 @@ import copy
 #v4 = [1.0+uniform(a, b), 1.0+uniform(a, b), uniform(a, b)]
 #
 #v8 = [ 1.0 + uniform(a, b),uniform(a, b), 1.0+uniform(a, b)]
+for i in range(0, 5):
+    a = -5.0
+    b = 5.0
+    v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v7 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-a = -5.0
-b = 5.0
-v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-v7 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v5 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-v5 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v3 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-v3 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v6 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-v6 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v4 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-v4 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-
-v8 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v8 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
 #v1 = [uniform(a, b), 1.0 + uniform(a, b), uniform(a, b)]
 #v8 = [uniform(a, b), 1.0 + uniform(a, b), uniform(a, b)]
@@ -47,29 +47,29 @@ v8 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
 #v7 = [uniform(a, b), 0.5 + uniform(a, b), -1.0+uniform(a, b)]
 
-def dist( u, v):
-    return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
-#
-lengths = {
-           (2, 1) : dist(v2,v1),
-            (2, 7) : dist(v2,v7),
-            (2, 6) : dist(v2,v6),
-            (3, 1) : dist(v3,v1),
-            (3, 7) : dist(v3,v7),
-            (3, 2) : dist(v3,v2),
-            (4, 1) : dist(v4,v1),
-            (4, 7) : dist(v4,v7),
-            (4, 3) : dist(v4,v3),
-            (5, 1) : dist(v5,v1),
-            (5, 7) : dist(v5,v7),
-            (5, 4) : dist(v5,v4),
-            (6, 1) : dist(v6,v1),
-            (6, 5) : dist(v6,v5),
-            (5, 8) : dist(v5,v8),
-            (6, 8) : dist(v6,v8),
-            (7, 8) : dist(v7,v8),
-            (2, 8) : dist(v2,v8),
-           }
+    def dist( u, v):
+        return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
+
+    lengths = {
+               (2, 1) : dist(v2,v1),
+                (2, 7) : dist(v2,v7),
+                (2, 6) : dist(v2,v6),
+                (3, 1) : dist(v3,v1),
+                (3, 7) : dist(v3,v7),
+                (3, 2) : dist(v3,v2),
+                (4, 1) : dist(v4,v1),
+                (4, 7) : dist(v4,v7),
+                (4, 3) : dist(v4,v3),
+                (5, 1) : dist(v5,v1),
+                (5, 7) : dist(v5,v7),
+                (5, 4) : dist(v5,v4),
+                (6, 1) : dist(v6,v1),
+                (6, 5) : dist(v6,v5),
+                (5, 8) : dist(v5,v8),
+                (6, 8) : dist(v6,v8),
+                (7, 8) : dist(v7,v8),
+                (2, 8) : dist(v2,v8),
+               }
 
 
 #lengths = {(2, 7): 1.4288466263977495, (4, 7): 17.88035095820198, (2, 6): 1.0237800945583875, (4, 5): 17.84874384133012, (2, 8): 1.0222718473388588,
@@ -92,10 +92,10 @@ lengths = {
 #           (1, 4): 4.49321454664234, (1, 3): 12.291475166368201, (1, 6): 3.027506184926906, (3, 7): 12.213160380343274, (5, 8): 0.09529692624044482, 
 #           (1, 2): 3.214648729657953, (6, 8): 0.0179005231972465, (1, 5): 3.032338165266229, (3, 4): 10.92113783226037, (5, 7): 1.0123496857434562, 
 #           (5, 6): 0.0949979939254927, (2, 3): 11.53333847125022, (7, 8): 1.0019027335371273}
-lengths = {(2, 7): 1.4227978952015625, (4, 7): 5.057447630639855, (2, 6): 1.023780094558546, (4, 5): 4.807738870190033, (2, 8): 1.0207343645750873,
-           (1, 4): 5.839343839684612, (1, 3): 6.488490144195361, (1, 6): 3.0325698054328925, (3, 7): 5.680353239018572, (5, 8): 0.09532453043842402, 
-           (1, 2): 3.2123773450929978, (6, 8): 0.02859064935597548, (1, 5): 3.03233816526623, (3, 4): 5.4761739725514733, (5, 7): 1.0123496857434564,
-           (5, 6): 0.09495461781546082, (2, 3): 5.125898298728279, (7, 8): 1.0093055344717898}
+#lengths = {(1, 2): 3.2123773450929978, (4, 7): 2.6668779203119626, (2, 6): 1.023780094558506, (4, 5): 2.3221847156933664, (2, 8): 1.0207343645751081, 
+#           (1, 4): 3.9308375345162094, (1, 3): 6.492391116191058, (1, 6): 3.032569805432907, (3, 7): 5.628525453558209, (5, 8): 0.09532453043831848, 
+#           (2, 7): 1.4227978952015625, (6, 8): 0.028590649355647698, (1, 5): 3.03233816526623, (3, 4): 4.706336261323631, (5, 7): 1.0123496857434564, 
+#           (5, 6): 0.09495461781543314, (2, 3): 5.043852453527151, (7, 8): 1.0093055344717639}
 
 #start = time.time()
 #print 'Magnitude system:'
@@ -107,35 +107,35 @@ lengths = {(2, 7): 1.4227978952015625, (4, 7): 5.057447630639855, (2, 6): 1.0237
 #
 #start = time.time()
 #print 'Distance system:'
-#alg = AlgRealEmbeddings('Max8vertices_distSyst', name='test_dist_syst')
-#alg.sampleToGetMoreEmbd(lengths, [8, 2, 7, 6, 5],  0)
+    alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_rnd_dist')
+    alg.findMoreEmbeddings(lengths)
+    end = time.time()
+    print 'Final time: '+str(end - start)
+
+
+#start = time.time()
+#print 'Magnitude system:'
+#G = GraphEmbedding(lengths, 'Max8vertices')
+#sols = G.findEmbeddings()
+#print '# real:'
+#m = len(sols['real'])
+#print m
 #end = time.time()
-#print 'Final time: '+str(end - start)
-
-
-start = time.time()
-print 'Magnitude system:'
-G = GraphEmbedding(lengths, 'Max8vertices')
-sols = G.findEmbeddings()
-print '# real:'
-m = len(sols['real'])
-print m
-end = time.time()
-print 'time: '+str(end - start)
-
-start = time.time()
-print '\nDistance system'
-G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
-sols = G.findEmbeddings()
-print '# embeddable (dist syst):'
-print len(sols['real'])
-end = time.time()
-print 'time: '+str(end - start)
-
-if m==2*len(sols['real']):
-    print 'OK'
-else:
-    print 'PROBLEM!!!'
+#print 'time: '+str(end - start)
+#
+#start = time.time()
+#print '\nDistance system'
+#G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
+#sols = G.findEmbeddings()
+#print '# embeddable (dist syst):'
+#print len(sols['real'])
+#end = time.time()
+#print 'time: '+str(end - start)
+#
+#if m==2*len(sols['real']):
+#    print 'OK'
+#else:
+#    print 'PROBLEM!!!'
 
 #print len(sols['complex'])
 #lengths = {(1, 2): 3.2232294709034446, (4, 7): 3.8174034354261854, (2, 6): 1.023865485629374, (4, 5): 3.4734613814676014, (2, 8): 1.0229346087848081,
