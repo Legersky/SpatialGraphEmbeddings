@@ -109,8 +109,8 @@ for i in range(0, 5):
 #print 'Distance system:'
     alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_rnd_dist')
     alg.findMoreEmbeddings(lengths)
-    end = time.time()
-    print 'Final time: '+str(end - start)
+#end = time.time()
+#print 'Final time: '+str(end - start)
 
 
 #start = time.time()
