@@ -20,11 +20,13 @@ import copy
 for i in range(0, 5):
     a = -5.0
     b = 5.0
+    a_s = -0.1
+    b_s = 0.1
     v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
     v7 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
     v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-    v5 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+    v5 = [v2[0]+ uniform(a_s, b_s), v2[1]+ uniform(a_s, b_s), v2[2]+ uniform(a_s, b_s)]
 
     v3 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
