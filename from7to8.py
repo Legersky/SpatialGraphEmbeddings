@@ -76,7 +76,7 @@ for lengths_7, name7 in len_name:
     print '********************* 1st phase starts *****************************************'
     alg = AlgRealEmbeddings('Max8vertices', name='8vert_from_7vert_1st_phase_'+name7)#, choice_from_clusters='closestToAverageLength')
     name1st=alg._fileNamePref
-    lengths_2nd_phase = alg.findMoreEmbeddings(lengths_1st_phase, combinations=[comb for comb in all_comb if comb[0]==8], required_num=48)
+    lengths_2nd_phase = alg.findMoreEmbeddings(lengths_1st_phase, combinations=[comb for comb in all_comb if comb[0]==8], required_num=80)
 
     print '********************* 2nd phase starts *****************************************'
 
