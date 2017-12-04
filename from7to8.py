@@ -74,12 +74,12 @@ for lengths_7, name7 in len_name:
                                       [4, 1, 3, 5, 7], [6, 5, 1, 8, 2], [3, 1, 2, 4, 7], [8, 2, 7, 6, 5], [4, 7, 3, 5, 1], [6, 1, 2, 5, 8], [3, 4, 1, 7, 2], [8, 6, 2, 5, 7]]
 
     print '********************* 1st phase starts *****************************************'
-    alg = AlgRealEmbeddings('Max8vertices', name='8vert_from_7vert_1st_phase_'+name7)#, choice_from_clusters='closestToAverageLength')
+    alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_from_7vert_1st_phase_'+name7)#, choice_from_clusters='closestToAverageLength')
     name1st=alg._fileNamePref
-    lengths_2nd_phase = alg.findMoreEmbeddings(lengths_1st_phase, combinations=[comb for comb in all_comb if comb[0]==8], required_num=96)
+    lengths_2nd_phase = alg.findMoreEmbeddings(lengths_1st_phase, combinations=[comb for comb in all_comb if comb[0]==8], required_num=48)
 
     print '********************* 2nd phase starts *****************************************'
 
-    alg2 = AlgRealEmbeddings('Max8vertices', name='2nd_phase_'+name1st)#, choice_from_clusters='closestToAverageLength')
+    alg2 = AlgRealEmbeddings('Max8vertices_distSyst', name='2nd_phase_'+name1st)#, choice_from_clusters='closestToAverageLength')
     alg2.findMoreEmbeddings(lengths_2nd_phase)
 
