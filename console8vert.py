@@ -17,24 +17,24 @@ import copy
 #v4 = [1.0+uniform(a, b), 1.0+uniform(a, b), uniform(a, b)]
 #
 #v8 = [ 1.0 + uniform(a, b),uniform(a, b), 1.0+uniform(a, b)]
-for i in range(0, 5):
-    a = -5.0
-    b = 5.0
-    a_s = -0.1
-    b_s = 0.1
-    v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-    v7 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+#for i in range(0, 5):
+a = -5.0
+b = 5.0
+a_s = -0.1
+b_s = 0.1
+v1 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v7 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-    v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]
-    v5 = [v2[0]+ uniform(a_s, b_s), v2[1]+ uniform(a_s, b_s), v2[2]+ uniform(a_s, b_s)]
+v2 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v5 = [v2[0]+ uniform(a_s, b_s), v2[1]+ uniform(a_s, b_s), v2[2]+ uniform(a_s, b_s)]
 
-    v3 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v3 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-    v6 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v6 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-    v4 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v4 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
-    v8 = [uniform(a, b), uniform(a, b), uniform(a, b)]
+v8 = [uniform(a, b), uniform(a, b), uniform(a, b)]
 
 #v1 = [uniform(a, b), 1.0 + uniform(a, b), uniform(a, b)]
 #v8 = [uniform(a, b), 1.0 + uniform(a, b), uniform(a, b)]
@@ -48,30 +48,30 @@ for i in range(0, 5):
 #v6 = [uniform(a, b), 0.5 + uniform(a, b), 1.0+uniform(a, b)]
 
 #v7 = [uniform(a, b), 0.5 + uniform(a, b), -1.0+uniform(a, b)]
+#
+def dist( u, v):
+    return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
 
-    def dist( u, v):
-        return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
-
-    lengths = {
-               (2, 1) : dist(v2,v1),
-                (2, 7) : dist(v2,v7),
-                (2, 6) : dist(v2,v6),
-                (3, 1) : dist(v3,v1),
-                (3, 7) : dist(v3,v7),
-                (3, 2) : dist(v3,v2),
-                (4, 1) : dist(v4,v1),
-                (4, 7) : dist(v4,v7),
-                (4, 3) : dist(v4,v3),
-                (5, 1) : dist(v5,v1),
-                (5, 7) : dist(v5,v7),
-                (5, 4) : dist(v5,v4),
-                (6, 1) : dist(v6,v1),
-                (6, 5) : dist(v6,v5),
-                (5, 8) : dist(v5,v8),
-                (6, 8) : dist(v6,v8),
-                (7, 8) : dist(v7,v8),
-                (2, 8) : dist(v2,v8),
-               }
+lengths = {
+           (2, 1) : dist(v2,v1),
+            (2, 7) : dist(v2,v7),
+            (2, 6) : dist(v2,v6),
+            (3, 1) : dist(v3,v1),
+            (3, 7) : dist(v3,v7),
+            (3, 2) : dist(v3,v2),
+            (4, 1) : dist(v4,v1),
+            (4, 7) : dist(v4,v7),
+            (4, 3) : dist(v4,v3),
+            (5, 1) : dist(v5,v1),
+            (5, 7) : dist(v5,v7),
+            (5, 4) : dist(v5,v4),
+            (6, 1) : dist(v6,v1),
+            (6, 5) : dist(v6,v5),
+            (5, 8) : dist(v5,v8),
+            (6, 8) : dist(v6,v8),
+            (7, 8) : dist(v7,v8),
+            (2, 8) : dist(v2,v8),
+           }
 
 
 #lengths = {(2, 7): 1.4288466263977495, (4, 7): 17.88035095820198, (2, 6): 1.0237800945583875, (4, 5): 17.84874384133012, (2, 8): 1.0222718473388588,
@@ -99,6 +99,11 @@ for i in range(0, 5):
 #           (2, 7): 1.4227978952015625, (6, 8): 0.028590649355647698, (1, 5): 3.03233816526623, (3, 4): 4.706336261323631, (5, 7): 1.0123496857434564, 
 #           (5, 6): 0.09495461781543314, (2, 3): 5.043852453527151, (7, 8): 1.0093055344717639}
 
+#lengths = {(1, 2): 6.398574562286367, (4, 7): 1.943576895395228, (2, 6): 0.7817470193268129, (4, 5): 4.019685350507494, (2, 8): 1.2153439833857496, 
+#           (1, 4): 6.10297524750376, (1, 3): 25.85409493006593, (1, 6): 6.1515178431431519, (3, 7): 25.1511527654089, (5, 8): 6.507974080234077,
+#           (2, 7): 4.6829157792200435, (6, 8): 1.2108318366002462, (1, 5): 7.28875229983253, (7, 8): 5.033280278115674, (5, 7): 4.18284887202176, 
+#           (5, 6): 6.105510576939209, (2, 3): 25.58683583156592, (3, 4): 25.195189751207167}
+
 #start = time.time()
 #print 'Magnitude system:'
 #alg = AlgRealEmbeddings('Max8vertices', name='test_magn_syst')
@@ -109,35 +114,39 @@ for i in range(0, 5):
 #
 #start = time.time()
 #print 'Distance system:'
-    alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_rnd_dist')
-    alg.findMoreEmbeddings(lengths)
+#    alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_rnd_dist')
+#    alg.findMoreEmbeddings(lengths)
 #end = time.time()
 #print 'Final time: '+str(end - start)
 
+lengths = {(2, 7): 8.969013854884182, (3, 2): 2.72676943643714, (2, 6): 8.38568587996191, (6, 8): 5.04223269090314, (7, 8): 5.581408952095552, (6, 1): 5.29028010513158, (3, 1): 5.560119060539018, (2, 8): 6.977303101135461, (4, 7): 2.7469796745687134, (2, 1): 8.253013388034924, (5, 8): 6.938151140940052, (4, 3): 8.984647683860326, (5, 1): 8.20762433064165, (5, 4): 10.197797774891523, (3, 7): 7.134330118756259, (4, 1): 8.792238717282332, (6, 5): 8.298428730908888, (5, 7): 8.890731125992525}
+start = time.time()
+print 'Magnitude system:'
+G = GraphEmbedding(lengths, 'Max8vertices')
 
-#start = time.time()
-#print 'Magnitude system:'
-#G = GraphEmbedding(lengths, 'Max8vertices')
-#sols = G.findEmbeddings()
-#print '# real:'
-#m = len(sols['real'])
-#print m
-#end = time.time()
-#print 'time: '+str(end - start)
-#
-#start = time.time()
-#print '\nDistance system'
-#G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
-#sols = G.findEmbeddings()
-#print '# embeddable (dist syst):'
-#print len(sols['real'])
-#end = time.time()
-#print 'time: '+str(end - start)
-#
-#if m==2*len(sols['real']):
-#    print 'OK'
-#else:
-#    print 'PROBLEM!!!'
+eqs = G.getEquations()
+for eq in eqs:
+    print eq
+sols = G.findEmbeddings()
+print '# real:'
+m = len(sols['real'])
+print m
+end = time.time()
+print 'time: '+str(end - start)
+
+start = time.time()
+print '\nDistance system'
+G = GraphEmbedding(lengths, 'Max8vertices_distSyst')
+sols = G.findEmbeddings()
+print '# embeddable (dist syst):'
+print len(sols['real'])
+end = time.time()
+print 'time: '+str(end - start)
+
+if m==2*len(sols['real']):
+    print 'OK'
+else:
+    print 'PROBLEM!!!'
 
 #print len(sols['complex'])
 #lengths = {(1, 2): 3.2232294709034446, (4, 7): 3.8174034354261854, (2, 6): 1.023865485629374, (4, 5): 3.4734613814676014, (2, 8): 1.0229346087848081,
