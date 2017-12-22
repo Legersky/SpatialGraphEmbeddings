@@ -46,7 +46,7 @@ for i in range(0, 100):
                    }
 
 
-        alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_random_fromTetrahedron_dist')
+        alg = AlgRealEmbeddings('Max8vertices', name='8vert_random_fromTetrahedron')
         alg.findMoreEmbeddings(lengths)
     except:
         pass
@@ -86,7 +86,7 @@ for i in range(0, 100):
                    }
 
 
-        alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_random_fromTwoDegreeCoincide_dist')
+        alg = AlgRealEmbeddings('Max8vertices', name='8vert_random_fromTwoDegreeCoincide')
         alg.findMoreEmbeddings(lengths)
     except:
         pass
@@ -126,7 +126,7 @@ for i in range(0, 100):
                    }
 
 
-        alg = AlgRealEmbeddings('Max8vertices_distSyst', name='8vert_random_dist')
+        alg = AlgRealEmbeddings('Max8vertices', name='8vert_random')
         alg.findMoreEmbeddings(lengths)
     except:
         pass
