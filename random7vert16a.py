@@ -46,13 +46,13 @@ for e in lengths:
     lengths[e] = round(lengths[e],2)
 print lengths
 G = GraphEmbedding(lengths, '7vert16a')
-#r = len(G.findEmbeddings()['real'])
-#print r
+r = len(G.findEmbeddings()['real'])
+print r
 
 
-from phcpy.solver import solve
-syst = G.getEquations()
-sol = solve(syst, verbose=1, tasks=2)
+#from phcpy.solver import solve
+#syst = G.getEquations()
+#sol = solve(syst, verbose=0, tasks=2)
 
 
 

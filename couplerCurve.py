@@ -457,7 +457,10 @@ class MplWindow(UI_MainWindow, MainWindow):
                '56': self.doubleSpinBoxL56.value(), 
                '26': self.doubleSpinBoxR26.value()
                  }
-        self.graph.setLengthsAndUpdateFixedTriangle(lengths)
+        try:
+            self.graph.setLengthsAndUpdateFixedTriangle(lengths)
+        except TriangleInequalityError as e:
+            self.showError('Please, change the lengths, triangle inequality is violated!!!\n'+str(e))
         self.update_graph2yV2()
         self.update_graph2phi()
         self.setRequiresRecomputing()
@@ -570,7 +573,7 @@ class MplWindow(UI_MainWindow, MainWindow):
 #            self._branches_plot.plot([x for x, y, z in points], [y for x, y, z in points], [z for x, y, z in points],  color=color)
 #        
         c_x, c_y, c_z = self.doubleSpinBox_x.value(), self.doubleSpinBox_y.value(), self.doubleSpinBox_z.value()
-        def draw(points, style='black', line_width=1):
+        def draw(points, style='black', line_width=2):
             self._branches_plot.plot([x+c_x for x, y, z in points], [y+c_y for x, y, z in points], [z+c_z for x, y, z in points],  style, linewidth=line_width)
         
         if self.isComputed():
@@ -601,23 +604,26 @@ class MplWindow(UI_MainWindow, MainWindow):
                 v1, v2, v3, v4, v5, v6, v7 = pos
                 draw([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
                 draw([v1, v6])
-                draw([v1, v2, v3], 'ko')
+#                draw([v1, v2, v3], 'ko')
+                draw(pos, 'ko')
                 draw([v6, v6], 'y^')
                 for i, v in enumerate(pos):
                     self._branches_plot.text(v[0]+0.1+c_x, v[1]+c_y, v[2]+c_z, 'v'+str(i+1))
             
-            draw(self.graph.intersections, 'ro')
             for c in self.checkBoxBranches:
                 if self.checkBoxBranches[c].checkState():
                     for part in self.graph.getBranch(c):
-                        draw(part, c, line_width=2)
+#                        draw(part, c, line_width=2)
+                        draw(part, 'darkorange', line_width=2)
             if self.checkBoxMirror.checkState():
-                draw(self.graph.intersections_mirror, 'ro')
                 for c in self.checkBoxBranches:
                     if self.checkBoxBranches[c].checkState():
                         for part in self.graph.getMirrorBranch(c):
-                            draw(part, 'dark'+c, line_width=2)
-        
+                            draw(part, 'darkorange', line_width=2)
+#                            draw(part, 'dark'+c, line_width=2)
+                draw(self.graph.intersections_mirror, 'ro')
+            draw(self.graph.intersections, 'ro')
+            
             self._branches_plot.set_xlim3d(minbound, maxbound)
             self._branches_plot.set_ylim3d(minbound, maxbound)
             self._branches_plot.set_zlim3d(minbound, maxbound)

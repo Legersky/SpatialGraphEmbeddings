@@ -139,7 +139,7 @@ class GraphEmbedding(object):
         if cos_alpha>=-1 and cos_alpha<=1:
             return [Lvw*math.sin(math.acos(cos_alpha)), cos_alpha*Lvw]
         else:
-            raise ValueError('Altitude and foot for the triangle '+str([u, v, w])+' with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
+            raise TriangleInequalityError('Altitude and foot for the triangle '+str([u, v, w])+' with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
     
     def coordinatesOfTriangle(self, u, v, w, yshift=0):
         '''Returns coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u'''
