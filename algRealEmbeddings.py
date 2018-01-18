@@ -306,7 +306,10 @@ class AlgRealEmbeddings(object):
                     break
                 else:
                     sols[j][2] = min(new_num, maximum)
-                del tmp_G
+                try:
+                    del tmp_G
+                except:
+                    pass
         maximum = max([num for phi, theta, num in sols])
         self.printLog(str(maximum))
         max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]

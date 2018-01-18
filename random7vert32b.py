@@ -45,6 +45,8 @@ print len(G.findEmbeddings()['real'])
 #alg = AlgRealEmbeddings('7vert32b',  name='7vert32b_random')
 #alg.findMoreEmbeddings(lengths)
 
+for e in lengths:
+    print '(%d) to (%d) ' %e, 
 
 
 

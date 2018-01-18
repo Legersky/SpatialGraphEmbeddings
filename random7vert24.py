@@ -45,7 +45,8 @@ print len(G.findEmbeddings()['real'])
 #alg.findMoreEmbeddings(lengths)
 
 
-
+for e in lengths:
+    print '(%d) to (%d) ' %e, 
 
 
 

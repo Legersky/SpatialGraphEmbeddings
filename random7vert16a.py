@@ -54,5 +54,6 @@ print r
 #syst = G.getEquations()
 #sol = solve(syst, verbose=0, tasks=2)
 
-
+for e in lengths:
+    print '(%d) to (%d) ' %e, 
 

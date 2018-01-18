@@ -44,6 +44,8 @@ print r
 ##    alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
 #alg.findMoreEmbeddings(lengths)
 
+for e in lengths:
+    print '(%d) to (%d) ' %e, 
 
 
 
