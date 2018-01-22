@@ -33,7 +33,7 @@ for i in range(0, 100):
                 (2, 6) : dist(v2,v6), 
                 }
     alg = AlgRealEmbeddings('Max7vertices',  name='random7vert')
-    lengths_7 = alg.findMoreEmbeddings(lengths, required_num=40)
+    lengths_7 = alg.findMoreEmbeddings(lengths, required_num=36)
 
     G = GraphEmbedding(lengths_7, 'Max7vertices')
     v1, v2, v3, v4, v5, v6, v7 = G.getEmbedding()
