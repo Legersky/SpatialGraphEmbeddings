@@ -4,8 +4,8 @@ from random import uniform
 def dist( u, v):
     return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
 
-a = -1.0
-b = 1.0
+a = -0.2
+b = 0.2
 
 for i in range(0, 100):
     v1 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), -3.0+ uniform(a, b)]
@@ -63,4 +63,6 @@ for i in range(0, 100):
 
     alg2 = AlgRealEmbeddings('Max8vertices', name='from7to8from_rnd')
     alg2.findMoreEmbeddings(lengths)
+    del alg
+    del alg2
 
