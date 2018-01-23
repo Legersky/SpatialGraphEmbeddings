@@ -1,5 +1,5 @@
-from algRealEmbeddings import *
-from graphEmbedding import *
+from graphEmbeddings3D.algRealEmbeddings import *
+from graphEmbeddings3D.graphEmbedding import *
 #from random import uniform
 
 lengths = {(1, 2): 14.675900223725295, (4, 7): 38.76311928178239, (2, 6): 1.6158929752494409, (4, 5): 70.34167136306003, (2, 8): 1.6098988097760762,
@@ -29,9 +29,9 @@ print r
 #syst = G.getEquations()
 #sol = solve(syst, verbose=0, tasks=2)
 
-for e in lengths:
-    print '(%d) to (%d) ' %e, 
-    
-    
-alg = AlgRealEmbeddings('Max8vertices', name='8vert_from_128_')
-alg.findMoreEmbeddings(lengths)
+#for e in lengths:
+#    print '(%d) to (%d) ' %e, 
+#    
+#    
+#alg = AlgRealEmbeddings('Max8vertices', name='8vert_from_128_')
+#alg.findMoreEmbeddings(lengths)
