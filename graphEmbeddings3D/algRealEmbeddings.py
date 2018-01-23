@@ -21,22 +21,13 @@ class AlgRealEmbeddings(object):
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
             self._numAllSol = 48
-#            self._combinations = [[6, 1, 5, 2, 7], [6, 7, 5, 2, 1], [6, 5, 1, 7, 2], [6, 2, 1, 7, 5], [2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], 
-#                                  [3, 4, 1, 7, 2], [4, 3, 1, 7, 5],
-#                                  [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [2, 7, 6, 3, 1],
-#                                  [3, 1, 2, 4, 7], [5, 4, 1, 7, 6], [4, 7, 3, 5, 1], [2, 1, 6, 3, 7], [4, 5, 1, 7, 3]]
             self._combinations = [[2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], [6, 1, 5, 2, 7], [3, 4, 1, 7, 2], [6, 7, 5, 2, 1], [4, 3, 1, 7, 5],
                                   [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [6, 5, 1, 7, 2], [2, 7, 6, 3, 1],
                                   [3, 1, 2, 4, 7], [5, 4, 1, 7, 6], [4, 7, 3, 5, 1], [6, 2, 1, 7, 5], [2, 1, 6, 3, 7], [4, 5, 1, 7, 3]]
-#            self._combinations = [[5, 6, 1, 7, 4], [4, 5, 1, 7, 3], [5, 7, 4, 6, 1], [2, 6, 1, 7, 3], [2, 7, 6, 3, 1], [3, 1, 2, 4, 7], [4, 1, 3, 5, 7],
-#                                  [5, 4, 1, 7, 6], [4, 3, 1, 7, 5], [6, 7, 5, 2, 1], [4, 7, 3, 5, 1], [5, 1, 4, 6, 7], [3, 4, 1, 7, 2], [2, 1, 6, 3, 7],
-#                                  [6, 5, 1, 7, 2], [3, 2, 1, 7, 4], [2, 3, 1, 7, 6], [6, 2, 1, 7, 5], [6, 1, 5, 2, 7], [3, 7, 2, 4, 1]]
         elif graph_type == 'Max6vertices':
             self._numAllSol = 16
             self._combinations =  [[2, 6, 1, 4, 3], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [2, 1, 6, 3, 4], [5, 6, 1, 4, 3], [2, 4, 6, 3, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4],
                                    [6, 5, 1, 4, 2], [3, 4, 2, 5, 1], [2, 3, 1, 4, 6], [5, 1, 3, 6, 4], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 2, 1, 4, 5], [6, 1, 5, 2, 4]]
-#            self._combinations = [[3, 2, 1, 4, 5], [6, 1, 5, 2, 4], [2, 4, 6, 3, 1], [2, 6, 1, 4, 3], [5, 1, 3, 6, 4], [5, 4, 3, 6, 1], [5, 3, 1, 4, 6], [5, 6, 1, 4, 3],
-#                                  [6, 5, 1, 4, 2], [2, 3, 1, 4, 6], [3, 5, 1, 4, 2], [6, 4, 5, 2, 1], [3, 4, 2, 5, 1], [6, 2, 1, 4, 5], [3, 1, 2, 5, 4], [2, 1, 6, 3, 4]]
         elif graph_type == 'Max8vertices':
             self._numAllSol = 160
             self._combinations = [[3, 7, 2, 4, 1], [6, 8, 2, 5, 1], [4, 5, 1, 7, 3], [8, 7, 2, 5, 6], [4, 3, 1, 7, 5], [6, 2, 1, 8, 5], [3, 2, 1, 7, 4], [8, 5, 7, 6, 2], 
@@ -89,6 +80,9 @@ class AlgRealEmbeddings(object):
             self.chooseFromClusters = self.chooseFromClusters_closestToAverageLength
         
         self.verbose = 1
+        if not os.path.isdir(os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type):
+            os.makedirs(os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type)
+    
 
     def getSamplingIterator(self, num_phi, num_theta,  l_phi,  r_phi, l_theta,  r_theta):
         step_phi = (r_phi-l_phi)/float(num_phi)
@@ -159,7 +153,6 @@ class AlgRealEmbeddings(object):
                 phiThetas.append([phi, theta])
             except ValueError:
                 pass
-#            num_real = len(starting_graph.findEmbeddings(errorMsg=False)['real'])
             
             if self._window and animate:
                 graphCouplerCurve.setPhiTheta([2, 3, 1, 7, 6], phi, theta)
@@ -171,7 +164,7 @@ class AlgRealEmbeddings(object):
         
         
         
-        filenameTmp = 'tmp/'+self._fileNamePref
+        filenameTmp = os.path.dirname(os.path.realpath(__file__))+'/../tmp/'+self._fileNamePref
         with open(filenameTmp+'_prev.txt', 'w') as filePrev:
             filePrev.write(str(starting_graph._prevSystem)+'\n')
             filePrev.write(str(starting_graph._prevSolutions)+'\n')
@@ -476,9 +469,9 @@ class AlgRealEmbeddings(object):
         self.findMoreEmbeddings_recursion(starting_lengths, previous_steps, previous_lengths, self._actMaximum)
         
         if self._graph_type=='Max8vertices_distSyst':
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+str(2*self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+str(2*self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
         else:
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+str(self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+str(self._actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
 
         os.rename(os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
         
@@ -558,7 +551,7 @@ class AlgRealEmbeddings(object):
                             self.findMoreEmbeddings_recursion(lengths, steps, all_lengths, maximum)
 
     def findAllMaximumByOneIteration(self, starting_lengths):
-        fileName = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._fileNamePref+'.txt'
+        fileName = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+self._fileNamePref+'.txt'
         self.printLog('Applying all possible subgraphs parametrizations to')
         starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
         sols = starting_graph.findEmbeddings()
@@ -583,9 +576,9 @@ class AlgRealEmbeddings(object):
                         f.write(str(starting_graph.getLengths())+'\n')
         
         if self._graph_type=='Max8vertices_distSyst':
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/generated_'+str(2*reached_max)+'_embd_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+'generated_'+str(2*reached_max)+'_embd_'+self._fileNamePref+'.txt'
         else:
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+'generated_'+str(reached_max)+'_embd_'+self._fileNamePref+'.txt'
         
         os.rename(fileName, outputFilename)
         self.printLog('Result saved to:')
@@ -594,7 +587,7 @@ class AlgRealEmbeddings(object):
     def findMoreEmbeddings(self, starting_lengths, required_num=None,  combinations=None,  allowed_repetition=1):
         if required_num==None:
             required_num = self._numAllSol
-        
+        res = []
         G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref)
         sols = G.findEmbeddings()
         actMaximum = len(sols['real'])
@@ -696,9 +689,9 @@ class AlgRealEmbeddings(object):
                 self.printLog('Number of lengths in stack: %d' % len(lens_to_check))
 
         if self._graph_type=='Max8vertices_distSyst':
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+str(2*actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+str(2*actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
         else:
-            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
+            outputFilename = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+str(actMaximum)+'_embd_'+fromStr+'_'+self._fileNamePref+'.txt'
         os.rename(os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._fileNamePref+'_intermediateResults.txt', outputFilename)
         
         self.printLog('Reached maximum is in:')

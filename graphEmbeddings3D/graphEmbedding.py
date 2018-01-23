@@ -19,58 +19,41 @@ import math
 class GraphEmbedding(object):
     def __init__(self, lengths, graph_type, tmpFileName=None,  window=None):
         self._window = window
-#        self._equationsConstructor = equationsConstructor
         self._prevSystem = None
         self._prevSolutions = None
         self._verbose = 1
+        self._fixedTriangle_vertices = [2, 3, 1]
+        self._vertexWithFootAtOrigin = None
         if graph_type == 'Max7vertices':
-            self._fixedTriangle_vertices = [2, 3, 1]
             self._vertexWithFootAtOrigin = 7
             self.constructEquations = self.constructEquations_max7vertices
             self._numAllSolutions = 48
         elif graph_type == 'Max6vertices':
-            self._fixedTriangle_vertices = [2, 3, 1]
             self._vertexWithFootAtOrigin = 4
             self.constructEquations = self.constructEquations_max6vertices
             self._numAllSolutions = 16
         elif graph_type == 'Max8vertices':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_max8vertices
             self._numAllSolutions = 160
         elif graph_type == 'Max8vertices_distSyst':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_max8vertices_distSystem
             self._numAllSolutions = 80
         elif graph_type == 'Ring8vertices':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_ring8vertices
             self._numAllSolutions = 128
         elif graph_type == '7vert32a':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_7vert32a
             self._numAllSolutions = 32
         elif graph_type == '7vert32b':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_7vert32b
             self._numAllSolutions = 32
         elif graph_type == '7vert24':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_7vert24
             self._numAllSolutions = 24
         elif graph_type == '7vert16a':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_7vert16a
             self._numAllSolutions = 16
         elif graph_type == '7vert16b':
-            self._fixedTriangle_vertices = [2, 3, 1]
-            self._vertexWithFootAtOrigin = None
             self.constructEquations = self.constructEquations_7vert16b
             self._numAllSolutions = 16
         else:
@@ -171,7 +154,7 @@ class GraphEmbedding(object):
     def dist(self, u, v):
         return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
 
-    def findEmbeddings(self, tolerance=1.0e-8,  errorMsg=True, usePrev=True):
+    def findEmbeddings(self, tolerance=1.0e-15,  errorMsg=True, usePrev=True):
         syst = self.getEquations()
         i = 0
 
@@ -179,10 +162,6 @@ class GraphEmbedding(object):
             num_conjugated = 2
             try:
                 y1_left,  y1_right, y4_left,  y4_right = self.inequalities_max8vertices()
-                #print 'interval y1:'
-                #print y1_left,  y1_right
-                #print 'interval y4:'
-                #print y4_left,  y4_right
             except TriangleInequalityError:
                 self.printLog('intervals could not be computed')
                 return {'real':[], 'complex':[None for _ in range(0, 80)]}
@@ -215,9 +194,7 @@ class GraphEmbedding(object):
 
             result_real = []
             result_complex = []
-            
-#            print '# all solutions:'
-#            print len(sols)
+
             for sol in sols:
                 soldic = strsol2dict(sol)
                 if self._graph_type != 'Max8vertices_distSyst':
@@ -1074,3 +1051,92 @@ class GraphEmbedding(object):
 class TriangleInequalityError(ValueError):
     def __init__(self, errorMsg):
         super(TriangleInequalityError, self).__init__(errorMsg)
+
+def getEdgeLengthsByEmbedding(graph_type, vertices):
+    def dist( u, v):
+        return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
+    if graph_type=='Max6vertices':
+        v1, v2, v3, v4, v5, v6 = vertices
+        lengths = {(1, 2) : dist(v1,v2), 
+            (2, 3) : dist(v2,v3), 
+            (3, 4) : dist(v3,v4), 
+            (4, 5) : dist(v4,v5), 
+            (5, 6) : dist(v5,v6), 
+            (1, 6) : dist(v1,v6), 
+            (1, 3) : dist(v1,v3), 
+            (2, 4) : dist(v2,v4), 
+            (3, 5) : dist(v3,v5), 
+            (4, 6) : dist(v4,v6), 
+            (1, 5) : dist(v1,v5), 
+            (2, 6) : dist(v2,v6)}
+    elif graph_type=='7vert16a':
+        v1, v2, v3, v4, v5, v6, v7 = vertices
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 6) : dist(v1,v6),
+            (1, 7) : dist(v1,v7),
+            (2, 3) : dist(v2,v3),
+            (2, 4) : dist(v2,v4),
+            (2, 5) : dist(v2,v5),
+            (3, 4) : dist(v3,v4),
+            (3, 5) : dist(v3,v5),
+            (3, 6) : dist(v3,v6),
+            (3, 7) : dist(v3,v7),
+            (4, 6) : dist(v4,v6),
+            (4, 7) : dist(v4,v7),
+            (5, 6) : dist(v5,v6),
+            (5, 7) : dist(v5,v7)}
+    elif graph_type=='7vert16b':
+        v1, v2, v3, v4, v5, v6, v7 = vertices     
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 5) : dist(v1,v5),
+            (2, 3) : dist(v2,v3),
+            (2, 5) : dist(v2,v5),
+            (2, 6) : dist(v2,v6),
+            (2, 7) : dist(v2,v7),
+            (3, 5) : dist(v3,v5),
+            (3, 6) : dist(v3,v6),
+            (3, 7) : dist(v3,v7),
+            (4, 5) : dist(v4,v5),
+            (4, 6) : dist(v4,v6),
+            (4, 7) : dist(v4,v7),
+            (6, 7) : dist(v6,v7)}
+    elif graph_type=='7vert24':
+        v1, v2, v3, v4, v5, v6, v7 = vertices          
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 5) : dist(v1,v5),
+            (2, 3) : dist(v2,v3),
+            (2, 5) : dist(v2,v5),
+            (2, 6) : dist(v2,v6),
+            (2, 7) : dist(v2,v7),
+            (3, 4) : dist(v3,v4),
+            (3, 6) : dist(v3,v6),
+            (3, 7) : dist(v3,v7),
+            (4, 6) : dist(v4,v6),
+            (4, 7) : dist(v4,v7),
+            (5, 6) : dist(v5,v6),
+            (5, 7) : dist(v5,v7)}
+    elif graph_type=='7vert32a':
+        v1, v2, v3, v4, v5, v6, v7 = vertices
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 6) : dist(v1,v6),
+            (2, 3) : dist(v2,v3),
+            (2, 4) : dist(v2,v4),
+            (2, 5) : dist(v2,v5),
+            (3, 4) : dist(v3,v4),
+            (3, 5) : dist(v3,v5),
+            (3, 6) : dist(v3,v6),
+            (3, 7) : dist(v3,v7),
+            (4, 7) : dist(v4,v7),
+            (5, 6) : dist(v5,v6),
+            (5, 7) : dist(v5,v7),
+            (6, 7) : dist(v6,v7)}
+    else:
+        raise NotImplementedError('Method getEdgeLengthsByEmbedding is not implemented for graph '+ graph_type)
+    return lengths
