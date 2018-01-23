@@ -268,6 +268,7 @@ class AlgRealEmbeddings(object):
         return res
         
     def computeSamplingPhiTheta(self, starting_graph, uvwpc,  start_graph_num):   
+        L = copy.copy(starting_graph.getLengths())
         n = len(starting_graph.findEmbeddings()['real'])
         if n==0:
             act_num = start_graph_num
@@ -285,13 +286,12 @@ class AlgRealEmbeddings(object):
         sols = self.runSamplingPhiThetaWithMargins(starting_graph, self._num_phi, self._num_theta,  l_phi,  r_phi, l_theta,  r_theta, uvwpc, treshold=act_num)
         sols.append([act_phi, act_theta, act_num])
 
-        self.printLog('Maximum number of embeddings in 1st round:')
         maximum = max([num for phi, theta, num in sols])
         for j in range(0, len(sols)):
             _phi, _theta, _num = sols[j]
             if _num==maximum:
                 try:
-                    tmp_G = GraphEmbedding(copy.copy(starting_graph.getLengths()), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+                    tmp_G = GraphEmbedding(L, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
                     tmp_G.setPhiTheta(uvwpc, _phi, _theta)
                     new_num = len(tmp_G.findEmbeddings()['real'])
                 except TriangleInequalityError:
@@ -304,6 +304,7 @@ class AlgRealEmbeddings(object):
                     del tmp_G
                 except:
                     pass
+        self.printLog('Maximum number of embeddings in 1st round:')
         maximum = max([num for phi, theta, num in sols])
         self.printLog(str(maximum))
         max_positions = [ [phi, theta, num] for phi, theta, num in sols if num==maximum]

@@ -1137,6 +1137,82 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 6) : dist(v5,v6),
             (5, 7) : dist(v5,v7),
             (6, 7) : dist(v6,v7)}
+    elif graph_type=='7vert32b':
+        v1, v2, v3, v4, v5, v6, v7 = vertices        
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 5) : dist(v1,v5),
+            (2, 3) : dist(v2,v3),
+            (2, 5) : dist(v2,v5),
+            (2, 6) : dist(v2,v6),
+            (2, 7) : dist(v2,v7),
+            (3, 4) : dist(v3,v4),
+            (3, 6) : dist(v3,v6),
+            (3, 7) : dist(v3,v7),
+            (4, 5) : dist(v4,v5),
+            (4, 7) : dist(v4,v7),
+            (5, 6) : dist(v5,v6),
+            (6, 7) : dist(v6,v7)}
+    elif graph_type=='Max7vertices':
+        v1, v2, v3, v4, v5, v6, v7 = vertices        
+        lengths = {(1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 5) : dist(v1,v5),
+            (1, 6) : dist(v1,v6),
+            (2, 7) : dist(v7,v2),
+            (3, 7) : dist(v7,v3),
+            (4, 7) : dist(v7,v4),
+            (5, 7) : dist(v7,v5),
+            (6, 7) : dist(v7,v6),
+            (2, 3) : dist(v2,v3), 
+            (3, 4) : dist(v3,v4), 
+            (4, 5) : dist(v4,v5), 
+            (5, 6) : dist(v5,v6), 
+            (2, 6) : dist(v2,v6)}
+    elif graph_type=='Ring8vertices':
+        v1, v2, v3, v4, v5, v6, v7, v8 = vertices        
+        lengths = {
+            (1, 2) : dist(v1,v2),
+            (1, 3) : dist(v1,v3),
+            (1, 4) : dist(v1,v4),
+            (1, 5) : dist(v1,v5),
+            (1, 6) : dist(v1,v6),
+            (1, 7) : dist(v1,v7),
+            (2, 3) : dist(v2,v3),
+            (2, 7) : dist(v2,v7),
+            (2, 8) : dist(v2,v8),
+            (3, 4) : dist(v3,v4),
+            (3, 8) : dist(v3,v8),
+            (4, 5) : dist(v4,v5),
+            (4, 8) : dist(v4,v8),
+            (5, 6) : dist(v5,v6),
+            (5, 8) : dist(v5,v8),
+            (6, 8) : dist(v6,v8),
+            (7, 8) : dist(v7,v8),
+            (6, 7) : dist(v6,v7)}
+    elif graph_type=='Max8vertices' or graph_type=='Max8vertices_distSyst':
+        v1, v2, v3, v4, v5, v6, v7, v8 = vertices         
+        lengths = {
+            (2, 1) : dist(v2,v1),
+            (2, 7) : dist(v2,v7),
+            (2, 6) : dist(v2,v6),
+            (3, 1) : dist(v3,v1),
+            (3, 7) : dist(v3,v7),
+            (3, 2) : dist(v3,v2),
+            (4, 1) : dist(v4,v1),
+            (4, 7) : dist(v4,v7),
+            (4, 3) : dist(v4,v3),
+            (5, 1) : dist(v5,v1),
+            (5, 7) : dist(v5,v7),
+            (5, 4) : dist(v5,v4),
+            (6, 1) : dist(v6,v1),
+            (6, 5) : dist(v6,v5),
+            (5, 8) : dist(v5,v8),
+            (6, 8) : dist(v6,v8),
+            (7, 8) : dist(v7,v8),
+            (2, 8) : dist(v2,v8)}
     else:
         raise NotImplementedError('Method getEdgeLengthsByEmbedding is not implemented for graph '+ graph_type)
     return lengths
