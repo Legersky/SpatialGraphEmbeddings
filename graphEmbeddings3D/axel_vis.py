@@ -1,3 +1,5 @@
+#  This part is based on code written by Alvaro Javier Fuentes Suárez
+
 import subprocess
 import numpy as np
 import time

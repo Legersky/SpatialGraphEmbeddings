@@ -570,14 +570,14 @@ class MplWindow(UI_MainWindow, MainWindow):
             for c in self.checkBoxBranches:
                 if self.checkBoxBranches[c].checkState():
                     for part in self.graph.getBranch(c):
-#                        draw(part, c, line_width=2)
-                        draw(part, 'darkorange', line_width=2)
+                        draw(part, c, line_width=2)
+#                        draw(part, 'darkorange', line_width=2)
             if self.checkBoxMirror.checkState():
                 for c in self.checkBoxBranches:
                     if self.checkBoxBranches[c].checkState():
                         for part in self.graph.getMirrorBranch(c):
-                            draw(part, 'darkorange', line_width=2)
-#                            draw(part, 'dark'+c, line_width=2)
+#                            draw(part, 'darkorange', line_width=2)
+                            draw(part, 'dark'+c, line_width=2)
                 draw(self.graph.intersections_mirror, 'ro')
             draw(self.graph.intersections, 'ro')
             
