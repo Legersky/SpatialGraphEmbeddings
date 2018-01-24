@@ -10,8 +10,8 @@ for i in sys.path:
     print i
 print '-----------------'
 
-sys.path.insert(0,"/scratch/jlegersk/lib/python2.7/site-packages/sklearn/")
-sys.path.insert(0,"/scratch/jlegersk/lib/python2.7/site-packages/sklearn/")
+sys.path.insert(0,"/scratch/jlegersk/lib/python2.7/site-packages")
+sys.path.insert(0,"/scratch/jlegersk/lib/python2.7/site-packages/sklearn")
 for i in sys.path:
     print i
 print '-----------------'
