@@ -1,6 +1,4 @@
 import os
-import sys
-sys.path.append('..')
 
 if not os.path.isdir(os.path.dirname(os.path.realpath(__file__))+'/../tmp'):
     os.makedirs(os.path.dirname(os.path.realpath(__file__))+'/../tmp')
