@@ -23,8 +23,7 @@ The main functionality is provided by the package *graphEmbeddings3D*.
   the number corresponds to the number of embeddings)
   * 8 vertices: G128, G160
 
-![graphs](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
-
+![graphs](supported_graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
 
 
 If you want to compute the number of embeddings for another minimally rigid graph,
