@@ -53,7 +53,8 @@ Functionality:
   * iterative method for increasing the number of rel embeddings
   * export to [Axel](http://axel.inria.fr/)
 
-
+## Warning
+The program strongly depends on PHC computation - this fails sometimes that might cause failure of our program.
 
 ## License
 Copyright (C) 2018 Jan Legerský
