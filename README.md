@@ -12,7 +12,7 @@ The main functionality is provided by the package *graphEmbeddings3D*.
 ## Requirements
   * Python 2.7
   * For solving the system of equations corresponding to graph embeddings, 
-  polynomial homotopy continauation by the package `phcpy` is used.
+  polynomial homotopy continuation by the package `phcpy` is used.
   Please follow http://homepages.math.uic.edu/~jan/phcpy_doc_html/welcome.html#installing-phcpy
   * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn`,
   see http://scikit-learn.org/stable/install.html for installation.
