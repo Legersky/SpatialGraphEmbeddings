@@ -18,11 +18,14 @@ The main functionality is provided by the package *graphEmbeddings3D*.
   see http://scikit-learn.org/stable/install.html for installation.
 
 ## Supported graphs
-See ???
-  * 6 vertices: G16 (the only H2 6-vertex graph)
+  * 6 vertices: octahedron (the unique 6-vertex graph with the maximal number of embeddings)
   * 7 vertices: G16a, G16b, G24, G32a, G32b, G48 (all 7-vertex graphs requiring the last Henneberg step being H2,
   the number corresponds to the number of embeddings)
   * 8 vertices: G128, G160
+
+![graphs](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
+
+
 
 If you want to compute the number of embeddings for another minimally rigid graph,
 please, provide a method `constructEquations_YOUR_GRAPH` with sphere equations in *graphEmbeddings3D.graphEmbedding*, 
@@ -31,9 +34,9 @@ For the sampling method, subgraphs suitable for sampling must be added to constr
 We appreciate if you share your changes in this repository.
 
 ## Tests
-`python test_6vert.py` runs the sampling method for 
+`python test_6vert.py` runs the sampling method for octahedron
 
-`python test_7vert.py` verifies that there are edge lengths for a such that all embeddings are real
+`python test_7vert.py` verifies that there are edge lengths for G16a, G16b, G24, G32a, G32b and G48 such that all embeddings are real
 
 `python test_8vert.py` verifies that there are edge lengths G128 and G160 have 128 real embeddings 
 
@@ -48,29 +51,7 @@ Functionality:
   * computing number of real embeddings of G48 by PHC
   * sampling of parameters for specific subgraphs
   * iterative method for increasing the number of rel embeddings
-  * export to Axel 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  * export to [Axel](http://axel.inria.fr/)
 
 
 
