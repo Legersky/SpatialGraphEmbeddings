@@ -41,7 +41,7 @@ We appreciate if you share your changes in this repository.
 `python test_8vert.py` verifies that there are edge lengths G128 and G160 have 128 real embeddings 
 
 ## Sampling
-The scripts in the folder `sampling_scripts` used the proposed method for various graphs and starting edge lengths.
+The scripts in the folder `sampling_scripts` use the proposed method for various graphs and starting edge lengths.
 
 ## Coupler curves of G48
 This Qt program is launched by `python CouplerCurveG48.py`.
