@@ -45,12 +45,13 @@ The scripts in the folder `sampling_scripts` used the proposed method for variou
 
 ## Coupler curves of G48
 This Qt program is launched by `python CouplerCurveG48.py`.
+
 Functionality:
   * loading and saving edge lengths
   * plotting coupler curve of G48
   * computing number of real embeddings of G48 by PHC
   * sampling of parameters for specific subgraphs
-  * iterative method for increasing the number of rel embeddings
+  * iterative method for increasing the number of real embeddings
   * export to [Axel](http://axel.inria.fr/)
 
 ## Warning
