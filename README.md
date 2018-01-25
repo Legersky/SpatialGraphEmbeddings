@@ -54,7 +54,7 @@ Functionality:
   * export to [Axel](http://axel.inria.fr/)
 
 ## Warning
-The program strongly depends on PHC computation - this fails sometimes that might cause failure of our program.
+The program strongly depends on PHC computation - this fails sometimes that might cause failure of the program.
 
 ## License
 Copyright (C) 2018 Jan Legerský
