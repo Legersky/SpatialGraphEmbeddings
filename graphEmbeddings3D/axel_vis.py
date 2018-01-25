@@ -1,4 +1,4 @@
-#  This part is based on code written by Alvaro Javier Fuentes Suárez
+#  This file is based on code written by Alvaro Javier Fuentes Suarez
 
 import subprocess
 import numpy as np

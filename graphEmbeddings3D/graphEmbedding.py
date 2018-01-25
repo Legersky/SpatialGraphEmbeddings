@@ -1,7 +1,5 @@
 import numpy as np
-#import math
-#from phcpy.solver import solve
-#from phcpy.trackers import track
+
 from phcpy.solutions import strsol2dict, is_real
     
 from sympy import symbols
@@ -15,7 +13,6 @@ import subprocess
 
 import math
 
-
 class GraphEmbedding(object):
     def __init__(self, lengths, graph_type, tmpFileName=None,  window=None):
         self._window = window
@@ -25,35 +22,44 @@ class GraphEmbedding(object):
         self._fixedTriangle_vertices = [2, 3, 1]
         self._vertexWithFootAtOrigin = None
         if graph_type == 'Max7vertices':
+#            edges: [(2, 7), (4, 7), (1, 3), (4, 5), (1, 4), (5, 6), (2, 6), (1, 6), (3, 7), (1, 2), (6, 7), (5, 7), (1, 5), (2, 3), (3, 4)]
             self._vertexWithFootAtOrigin = 7
             self.constructEquations = self.constructEquations_max7vertices
             self._numAllSolutions = 48
         elif graph_type == 'Max6vertices':
+#            edges: [(1, 3), (5, 6), (2, 6), (2, 3), (3, 5), (1, 2), (4, 6), (1, 5), (4, 5), (1, 6), (3, 4), (2, 4)]
             self._vertexWithFootAtOrigin = 4
             self.constructEquations = self.constructEquations_max6vertices
             self._numAllSolutions = 16
         elif graph_type == 'Max8vertices':
+#            edges: [(2, 7), (3, 2), (2, 6), (6, 8), (7, 8), (6, 1), (3, 1), (2, 8), (4, 7), (2, 1), (5, 8), (4, 3), (5, 1), (5, 4), (3, 7), (4, 1), (6, 5), (5, 7)]
             self.constructEquations = self.constructEquations_max8vertices
             self._numAllSolutions = 160
         elif graph_type == 'Max8vertices_distSyst':
             self.constructEquations = self.constructEquations_max8vertices_distSystem
             self._numAllSolutions = 80
         elif graph_type == 'Ring8vertices':
+#            edges: [(1, 2), (2, 7), (5, 6), (1, 3), (6, 7), (6, 8), (4, 8), (4, 5), (2, 8), (7, 8), (1, 4), (3, 8), (1, 5), (1, 6), (1, 7), (2, 3), (3, 4), (5, 8)]
             self.constructEquations = self.constructEquations_ring8vertices
             self._numAllSolutions = 128
         elif graph_type == '7vert32a':
+#            edges: [(4, 7), (1, 3), (5, 6), (1, 4), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (5, 7), (3, 6), (2, 3), (3, 4), (2, 4)]
             self.constructEquations = self.constructEquations_7vert32a
             self._numAllSolutions = 32
         elif graph_type == '7vert32b':
+#            edges: [(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (5, 6), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (6, 7), (1, 5), (3, 6), (3, 4)]
             self.constructEquations = self.constructEquations_7vert32b
             self._numAllSolutions = 32
         elif graph_type == '7vert24':
+#            edges: [(2, 7), (4, 7), (2, 6), (5, 6), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (4, 6), (5, 7), (1, 5), (3, 6), (3, 4)]
             self.constructEquations = self.constructEquations_7vert24
             self._numAllSolutions = 24
         elif graph_type == '7vert16a':
+#            edges: [(4, 7), (1, 3), (5, 6), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (4, 6), (5, 7), (3, 6), (1, 7), (2, 3), (3, 4), (2, 4)]
             self.constructEquations = self.constructEquations_7vert16a
             self._numAllSolutions = 16
         elif graph_type == '7vert16b':
+#            edges: [(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (4, 6), (1, 5), (3, 6)]
             self.constructEquations = self.constructEquations_7vert16b
             self._numAllSolutions = 16
         else:
@@ -90,7 +96,7 @@ class GraphEmbedding(object):
                 return float(self._lengths[(v, u)])
     
     def setEdgeLength(self, Luv, u, v):
-        if Luv<=0:
+        if Luv<=10e-6:
             raise ValueError('Length of '+str([u, v])+' cannot be set to '+str(Luv))
         if Luv>1e6:
             self._window.showError('Length'+str(Luv)+ ' of '+str([u, v])+' is too big')
