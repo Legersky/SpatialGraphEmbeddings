@@ -12,7 +12,7 @@ The main functionality is provided by the package *graphEmbeddings3D*.
 ## Requirements
   * Python 2.7
   * For solving the system of equations corresponding to graph embeddings, 
-  polynomial homotopy continauation by the package `phcpy` is used.
+  polynomial homotopy continuation by the package `phcpy` is used.
   Please follow http://homepages.math.uic.edu/~jan/phcpy_doc_html/welcome.html#installing-phcpy
   * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn`,
   see http://scikit-learn.org/stable/install.html for installation.
@@ -23,8 +23,7 @@ The main functionality is provided by the package *graphEmbeddings3D*.
   the number corresponds to the number of embeddings)
   * 8 vertices: G128, G160
 
-![graphs](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
-
+![graphs](supported_graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
 
 
 If you want to compute the number of embeddings for another minimally rigid graph,
@@ -55,7 +54,7 @@ Functionality:
   * export to [Axel](http://axel.inria.fr/)
 
 ## Warning
-The program strongly depends on PHC computation - this fails sometimes that might cause failure of our program.
+The program strongly depends on PHC computation - this fails sometimes that might cause failure of the program.
 
 ## License
 Copyright (C) 2018 Jan Legerský
