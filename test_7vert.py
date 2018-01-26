@@ -1,8 +1,10 @@
-
-print '''
+'''
 This script verifies that all 7-vertex graphs have edge lengths such that all embeddings are real
 The edge lengths were found by the sampling method except for G16a where they were obtained just by random guess.
 '''
+
+print __doc__
+
 
 from graphEmbeddings3D.graphEmbedding import GraphEmbedding
 

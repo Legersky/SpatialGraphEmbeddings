@@ -1,10 +1,12 @@
-import sys
-sys.path.append('..')
-from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
-print '''
+'''
 This script searches edge lengths for G48 by tree approach, namely, all combinations of subgraphs are tested.
 The starting lengths were obtaind by parametric search, they have 28 real embeddings.
 '''
+print __doc__
+
+import sys
+sys.path.append('..')
+from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 
 lengths = {'12': 1.99993774567597,
          '13': 1.99476987780024,

@@ -1,12 +1,15 @@
+'''
+This script looks for edge lengths of G16a with 16 real embeddings by random guessing.
+'''
+print __doc__
+
 import sys
 sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding,  GraphEmbedding
 from random import uniform
 
-print '''
-This script looks for edge lengths of G16a with 16 real embeddings by random guessing.
-'''
+
 
 a = -5.0
 b = 5.0

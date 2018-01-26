@@ -1,8 +1,9 @@
-
-print '''
+'''
 This script verifies that the 8-vertex graph G128, resp. G160, has edge lengths such that 128, resp. 128, embeddings are real.
 The edge lengths were found by the sampling method.
 '''
+
+print __doc__
 
 from graphEmbeddings3D.graphEmbedding import GraphEmbedding
 

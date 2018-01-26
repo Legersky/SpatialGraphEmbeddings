@@ -1,13 +1,15 @@
+'''
+This script looks for edge lengths of G128 with many real embeddings by the sampling method based on coupler curves.
+The starting edge lengths are chosen randomly so that top, ring and bottom edges have similar lengths, respectively.
+'''
+print __doc__
+
 import sys
 sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding
 from random import uniform
 
-print '''
-This script looks for edge lengths of G128 with many real embeddings by the sampling method based on coupler curves.
-The starting edge lengths are chosen randomly so that top, ring and bottom edges have similar lengths, respectively.
-'''
 a = -0.05
 b = 0.05
 

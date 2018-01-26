@@ -1,12 +1,14 @@
+'''
+This script looks for edge lengths of G24b with 24 real embeddings by the sampling method based on coupler curves.
+'''
+print __doc__
+
 import sys
 sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding
 from random import uniform
-
-print '''
-This script looks for edge lengths of G24b with 24 real embeddings by the sampling method based on coupler curves.
-'''
+ 
 a = -5.0
 b = 5.0
 

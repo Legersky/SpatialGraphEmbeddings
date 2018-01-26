@@ -1,14 +1,16 @@
+'''
+ This script uses the sampling method in order to find edge lengths of G160 with many real embeddings.
+ Various kinds of random embeddings are used for obtaining starting edge lengths.
+ The distance system is used for speed up, but it is not so robust.
+'''
+print __doc__
+
 import sys
 sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding
 from random import uniform
 
-print '''
- This script uses the sampling method in order to find edge lengths of G160 with many real embeddings.
- Various kinds of random embeddings are used for obtaining starting edge lengths.
- The distance system is used for speed up, but it is not so robust.
-'''
 a = -0.1
 b = 0.1
 c = -10.0

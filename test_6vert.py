@@ -1,8 +1,11 @@
-print '''
+'''
  This script uses the sampling method in order to find edge lengths of the only H2 6-vertex graph (cyclohexane) with many real embeddings.
  Random embedding is used for obtaining starting edge lengths.
  It is likely that edge lengths with 12 or 16 are found.
 '''
+
+print __doc__
+
 
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding,  GraphEmbedding
