@@ -2,20 +2,19 @@
 
 This program implements a method for obtaining edge lengths of a minimally rigid graph with many real spatial embeddings.
 The method is based on sampling over two parameter family that preserves so called coupler curve.
-See [project website](http://jan.legersky.cz/project/maxrealembeddings3d/) for the details.
+See [project website](http://jan.legersky.cz/project/spatialgraphembeddings/) for the details.
 
 Moreover, it includes Qt application for plotting coupler curves
 of the 7-vertex minimally rigid graph with the maximal number of embeddings, G48.
 
 The main functionality is provided by the package *graphEmbeddings3D*.
 
-## Requirements
+## Requirements and installation
   * Python 2.7
-  * For solving the system of equations corresponding to graph embeddings, 
-  polynomial homotopy continuation by the package `phcpy` is used.
-  Please follow http://homepages.math.uic.edu/~jan/phcpy_doc_html/welcome.html#installing-phcpy
-  * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn`,
-  see http://scikit-learn.org/stable/install.html for installation.
+  * For solving the system of equations corresponding to graph embeddings, polynomial homotopy continuation by the package `phcpy` is used
+  ([http://homepages.math.uic.edu/~jan/phcpy_doc_html/](http://homepages.math.uic.edu/~jan/phcpy_doc_html/)).
+  * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn` ([http://scikit-learn.org/stable/install.html](http://scikit-learn.org/stable/install.html)).
+  * For installation, just clone or download from [GitHub](https://github.com/Legersky/SpatialGraphEmbeddings).
 
 ## Supported graphs
   * 6 vertices: octahedron (the unique 6-vertex graph with the maximal number of embeddings)
@@ -30,7 +29,7 @@ If you want to compute the number of embeddings for another minimally rigid grap
 please, provide a method `constructEquations_YOUR_GRAPH` with sphere equations in *graphEmbeddings3D.graphEmbedding*, 
 and modify the constructor accordingly.
 For the sampling method, subgraphs suitable for sampling must be added to constructor of *graphEmbeddings3D.algRealEmbeddings*.
-We appreciate if you share your changes in this repository.
+We appreciate if you share your changes in the [GitHub repository](https://github.com/Legersky/SpatialGraphEmbeddings).
 
 ## Tests
 `python test_6vert.py` runs the sampling method for octahedron

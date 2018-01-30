@@ -21,7 +21,7 @@ from phcpy.solutions import strsol2dict, is_real
     
 from sympy import symbols
 
-from random import random
+
 import hashlib
 import time
 import os
@@ -31,7 +31,54 @@ import subprocess
 import math
 
 class GraphEmbedding(object):
+    '''
+    This class implements the computation of spatial embeddings for a graph :math:`G` with edge lengths :math:`\\mathbb{d}`
+
+    Supported graphs:
+    
+    - :math:`G_{16}`
+        - `graph_type='Max6vertices'`
+        - edges: `\{(1, 3), (5, 6), (2, 6), (2, 3), (3, 5), (1, 2), (4, 6), (1, 5), (4, 5), (1, 6), (3, 4), (2, 4)\}`
+    - :math:`G_{48}`
+        - `graph_type='Max7vertices'`
+        - edges: `\{(2, 7), (4, 7), (1, 3), (4, 5), (1, 4), (5, 6), (2, 6), (1, 6), (3, 7), (1, 2), (6, 7), (5, 7), (1, 5), (2, 3), (3, 4)\}`
+    - :math:`G_{32a}`
+        - `graph_type='7vert32a'`
+        - edges: `\{(4, 7), (1, 3), (5, 6), (1, 4), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (5, 7), (3, 6), (2, 3), (3, 4), (2, 4)\}`
+    - :math:`G_{32b}`
+        - `graph_type='7vert32b'`
+        - edges: `\{(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (5, 6), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (6, 7), (1, 5), (3, 6), (3, 4)\}`
+    - :math:`G_{24}`
+        - `graph_type='7vert24'`
+        - edges: `\{(2, 7), (4, 7), (2, 6), (5, 6), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (4, 6), (5, 7), (1, 5), (3, 6), (3, 4)\}`
+    - :math:`G_{16a}`
+        - `graph_type='7vert16a'`
+        - edges: `\{(4, 7), (1, 3), (5, 6), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (4, 6), (5, 7), (3, 6), (1, 7), (2, 3), (3, 4), (2, 4)\}`
+    - :math:`G_{16b}`
+        - `graph_type='7vert16b'`
+        - edges: `\{(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (4, 6), (1, 5), (3, 6)\}`
+    - :math:`G_{160}`
+        - `graph_type='Max8vertices'`, or `'Max8vertices_distSyst'` for using distance system instead of sphere equations (faster but often inaccurate)
+        - edges: `\{(2, 7), (3, 2), (2, 6), (6, 8), (7, 8), (6, 1), (3, 1), (2, 8), (4, 7), (2, 1), (5, 8), (4, 3), (5, 1), (5, 4), (3, 7), (4, 1), (6, 5), (5, 7)\}`
+    - :math:`G_{128}`
+        - `graph_type='Ring8vertices'`
+        - edges: `\{(1, 2), (2, 7), (5, 6), (1, 3), (6, 7), (6, 8), (4, 8), (4, 5), (2, 8), (7, 8), (1, 4), (3, 8), (1, 5), (1, 6), (1, 7), (2, 3), (3, 4), (5, 8)\}`
+    '''
+#    .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
+#       :width: 70 %
+#       :alt: Supported 7 and 8-vertex graphs
+
     def __init__(self, lengths, graph_type, tmpFileName=None,  window=None):
+        '''
+        Inputs:
+        
+        - `lengths` is a dictionary with edge lengths of graph given by `graph_type`
+        - `tmpFileName` is used for temporary files used during computations. If `None`, random hash is used.
+        
+        For implementation of a new graph, method **constructEquations_newGraph** must be implemented and *__init__* modified accordingly.
+        
+        Optionally, method **getEmbedding** and function **getEdgeLengthsByEmbedding** should be implemented.
+        '''
         self._window = window
         self._prevSystem = None
         self._prevSolutions = None
@@ -39,50 +86,42 @@ class GraphEmbedding(object):
         self._fixedTriangle_vertices = [2, 3, 1]
         self._vertexWithFootAtOrigin = None
         if graph_type == 'Max7vertices':
-#            edges: [(2, 7), (4, 7), (1, 3), (4, 5), (1, 4), (5, 6), (2, 6), (1, 6), (3, 7), (1, 2), (6, 7), (5, 7), (1, 5), (2, 3), (3, 4)]
             self._vertexWithFootAtOrigin = 7
             self.constructEquations = self.constructEquations_max7vertices
             self._numAllSolutions = 48
         elif graph_type == 'Max6vertices':
-#            edges: [(1, 3), (5, 6), (2, 6), (2, 3), (3, 5), (1, 2), (4, 6), (1, 5), (4, 5), (1, 6), (3, 4), (2, 4)]
             self._vertexWithFootAtOrigin = 4
             self.constructEquations = self.constructEquations_max6vertices
             self._numAllSolutions = 16
         elif graph_type == 'Max8vertices':
-#            edges: [(2, 7), (3, 2), (2, 6), (6, 8), (7, 8), (6, 1), (3, 1), (2, 8), (4, 7), (2, 1), (5, 8), (4, 3), (5, 1), (5, 4), (3, 7), (4, 1), (6, 5), (5, 7)]
             self.constructEquations = self.constructEquations_max8vertices
             self._numAllSolutions = 160
         elif graph_type == 'Max8vertices_distSyst':
             self.constructEquations = self.constructEquations_max8vertices_distSystem
             self._numAllSolutions = 80
         elif graph_type == 'Ring8vertices':
-#            edges: [(1, 2), (2, 7), (5, 6), (1, 3), (6, 7), (6, 8), (4, 8), (4, 5), (2, 8), (7, 8), (1, 4), (3, 8), (1, 5), (1, 6), (1, 7), (2, 3), (3, 4), (5, 8)]
             self.constructEquations = self.constructEquations_ring8vertices
             self._numAllSolutions = 128
         elif graph_type == '7vert32a':
-#            edges: [(4, 7), (1, 3), (5, 6), (1, 4), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (5, 7), (3, 6), (2, 3), (3, 4), (2, 4)]
             self.constructEquations = self.constructEquations_7vert32a
             self._numAllSolutions = 32
         elif graph_type == '7vert32b':
-#            edges: [(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (5, 6), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (6, 7), (1, 5), (3, 6), (3, 4)]
             self.constructEquations = self.constructEquations_7vert32b
             self._numAllSolutions = 32
         elif graph_type == '7vert24':
-#            edges: [(2, 7), (4, 7), (2, 6), (5, 6), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (1, 2), (4, 6), (5, 7), (1, 5), (3, 6), (3, 4)]
             self.constructEquations = self.constructEquations_7vert24
             self._numAllSolutions = 24
         elif graph_type == '7vert16a':
-#            edges: [(4, 7), (1, 3), (5, 6), (1, 6), (3, 7), (2, 5), (3, 5), (1, 2), (4, 6), (5, 7), (3, 6), (1, 7), (2, 3), (3, 4), (2, 4)]
             self.constructEquations = self.constructEquations_7vert16a
             self._numAllSolutions = 16
         elif graph_type == '7vert16b':
-#            edges: [(2, 7), (4, 7), (2, 6), (4, 5), (1, 4), (1, 3), (2, 3), (3, 7), (2, 5), (3, 5), (1, 2), (6, 7), (4, 6), (1, 5), (3, 6)]
             self.constructEquations = self.constructEquations_7vert16b
             self._numAllSolutions = 16
         else:
             raise ValueError('Type %s not supported' % graph_type)
         self._graph_type = graph_type
         if tmpFileName==None:
+            from random import random
             hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
             self._fileNamePref = graph_type+'_'+str(hash_object.hexdigest())
         else:
@@ -90,6 +129,9 @@ class GraphEmbedding(object):
         self.setLengths(lengths)    
 
     def setLengths(self, lengths):
+        '''
+        Set edge lengths to `lengths`.
+        '''
         self._lengths = {}
         try:
             for e in lengths.keys():
@@ -104,6 +146,9 @@ class GraphEmbedding(object):
             self.printLog('Problem with setting lengths: '+str(er))
     
     def getEdgeLength(self, u, v=None):
+        '''
+        Return length of edge `uv`.
+        '''
         if v==None:
             return self.getEdgeLength(int(u[0]), int(u[1]))
         else:
@@ -113,6 +158,9 @@ class GraphEmbedding(object):
                 return float(self._lengths[(v, u)])
     
     def setEdgeLength(self, Luv, u, v):
+        '''
+        Set length of edge `uv` to `Luv`.
+        '''
         if Luv<=10e-6:
             raise ValueError('Length of '+str([u, v])+' cannot be set to '+str(Luv))
         if Luv>1e6:
@@ -124,6 +172,9 @@ class GraphEmbedding(object):
             self._lengths[(v, u)] = Luv
     
     def getLengths(self):
+        '''
+        Return dictionary of edge lengths.
+        '''
         return self._lengths
 
     def printLog(self, s, verbose=0):
@@ -134,10 +185,15 @@ class GraphEmbedding(object):
                 print s
 
     def getEquations(self):
+        '''
+        Return sphere equations of the graph corresponding to current edge lengths.
+        '''
         return self.constructEquations()
     
     def getAltitudeAndFoot(self, u, v, w):
-        ''' Returns altitude of triangle uvw from w and the distance of its foot from v'''
+#        ''' 
+#        Return altitude of triangle `uvw` from `w` and the distance of its foot from `v`.
+#        '''
         Luv = self.getEdgeLength(u, v)
         Lvw = self.getEdgeLength(w, v)
         Luw = self.getEdgeLength(w, u)
@@ -148,7 +204,9 @@ class GraphEmbedding(object):
             raise TriangleInequalityError('Altitude and foot for the triangle '+str([u, v, w])+' with lengths '+str([Luv, Lvw, Luw])+' is not defined.')
     
     def coordinatesOfTriangle(self, u, v, w, yshift=0):
-        '''Returns coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u'''
+#        '''
+#        Return coordinates of the tringle uvw so that it lies in x-y plane, u,v are on y-axis, y-coord. of u is yshift and v is in positive direction from u
+#        '''
         u_coor = [0, yshift, 0]
         v_coor = [0, yshift+self.getEdgeLength(u, v), 0]
         alt_w, foot_wv = self.getAltitudeAndFoot(u, v, w)
@@ -156,7 +214,10 @@ class GraphEmbedding(object):
         return u_coor, v_coor, w_coor
     
     def updateFixedTriangle(self):
-        '''Adjusts coordinates of the fixed triangle according to _lengths. If p!=None, the coordinate system is shifted so that foot of altitude from p in the triangle uvp is in the origin. (uvp must be in the graph)'''
+#        '''
+#        Adjusts coordinates of the fixed triangle according to _lengths. 
+#        If `self._vertexWithFootAtOrigin` is not `None`, then the coordinate system is shifted so that foot of altitude from p in the triangle uvp is in the origin. (uvp must be in the graph)
+#        '''
         u, v, w = self._fixedTriangle_vertices
         if self._vertexWithFootAtOrigin!=None:
             yshift = -self.getAltitudeAndFoot(v, u, self._vertexWithFootAtOrigin)[1]
@@ -165,7 +226,7 @@ class GraphEmbedding(object):
         self._fixedTriangle = self.coordinatesOfTriangle(u, v, w, yshift)
     
     def setEdgeLengthWithCorrespondingOnes(self, Luv,  uvwp):
-        '''Sets length of uv to Luv and also lengths of uw and up so that angles uvp and uvw preserves '''
+#        '''Sets length of uv to Luv and also lengths of uw and up so that angles uvp and uvw preserves '''
         u, v, w, p = uvwp
         p_coord = self.coordinatesOfTriangle(u, v, p)[2]
         w_coord = self.coordinatesOfTriangle(u, v, w)[2]
@@ -177,7 +238,14 @@ class GraphEmbedding(object):
     def dist(self, u, v):
         return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
 
+    
     def findEmbeddings(self, tolerance=1.0e-15,  errorMsg=True, usePrev=True):
+        '''
+        Compute embeddings of the graph compatible with the current edge lengths and fixed triangle and return them as dictionary 
+        `{['real']: listRealEmbeddings, ['complex']: listComplexEmbeddings}`. Embeddings are considered real if the imaginary part of all coordinates is smaller than `tolerance`.
+        
+        Package ``phcpy`` is used for the computation. If `usePrev=True`, then the solutions are tracked from ones from the previous call, if there was any.
+        '''
         syst = self.getEquations()
         i = 0
 
@@ -267,10 +335,16 @@ class GraphEmbedding(object):
         self.setEdgeLength(np.sqrt(Luw**2+Lwc**2-2*Luw*Lwc*math.cos(theta)), u, c)
 
     def setPhiTheta(self, uvwpc, phi, theta):
+        '''
+        Set edge lengths so that the angles :math:`\\phi` and :math:`\\theta` in the subgraph :math:`(u,v,w,p,c)` given by 5-tuple `uvwpc` are `phi` and `theta`.
+        '''
         self.setPhi(uvwpc[:-1], phi)
         self.setTheta([uvwpc[i] for i in [0, 2, 4]], theta)
 
     def getPhiTheta(self, uvwpc):      
+        '''
+        Return angles :math:`\\phi` and :math:`\\theta` in the subgraph :math:`(u,v,w,p,c)` given by 5-tuple `uvwpc`.
+        '''
         u, v, w, p, c = uvwpc
         
         foot_u = self.getAltitudeAndFoot(v, u, w)[1]
@@ -291,6 +365,9 @@ class GraphEmbedding(object):
         return [math.asin((y1-y2)/float(self.getEdgeLength(1, 2))), math.acos((-l26**2+l12**2+l16**2)/float(2*l12*l16))]
 
     def getEmbedding(self):
+        '''
+        Return one of the real embeddings comaptible with the current edge lengths.
+        '''
         sols = self.findEmbeddings()
         sol = sols['real'][0]
         if self._graph_type=='Max6vertices':
@@ -355,7 +432,7 @@ class GraphEmbedding(object):
             raise NotImplementedError('Method getEmbedding is not implemented for graph '+ self._graph_type)
 
     def constructEquations_max7vertices(self):
-        '''system with correct mixed volume'''        
+#        '''system with correct mixed volume'''        
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
@@ -412,9 +489,7 @@ class GraphEmbedding(object):
         return res
 
     def constructEquations_max8vertices(self):
-        '''system with correct mixed volume'''        
-#        x1, y1, z1 = symbols('x1 y1 z1')
-#        x3, y3, z3 = symbols('x3 y3 z3')
+#        '''system with correct mixed volume'''        
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
@@ -473,7 +548,7 @@ class GraphEmbedding(object):
         return res
 
     def constructEquations_max8vertices_distSystem(self):
-        '''system with correct mixed volume'''        
+#        '''system with correct mixed volume'''        
         y1, y2, y3, y4 = symbols('y1 y2 y3 y4')
         
         c12 = self.getEdgeLength('12')**2
@@ -692,7 +767,7 @@ class GraphEmbedding(object):
         return [max(cond_y1_left),min(cond_y1_right), max(cond_y4_left),min(cond_y4_right)]
 
     def constructEquations_ring8vertices(self):
-        '''system with correct mixed volume'''    
+#        '''system with correct mixed volume'''    
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
@@ -749,7 +824,7 @@ class GraphEmbedding(object):
 
 
     def constructEquations_max6vertices(self):
-        '''system with correct mixed volume'''        
+#        '''system with correct mixed volume'''        
         x4, y4, z4 = symbols('x4 y4 z4')
         x5, y5, z5 = symbols('x5 y5 z5')
         x6, y6, z6 = symbols('x6 y6 z6')
@@ -1072,14 +1147,20 @@ class GraphEmbedding(object):
         return res
 
 class TriangleInequalityError(ValueError):
+    '''
+    Exception raised if a tringle inequality is violated.
+    '''
     def __init__(self, errorMsg):
         super(TriangleInequalityError, self).__init__(errorMsg)
 
-def getEdgeLengthsByEmbedding(graph_type, vertices):
+def getEdgeLengthsByEmbedding(graph_type, vert_coordinates):
+    '''
+    Return edge lengths for `graph_type` obtained by taking corresponding distances of vertices given by `vert_coordinates`.
+    '''
     def dist( u, v):
         return float(np.sqrt( (u[0]-v[0])**2 + (u[1]-v[1])**2 + (u[2]-v[2])**2))
     if graph_type=='Max6vertices':
-        v1, v2, v3, v4, v5, v6 = vertices
+        v1, v2, v3, v4, v5, v6 = vert_coordinates
         lengths = {(1, 2) : dist(v1,v2), 
             (2, 3) : dist(v2,v3), 
             (3, 4) : dist(v3,v4), 
@@ -1093,7 +1174,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (1, 5) : dist(v1,v5), 
             (2, 6) : dist(v2,v6)}
     elif graph_type=='7vert16a':
-        v1, v2, v3, v4, v5, v6, v7 = vertices
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 6) : dist(v1,v6),
@@ -1110,7 +1191,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 6) : dist(v5,v6),
             (5, 7) : dist(v5,v7)}
     elif graph_type=='7vert16b':
-        v1, v2, v3, v4, v5, v6, v7 = vertices     
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates     
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 4) : dist(v1,v4),
@@ -1127,7 +1208,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (4, 7) : dist(v4,v7),
             (6, 7) : dist(v6,v7)}
     elif graph_type=='7vert24':
-        v1, v2, v3, v4, v5, v6, v7 = vertices          
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates          
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 4) : dist(v1,v4),
@@ -1144,7 +1225,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 6) : dist(v5,v6),
             (5, 7) : dist(v5,v7)}
     elif graph_type=='7vert32a':
-        v1, v2, v3, v4, v5, v6, v7 = vertices
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 4) : dist(v1,v4),
@@ -1161,7 +1242,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 7) : dist(v5,v7),
             (6, 7) : dist(v6,v7)}
     elif graph_type=='7vert32b':
-        v1, v2, v3, v4, v5, v6, v7 = vertices        
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates        
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 4) : dist(v1,v4),
@@ -1178,7 +1259,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 6) : dist(v5,v6),
             (6, 7) : dist(v6,v7)}
     elif graph_type=='Max7vertices':
-        v1, v2, v3, v4, v5, v6, v7 = vertices        
+        v1, v2, v3, v4, v5, v6, v7 = vert_coordinates        
         lengths = {(1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
             (1, 4) : dist(v1,v4),
@@ -1195,7 +1276,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (5, 6) : dist(v5,v6), 
             (2, 6) : dist(v2,v6)}
     elif graph_type=='Ring8vertices':
-        v1, v2, v3, v4, v5, v6, v7, v8 = vertices        
+        v1, v2, v3, v4, v5, v6, v7, v8 = vert_coordinates        
         lengths = {
             (1, 2) : dist(v1,v2),
             (1, 3) : dist(v1,v3),
@@ -1216,7 +1297,7 @@ def getEdgeLengthsByEmbedding(graph_type, vertices):
             (7, 8) : dist(v7,v8),
             (6, 7) : dist(v6,v7)}
     elif graph_type=='Max8vertices' or graph_type=='Max8vertices_distSyst':
-        v1, v2, v3, v4, v5, v6, v7, v8 = vertices         
+        v1, v2, v3, v4, v5, v6, v7, v8 = vert_coordinates         
         lengths = {
             (2, 1) : dist(v2,v1),
             (2, 7) : dist(v2,v7),

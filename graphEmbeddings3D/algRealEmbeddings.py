@@ -25,7 +25,8 @@ from sklearn.cluster import DBSCAN
 
 import hashlib
 import sys
-from random import random
+
+
 import os
 #import memory_profiler
 
@@ -34,7 +35,19 @@ from graphCouplerCurve import *
     
 
 class AlgRealEmbeddings(object):
+    '''
+    This class implements the sampling procedure for obtaining edge lengths with many real embeddings.
+
+    The 6-vertex graph of cyclohexane (octahedron) and the following 7 and 8- vertex graphs are supported:
+
+    .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
+       :width: 70 %
+       :alt: Supported 7 and 8-vertex graphs    
+    '''
     def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center',  window=None, name=None):
+        '''
+        
+        '''
         self._window = window
         self._graph_type = graph_type
         if graph_type == 'Max7vertices':
@@ -80,7 +93,7 @@ class AlgRealEmbeddings(object):
                                    [6, 7, 3, 4, 2], [6, 7, 2, 4, 3], [6, 2, 7, 3, 4], [6, 3, 7, 2, 4], [7, 6, 3, 4, 2], [7, 6, 2, 4, 3], [7, 2, 6, 3, 4], [7, 3, 6, 2, 4]]
         else:
             raise ValueError('Type %s not supported' % graph_type)
-        
+        from random import random
         hash_object = hashlib.md5(str(time.time()).encode()+str(random()))
         if name:
             self._fileNamePref = name+'_'+str(hash_object.hexdigest())[0:8]
