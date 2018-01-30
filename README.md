@@ -7,22 +7,23 @@ See [project website](http://jan.legersky.cz/project/spatialgraphembeddings/) fo
 Moreover, it includes Qt application for plotting coupler curves
 of the 7-vertex minimally rigid graph with the maximal number of embeddings, G48.
 
-The main functionality is provided by the package *graphEmbeddings3D*.
+The main functionality is provided by the package *graphEmbeddings3D*, see [Documentation](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/documentation/).
 
 ## Requirements and installation
   * Python 2.7
   * For solving the system of equations corresponding to graph embeddings, polynomial homotopy continuation by the package `phcpy` is used
-  ([http://homepages.math.uic.edu/~jan/phcpy_doc_html/](http://homepages.math.uic.edu/~jan/phcpy_doc_html/)).
-  * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn` ([http://scikit-learn.org/stable/install.html](http://scikit-learn.org/stable/install.html)).
-  * For installation, just clone or download from [GitHub](https://github.com/Legersky/SpatialGraphEmbeddings).
+  ([homepages.math.uic.edu/~jan/phcpy_doc_html/](http://homepages.math.uic.edu/~jan/phcpy_doc_html/)).
+  * In the sampling heuristic, clustering is done by `DBSCAN` from the package `sklearn` ([scikit-learn.org](http://scikit-learn.org/stable/install.html)).
+  * For GUI application for plotting coupler curves of G48, `PyQt5` ([pypi.python.org/pypi/PyQt5](https://pypi.python.org/pypi/PyQt5)) and `matplotlib` ([matplotlib.org/](https://matplotlib.org/)) are needed.
+  * For installation, just clone or download from [github.com/Legersky/SpatialGraphEmbeddings](https://github.com/Legersky/SpatialGraphEmbeddings).
 
 ## Supported graphs
-  * 6 vertices: octahedron (the unique 6-vertex graph with the maximal number of embeddings)
+  * 6 vertices: octahedron/cyclohexane (the unique 6-vertex graph with the maximal number of embeddings)
   * 7 vertices: G16a, G16b, G24, G32a, G32b, G48 (all 7-vertex graphs requiring the last Henneberg step being H2,
   the number corresponds to the number of embeddings)
   * 8 vertices: G128, G160
 
-![graphs](supported_graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
+![graphs](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
 
 
 If you want to compute the number of embeddings for another minimally rigid graph,
