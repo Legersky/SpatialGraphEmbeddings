@@ -37,16 +37,23 @@ from graphCouplerCurve import *
 class AlgRealEmbeddings(object):
     '''
     This class implements the sampling procedure for obtaining edge lengths with many real embeddings.
-
-    The 6-vertex graph of cyclohexane (octahedron) and the following 7 and 8- vertex graphs are supported:
-
-    .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
-       :width: 70 %
-       :alt: Supported 7 and 8-vertex graphs    
     '''
     def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center',  window=None, name=None):
         '''
+        The supported graphs given by `graph_type` can be found in :py:mod:`graphEmbeddings3D.graphEmbedding.GraphEmbedding`. 
         
+        `num_phi` and `num_theta` determine the number of samples of :math:`\\varphi` and :math:`\\theta` in the first phase of sampling.
+        In the second phase, `num_phi/factor_second` and `num_theta/factor_second` values are sampled around the ones from the first phase with the highest number of real embeddings.
+        
+        After sampling, edge lengths are selected from clusters by `choice_from_clusters`:
+        
+        - `'center'`: center of the :math:`(\\varphi,\\theta)` cluster
+        - `'closestToAverageLength'`: average of lengths in cluster
+        
+        `name` is used for temporary and results files.
+        
+        For implementing a new graph, `self._numAllSol` must be set in the constructor to the maximal number of complex embeddings of the graph, and
+        `self._combinations` contains all subgraphs suitable for sampling.
         '''
         self._window = window
         self._graph_type = graph_type
@@ -476,6 +483,15 @@ class AlgRealEmbeddings(object):
         return [clusters, centers, res_lengths, res_infos, maximum]
 
     def findMoreEmbeddings_tree(self, starting_lengths, required_num=None, onlyOne=True,  combinations=None):
+        '''
+        Edge lengts with `required_num` real embeddings are searched by tree approach from `starting_lengths`, namely, trying all combinations of subgraphs given by `combinations`.
+        
+        If `required_num==None`, then `self._numAllSol` is used. Similarly, if `combinations==None`, then `self._combinations` are used.
+        
+        If `onlyOne` is `True`, then the algorithm stops if the first edge lengths with `required_num` real embeddings are found. Otherwise, the whole tree is traversed (extremely long!!!).
+        
+        Results are saved in ``../results``.
+        '''
         self._max_found = False
         if combinations:
             tmp_comb = copy.copy(self._combinations)
@@ -617,6 +633,15 @@ class AlgRealEmbeddings(object):
         self.printLog(outputFilename)
 
     def findMoreEmbeddings(self, starting_lengths, required_num=None,  combinations=None,  allowed_repetition=1):
+        '''
+        Edge lengts with `required_num` real embeddings are searched by linear approach from `starting_lengths`, namely, subgraphs given by `combinations` are used one by one.
+        
+        If `required_num==None`, then `self._numAllSol` is used. Similarly, if `combinations==None`, then `self._combinations` are used.
+        
+        The parameter `allowed_repetition` determines, how many times can be the whole list `combinations` used without increase of the number of real embeddings.
+        
+        Results are saved in ``../results``.
+        '''
         if required_num==None:
             required_num = self._numAllSol
         res = []
