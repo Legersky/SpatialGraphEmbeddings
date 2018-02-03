@@ -23,7 +23,7 @@ for i in range(0, 100):
     lengths_6vert = getEdgeLengthsByEmbedding('Max6vertices', [v1, v2, v3, v4, v5, v6])
     alg6 = AlgRealEmbeddings('Max6vertices', num_phi=12, num_theta=12,  name='rnd_6vert')
     name6=alg6._fileNamePref
-    lengths_6max = alg6.findMoreEmbeddings(lengths_6vert,  allowed_repetition=1)
+    lengths_6max = alg6.findMoreEmbeddings(lengths_6vert,  allowed_repetition=1, required_num=12)
         
     #---------------------creating 7 vertex lengths---------------------------------------------
     G = GraphEmbedding(lengths_6max, 'Max6vertices')
