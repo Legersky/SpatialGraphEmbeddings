@@ -1,5 +1,5 @@
 '''
- Here, we try to find edge lengths of G48 with at least 36 real embeddings, and then, we use these lengths as the starting ones for G160.
+ Here, we try to find edge lengths of G48 with at least 36 real embeddings using edge lengths of g16 with many embeddings, and then, we use these lengths as the starting ones for G160.
 '''
 print __doc__
 
