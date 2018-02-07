@@ -43,7 +43,7 @@ for i in range(0, 100):
 
     lengths = getEdgeLengthsByEmbedding('Max8vertices', [v1, v2, v3, v4, v5, v6, v7, v8])
 
-    alg2 = AlgRealEmbeddings('Max8vertices', name='from_rnd7to8')
+    alg2 = AlgRealEmbeddings('Max8vertices', name='from_rnd6to7to8')
     alg2.findMoreEmbeddings(lengths)
     del alg
     del alg2
