@@ -24,7 +24,7 @@ for i in range(0, 100):
     lengths = getEdgeLengthsByEmbedding('Max7vertices', [v1, v2, v3, v4, v5, v6, v7])
     
     alg = AlgRealEmbeddings('Max7vertices',  name='random7vert')
-    lengths_7 = alg.findMoreEmbeddings(lengths, required_num=36)
+    lengths_7 = alg.findMoreEmbeddings(lengths, required_num=44)
 
     G = GraphEmbedding(lengths_7, 'Max7vertices')
     v1, v2, v3, v4, v5, v6, v7 = G.getEmbedding()
