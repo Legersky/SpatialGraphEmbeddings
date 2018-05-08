@@ -10,6 +10,7 @@ sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
 from graphEmbeddings3D.graphEmbedding import getEdgeLengthsByEmbedding
 from random import uniform
+import time
 
 a = -0.05
 b = 0.05
@@ -25,10 +26,18 @@ v7 = [0.6 + uniform(a, b), 0.6 + uniform(a, b), 1.0+uniform(a, b)]
 
 lengths = getEdgeLengthsByEmbedding('Max7vertices', [v1, v2, v3, v4, v5, v6,v7])
 
+# or the following edge lengths yields ones with 48 real embeddings:
+lengths = {'56': 0.995723616535744, '26': 1.001987710974071, '12': 1.99993774567597, '67': 10.53647884635266, '13': 1.99476987780024, 
+        '27': 10.53609172287933, '15': 2.00289249524296, '14': 2.003436460984393, '16': 2.000134247468136, '23': 0.999614322089483, 
+        '57': 10.53627365999783, '45': 1.001530148504854, '37': 10.53631716364608, '34': 1.0036864448806, '47': 10.53572330314948}
+
+start = time.time()
+
 alg = AlgRealEmbeddings('Max7vertices',  name='random7vert_tbr')
 alg.findMoreEmbeddings(lengths)
 
 
+print '\n\nSampling time: ',  time.time() - start
 
 
 # possible result:
