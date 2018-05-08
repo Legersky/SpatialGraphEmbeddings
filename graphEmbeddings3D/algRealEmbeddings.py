@@ -642,6 +642,7 @@ class AlgRealEmbeddings(object):
         
         Results are saved in ``../results``.
         '''
+        start_all = time.time()
         if required_num==None:
             required_num = self._numAllSol
         res = []
@@ -727,6 +728,9 @@ class AlgRealEmbeddings(object):
                     if self._window:
                         self._window.showDialog(report)
                     found = True
+                    print '\n\nSampling time: ',  time.time() - start_all
+                    with open(os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._fileNamePref+'_intermediateResults.txt', 'a') as f:
+                        f.write('\nSampling time: '+str(time.time() - start_all))
                 res = lengths
                 
                 if prev_max<maximum:
