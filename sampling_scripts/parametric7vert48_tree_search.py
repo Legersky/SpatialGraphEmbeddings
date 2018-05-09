@@ -7,7 +7,8 @@ print __doc__
 import sys
 sys.path.append('..')
 from graphEmbeddings3D.algRealEmbeddings import AlgRealEmbeddings
-
+import time
+start = time.time()
 lengths = {'12': 1.99993774567597,
          '13': 1.99476987780024,
          '14': 2.003436460984393,
@@ -26,7 +27,7 @@ lengths = {'12': 1.99993774567597,
 alg = AlgRealEmbeddings('Max7vertices',  name='par7vert_tree_search')
 alg.findMoreEmbeddings_tree(lengths, onlyOne=True)
 
-
+print '\n\nSampling time: ',  time.time() - start
 
 
 
