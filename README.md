@@ -9,6 +9,10 @@ of the 7-vertex minimally rigid graph with the maximal number of embeddings, G48
 
 The main functionality is provided by the package *graphEmbeddings3D*, see [Documentation](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/documentation/).
 
+The version used for the paper On the Maximal Number of Real Embeddings of Spatial Minimally Rigid Graphs accepted to ISSAC 2018:
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1244023.svg)](https://doi.org/10.5281/zenodo.1244023)
+
 ## Requirements and installation
   * Python 2.7
   * For solving the system of equations corresponding to graph embeddings, polynomial homotopy continuation by the package `phcpy` is used
