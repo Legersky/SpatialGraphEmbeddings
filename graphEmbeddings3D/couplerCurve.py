@@ -574,15 +574,7 @@ class MplWindow(UI_MainWindow, MainWindow):
                 pos = self.graph.getPositionsOfVertices(self.spinBoxParameter.value()-1, 0, 1, 1)
             else:
                 pos = None
-            if pos:
-                v1, v2, v3, v4, v5, v6, v7 = pos
-                draw([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
-                draw([v1, v6])
-#                draw([v1, v2, v3], 'ko')
-                draw(pos, 'ko')
-                draw([v6, v6], 'y^')
-                for i, v in enumerate(pos):
-                    self._branches_plot.text(v[0]+0.1+c_x, v[1]+c_y, v[2]+c_z, 'v'+str(i+1))
+
             
             allOrange = True
             for c in self.checkBoxBranches:
@@ -602,7 +594,17 @@ class MplWindow(UI_MainWindow, MainWindow):
                                 draw(part, 'dark'+c, line_width=2)
                 draw(self.graph.intersections_mirror, 'ro')
             draw(self.graph.intersections, 'ro')
-            
+
+            if pos:
+                v1, v2, v3, v4, v5, v6, v7 = pos
+                draw([v2, v3, v7, v2, v1, v3, v4, v5, v1, v4, v7, v6, v5, v7])
+                draw([v1, v6])
+#                draw([v1, v2, v3], 'ko')
+                draw(pos, 'ko')
+                draw([v6, v6], 'y^')
+                for i, v in enumerate(pos):
+                    self._branches_plot.text(v[0]+0.1+c_x, v[1]+c_y, v[2]+c_z, 'v'+str(i+1),  size=20)
+                    
             self._branches_plot.set_xlim3d(minbound, maxbound)
             self._branches_plot.set_ylim3d(minbound, maxbound)
             self._branches_plot.set_zlim3d(minbound, maxbound)
