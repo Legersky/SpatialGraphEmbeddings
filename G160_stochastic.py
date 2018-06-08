@@ -17,7 +17,7 @@ if __name__ == '__main__':
     G.findEmbeddings()
     edges = [(1, 2), (2, 7), (4, 7), (2, 6), (6, 8), (4, 5), (2, 8), (5, 7), (7, 8), (1, 4), (1, 5), (1, 3), (1, 6), (5, 6), (3, 7), (3, 4), (2, 3), (5, 8)]
 
-    for _ in range(0,10):
+    for _ in range(0,1000):
         for e in edges:
             lengths_G160[e] = 1+0.01*random()
         G.setLengths(lengths_G160)
