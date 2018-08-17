@@ -63,22 +63,19 @@ class GraphEmbedding(object):
     - :math:`G_{128}`
         - `graph_type='Ring8vertices'`
         - edges: `{(1, 2), (2, 7), (5, 6), (1, 3), (6, 7), (6, 8), (4, 8), (4, 5), (2, 8), (7, 8), (1, 4), (3, 8), (1, 5), (1, 6), (1, 7), (2, 3), (3, 4), (5, 8)}`
+    - any graph with vertices labeled by 1, ..., N.  The edges are taken from the dict lengths. The graph must contain the triangle 1,2,3.
     '''
 #    .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
 #       :width: 70 %
 #       :alt: Supported 7 and 8-vertex graphs
 
-    def __init__(self, lengths, graph_type, tmpFileName=None,  window=None):
+    def __init__(self, lengths, graph_type, tmpFileName=None,  window=None,  num_sols = None):
         '''
         Inputs:
         
         - `lengths` is a dictionary with edge lengths of graph given by `graph_type`
         - `tmpFileName` is used for temporary files used during computations. If `None`, random hash is used.
-        
-        For implementation of a new graph, method **constructEquations_newGraph** must be implemented and *__init__* modified accordingly.
-        Moreover, constructor of :py:mod:`AlgRealEmbeddings` must be modified.
-        
-        Optionally, method **getEmbedding** and function **getEdgeLengthsByEmbedding** should be implemented.
+        - `num_sols` must be specified if `graph_type` is 'edges'. It is the number of complex embeddings of the graph.
         '''
         self._window = window
         self._prevSystem = None
@@ -118,6 +115,11 @@ class GraphEmbedding(object):
         elif graph_type == '7vert16b':
             self.constructEquations = self.constructEquations_7vert16b
             self._numAllSolutions = 16
+        elif graph_type == 'edges':
+            self.constructEquations = self.constructEquations_edges
+            if not num_sols:
+                raise ValueError('Number of complex embeddings must be specified.')
+            self._numAllSolutions = num_sols
         else:
             raise ValueError('Type %s not supported' % graph_type)
         self._graph_type = graph_type
@@ -430,7 +432,21 @@ class GraphEmbedding(object):
             res[2] = v3
             return res
         else:
-            raise NotImplementedError('Method getEmbedding is not implemented for graph '+ self._graph_type)
+            from sets import Set
+            vertices = Set([j for item in self._lengths.key() for j in item ])
+            res = [[0, 0, 0] for i in range(0, len(vertices))]
+            for k in sol:
+                if k[0]=='x':
+                    res[int(k[1])-1][0] = sol[k].real
+                if k[0]=='y':
+                    res[int(k[1])-1][1] = sol[k].real
+                if k[0]=='z':
+                    res[int(k[1])-1][2] = sol[k].real
+            v2, v3, v1 = self.coordinatesOfTriangle(2, 3, 1)
+            res[0] = v1
+            res[1] = v2
+            res[2] = v3
+            return res
 
     def constructEquations_max7vertices(self):
 #        '''system with correct mixed volume'''        
@@ -1147,6 +1163,68 @@ class GraphEmbedding(object):
             res.append(str(eq)+';')
         return res
 
+    def constructEquations_edges(self):
+        from sets import Set
+        variables = {}
+        edges = self._lengths.keys()
+        vertices = Set([j for item in edges for j in item ])
+        
+        for u,v in edges:
+            if u<v:
+                indices = str(u)+str(v)
+            else:
+                indices = str(v)+str(u)
+            variables['L'+indices] = self.getEdgeLength(u, v)
+        
+        for u in vertices:
+            variables['x'+str(u)] = symbols('x'+str(u))
+            variables['y'+str(u)] = symbols('y'+str(u))
+            variables['z'+str(u)] = symbols('z'+str(u))
+            variables['s'+str(u)] = symbols('s'+str(u))
+        # v1, v2, v3 in the x-y plane
+        variables['z1'] = 0
+        variables['z2'] = 0
+        variables['z3'] = 0
+        # v2, v3 on the y-axis
+        variables['x2'] = 0
+        variables['x3'] = 0
+        # v2 in the origin
+        variables['y2'] = 0
+        variables['y3'] = variables['L23']
+    
+        
+        L12 = variables['L12']
+        L23 = variables['L23']
+        L13 = variables['L13']
+        
+        variables['s1'] = L12**2
+        variables['s2'] = 0
+        variables['s3'] = L23**2
+        
+        y1 = (-L12**2 + L13**2 - L23**2)/(-2*L23)
+        variables['y1'] = y1
+        if L12**2  - y1**2 <0:
+            raise TriangleInequalityError('Triangle inequality violated!')
+        variables['x1']  = np.sqrt(L12**2  - y1**2 )
+        
+        eqs = []    
+        for u,v in edges:
+            if u<v:
+                indices = str(u)+str(v)
+            else:
+                indices = str(v)+str(u)
+            if not indices in ['12', '13', '23']:
+#                eqs.append(eval('(x'+str(u)+'- x'+str(v)+')**2 +(y'+str(u)+
+#                    '- y'+str(v)+')**2 + (z'+str(u)+'- z'+str(v)+')**2 - L'+indices+'**2', variables))
+                eqs.append(eval('-2*x'+str(u)+'* x'+str(v)+'-2*y'+str(u)+'* y'+str(v) + '-2*z'+str(u)+'* z'+str(v)+'+ s'+str(u)+'+ s'+str(v)+' - L'+indices+'**2', variables))
+        for v in vertices:
+            if not v in [1, 2, 3]:
+                eqs.append('x'+str(v)+'**2'+'+y'+str(v)+'**2'+'+z'+str(v)+'**2'+'-s'+str(v))
+        res = []
+        for eq in eqs:
+            res.append(str(eq)+';')
+        return res
+
 class TriangleInequalityError(ValueError):
     '''
     Exception raised if a tringle inequality is violated.
@@ -1154,7 +1232,7 @@ class TriangleInequalityError(ValueError):
     def __init__(self, errorMsg):
         super(TriangleInequalityError, self).__init__(errorMsg)
 
-def getEdgeLengthsByEmbedding(graph_type, vert_coordinates):
+def getEdgeLengthsByEmbedding(graph_type, vert_coordinates, edges=[]):
     '''
     Return edge lengths for `graph_type` obtained by taking corresponding distances of vertices given by `vert_coordinates`.
     '''
@@ -1318,6 +1396,17 @@ def getEdgeLengthsByEmbedding(graph_type, vert_coordinates):
             (6, 8) : dist(v6,v8),
             (7, 8) : dist(v7,v8),
             (2, 8) : dist(v2,v8)}
+    elif graph_type=='edges':
+        if not edges:
+            raise ValueError('List of edges must be provided.')
+        else:
+            lengths = {}
+            for u, v in edges:
+                if u<v:
+                    lengths[(u, v)] = dist(vert_coordinates[u-1], vert_coordinates[v-1])
+                else:
+                    lengths[(v, u)] = dist(vert_coordinates[u-1], vert_coordinates[v-1])
+        
     else:
         raise NotImplementedError('Method getEdgeLengthsByEmbedding is not implemented for graph '+ graph_type)
     return lengths

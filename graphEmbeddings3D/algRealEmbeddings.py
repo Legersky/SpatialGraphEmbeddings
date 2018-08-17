@@ -38,7 +38,7 @@ class AlgRealEmbeddings(object):
     '''
     This class implements the sampling procedure for obtaining edge lengths with many real embeddings.
     '''
-    def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center',  window=None, name=None):
+    def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center',  window=None, name=None,  edges=None,  num_sols=None):
         '''
         The supported graphs given by `graph_type` can be found in :py:mod:`graphEmbeddings3D.graphEmbedding.GraphEmbedding`. 
         
@@ -54,10 +54,31 @@ class AlgRealEmbeddings(object):
         
         For implementing a new graph, `self._numAllSol` must be set in the constructor to the maximal number of complex embeddings of the graph, and
         `self._combinations` contains all subgraphs suitable for sampling.
+        Another option is to use `graph_type`='edges' and specify `edges` of the graph and the number of complex embeddings of the graph by `num_sols`.
+        In this case, the keys of a dictionary with edge lengths when the function `findMoreEmbeddings` is called must match edges.
         '''
         self._window = window
         self._graph_type = graph_type
-        if graph_type == 'Max7vertices':
+        
+        if graph_type=='edges':            
+            from sets import Set
+            from itertools import permutations    
+            self._combinations = []
+            self._numAllSol = num_sols
+            vertices = Set([u for e in edges for u in e])
+            edges_set = Set([Set(e) for e in edges])
+            for u in vertices:
+                neighbors_edges = Set([e for e in edges if u in e])
+                if len(neighbors_edges) == 4:
+                    neighbors = Set([v for e in neighbors_edges for v in e if u!=v])
+                    for p in permutations(neighbors):
+                        v, w, p, c = p
+                        if (Set([c, w]) in edges_set and Set([w, v]) in edges_set 
+                            and Set([v, p]) in edges_set ) and p<w:
+                            self._combinations.append(tuple([u, v, w, p, c]))
+            self._combinations = list(Set(self._combinations))
+            print 'There are', len(self._combinations),  'subgraphs  suitable for sampling: ',  sorted(self._combinations)
+        elif graph_type == 'Max7vertices':
             self._numAllSol = 48
             self._combinations = [[2, 3, 1, 7, 6], [3, 7, 2, 4, 1], [5, 6, 1, 7, 4], [6, 1, 5, 2, 7], [3, 4, 1, 7, 2], [6, 7, 5, 2, 1], [4, 3, 1, 7, 5],
                                   [5, 1, 4, 6, 7], [2, 6, 1, 7, 3], [5, 7, 4, 6, 1], [3, 2, 1, 7, 4], [4, 1, 3, 5, 7], [6, 5, 1, 7, 2], [2, 7, 6, 3, 1],
@@ -297,7 +318,7 @@ class AlgRealEmbeddings(object):
     
     def sampleToGetMoreEmbd(self, starting_lengths, uvwpc, start_graph_num):
         start = time.time()
-        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref,  num_sols=self._numAllSol)
         argmax, maximum = self.computeSamplingPhiTheta(starting_graph, uvwpc, start_graph_num)
         clusters = self.clusterPhiTheta(argmax)
         res = self.chooseFromClusters(clusters, maximum, starting_graph, uvwpc)
@@ -329,7 +350,7 @@ class AlgRealEmbeddings(object):
             _phi, _theta, _num = sols[j]
             if _num==maximum:
                 try:
-                    tmp_G = GraphEmbedding(L, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+                    tmp_G = GraphEmbedding(L, self._graph_type, window=self._window, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
                     tmp_G.setPhiTheta(uvwpc, _phi, _theta)
                     new_num = len(tmp_G.findEmbeddings()['real'])
                 except TriangleInequalityError:
@@ -359,7 +380,7 @@ class AlgRealEmbeddings(object):
                                                                           theta - step_theta,  theta + step_theta, uvwpc, 
                                                                           treshold=maximum):
                 if num2>maximum:
-                    tmp_G = GraphEmbedding(copy.copy(starting_graph.getLengths()), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+                    tmp_G = GraphEmbedding(copy.copy(starting_graph.getLengths()), self._graph_type, window=self._window, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
                     tmp_G.setPhiTheta(uvwpc, phi2, theta2)
                     num2 = min([num2,  len(tmp_G.findEmbeddings()['real'])])
                     del tmp_G
@@ -503,7 +524,7 @@ class AlgRealEmbeddings(object):
 #        self._reachedMaxs = []
         self._onlyOne = onlyOne
         
-        G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref)
+        G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
         sols = G.findEmbeddings()
         self._actMaximum = len(sols['real'])
         fromStr = 'from_'+str(self._actMaximum)
@@ -601,7 +622,7 @@ class AlgRealEmbeddings(object):
     def findAllMaximumByOneIteration(self, starting_lengths):
         fileName = os.path.dirname(os.path.realpath(__file__))+'/../results/'+self._graph_type+'/'+self._fileNamePref+'.txt'
         self.printLog('Applying all possible subgraphs parametrizations to')
-        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        starting_graph = GraphEmbedding(starting_lengths, self._graph_type, window=self._window, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
         sols = starting_graph.findEmbeddings()
         reached_max = len(sols['real'])       
         self.printLog(starting_lengths)
@@ -646,7 +667,7 @@ class AlgRealEmbeddings(object):
         if required_num==None:
             required_num = self._numAllSol
         res = []
-        G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref)
+        G = GraphEmbedding(starting_lengths, self._graph_type, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
         sols = G.findEmbeddings()
         actMaximum = len(sols['real'])
         fromStr = 'from_'+str(actMaximum)
@@ -767,7 +788,7 @@ class AlgRealEmbeddings(object):
         min_length = 0.5*min(starting_lengths.values())
         max_length = 2*max(starting_lengths.values())
         orig_length = starting_lengths[edge]
-        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref)
+        starting_graph = GraphEmbedding(copy.copy(starting_lengths), self._graph_type, window=self._window, tmpFileName=self._fileNamePref, num_sols=self._numAllSol)
         step = (max_length - min_length)/float(num_samples)
         L = min_length
         max_L = []
