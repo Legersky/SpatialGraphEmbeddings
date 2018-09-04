@@ -302,7 +302,7 @@ class GraphEmbedding(object):
                     else:
                         result_complex.append(soldic)          
 
-            if len(result_real)%num_conjugated==0 and len(sols)==self._numAllSolutions:
+            if len(result_real)%num_conjugated==0 and len(sols)>=self._numAllSolutions:
                 self._prevSystem = syst
                 self._prevSolutions = sols
                 return {'real':result_real, 'complex':result_complex}
