@@ -76,6 +76,7 @@ class GraphEmbedding(object):
         - `lengths` is a dictionary with edge lengths of graph given by `graph_type`
         - `tmpFileName` is used for temporary files used during computations. If `None`, random hash is used.
         - `num_sols` must be specified if `graph_type` is 'edges'. It is the number of complex embeddings of the graph.
+        - `allowedNumberOfMissing` indicates how many solutions can be lost in PHC computation without causing a recomputation.
         '''
         self._allowedNumberOfMissing = allowedNumberOfMissing
         self._window = window

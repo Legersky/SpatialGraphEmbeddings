@@ -56,6 +56,8 @@ class AlgRealEmbeddings(object):
         `self._combinations` contains all subgraphs suitable for sampling.
         Another option is to use `graph_type`='edges' and specify `edges` of the graph and the number of complex embeddings of the graph by `num_sols`.
         In this case, the keys of a dictionary with edge lengths, when the function `findMoreEmbeddings` is called, must match edges.
+        
+        The parameter `allowedNumberOfMissing` indicates how many solutions can be lost in PHC computation without causing a recomputation.
         '''
         self._window = window
         self._graph_type = graph_type
