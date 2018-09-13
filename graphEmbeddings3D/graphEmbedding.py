@@ -69,7 +69,7 @@ class GraphEmbedding(object):
 #       :width: 70 %
 #       :alt: Supported 7 and 8-vertex graphs
 
-    def __init__(self, lengths, graph_type, tmpFileName=None,  window=None,  num_sols = None):
+    def __init__(self, lengths, graph_type, tmpFileName=None,  window=None,  num_sols = None,  allowedNumberOfMissing=0):
         '''
         Inputs:
         
@@ -77,6 +77,7 @@ class GraphEmbedding(object):
         - `tmpFileName` is used for temporary files used during computations. If `None`, random hash is used.
         - `num_sols` must be specified if `graph_type` is 'edges'. It is the number of complex embeddings of the graph.
         '''
+        self._allowedNumberOfMissing = allowedNumberOfMissing
         self._window = window
         self._prevSystem = None
         self._prevSolutions = None
@@ -305,6 +306,14 @@ class GraphEmbedding(object):
             if len(result_real)%num_conjugated==0 and len(sols)>=self._numAllSolutions:
                 self._prevSystem = syst
                 self._prevSolutions = sols
+                return {'real':result_real, 'complex':result_complex}
+                
+            elif self._allowedNumberOfMissing and len(sols)>=self._numAllSolutions:
+                self.printLog('The number of real embeddings was not divisible by '+str(num_conjugated),  verbose=1)
+                return {'real':result_real, 'complex':result_complex}
+                
+            elif self._allowedNumberOfMissing and len(sols)>=self._numAllSolutions-self._allowedNumberOfMissing:
+                self.printLog('Continuing although there were '+str(self._numAllSolutions-len(sols))+' solutions missing.',  verbose=1)
                 return {'real':result_real, 'complex':result_complex}
             else:
                 usePrev = False

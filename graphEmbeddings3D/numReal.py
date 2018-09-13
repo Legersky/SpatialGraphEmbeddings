@@ -33,7 +33,7 @@ intervals = ast.literal_eval(sys.argv[3])
 #prevSolutions = ast.literal_eval(sys.argv[3])
 #numAll = ast.literal_eval(sys.argv[4])
 with open(filePrev, 'r') as fPrev:
-    prevSystem, prevSolutions, numAll = [ast.literal_eval(line) for line in fPrev]
+    prevSystem, prevSolutions, numAll, numAllowedMissing = [ast.literal_eval(line) for line in fPrev]
     
 usePrev = True
 tolerance = 1.0e-8
@@ -60,6 +60,12 @@ def findEmbeddings(syst):
         if num_real%4==0 and len(sols)==numAll:
             prevSystem = syst
             prevSolutions = sols
+            return num_real
+        elif numAllowedMissing and len(sols)==numAll:
+            print 'The number of real embeddings was not divisible by 4. ', 
+            return num_real
+        elif numAllowedMissing and len(sols)>=numAll-numAllowedMissing:
+            print 'Continuing although there were '+str(numAll-len(sols))+' solutions missing. ', 
             return num_real
         else:
             usePrev = False

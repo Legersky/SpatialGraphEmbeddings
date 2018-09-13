@@ -66,7 +66,7 @@ if __name__ == '__main__':
         print graphs[N]
         start = time.time()
         # we run the sampling method based on coupler curves
-        alg = AlgRealEmbeddings('edges', name=names[N],  edges=graphs[N],  num_sols=numbersOfComplexSolutions[N])
+        alg = AlgRealEmbeddings('edges', name=names[N],  edges=graphs[N],  num_sols=numbersOfComplexSolutions[N],  allowedNumberOfMissing=10)
         lengths_final = alg.findMoreEmbeddings(lengths)
         
         print '\n\nSampling time: ',  time.time() - start

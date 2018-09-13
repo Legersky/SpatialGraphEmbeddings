@@ -29,13 +29,11 @@ from graphEmbedding import *
 
 class GraphCouplerCurve(GraphEmbedding):
     '''
-    This class implements the sampling procedure for obtaining edge lengths with many real embeddings.
-
-    The 6-vertex graph of cyclohexane (octahedron) and the following 7 and 8- vertex graphs are supported:
-
+    This class implements functionality for drawing coupler curve of G48.
+    
     .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
        :width: 70 %
-       :alt: Supported 7 and 8-vertex graphs    
+       :alt: Supported 7 and 8-vertex graphs        
     '''
     def __init__(self, lengths={}, window=None):
         if not lengths:
