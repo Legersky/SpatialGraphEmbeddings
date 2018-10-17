@@ -43,7 +43,7 @@ v6 = [-3.1508917850189+uniform(a,b), 0.846961251730797+uniform(a,b), 0.259525376
 
 lengths = getEdgeLengthsByEmbedding('edges',  [v1, v2, v3, v4, v5, v6, v7, v8], edges=edges_G160)
 
-alg = AlgRealEmbeddings('edges', name='G160',  edges=edges_G160,  num_sols=160,  moreSamplingSubgraphs=True)
+alg = AlgRealEmbeddings('edges', name='G160',  edges=edges_G160,  num_sols=160, allowedNumberOfMissing=4, moreSamplingSubgraphs=True)
 lengths_final =alg.findMoreEmbeddings(lengths)
 G = GraphEmbedding(lengths_final, 'edges', num_sols=160)
 print 'There are ', len(G.findEmbeddings()['real']), 'real embeddings with the following edge lengths:'
