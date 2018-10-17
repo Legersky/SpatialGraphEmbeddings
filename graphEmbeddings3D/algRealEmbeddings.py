@@ -38,7 +38,7 @@ class AlgRealEmbeddings(object):
     This class implements the sampling procedure for obtaining edge lengths with many real embeddings.
     '''
     def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center', 
-                 window=None, name=None,  edges=None,  num_sols=None, allowedNumberOfMissing=0):
+                 window=None, name=None,  edges=None,  num_sols=None, allowedNumberOfMissing=0,  moreSamplingSubgraphs=False):
         '''
         The supported graphs given by `graph_type` can be found in :py:mod:`graphEmbeddings3D.graphEmbedding.GraphEmbedding`. 
         
@@ -58,6 +58,9 @@ class AlgRealEmbeddings(object):
         In this case, the keys of a dictionary with edge lengths, when the function `findMoreEmbeddings` is called, must match edges.
         
         The parameter `allowedNumberOfMissing` indicates how many solutions can be lost in PHC computation without causing a recomputation.
+        
+        If `graph_type`='edges', then `moreSamplingSubgraphs` indicates whether only subgraphs whose sampling preserves the coupler curve are used (False) or all that have necessary edges (True).
+        Namely, whether deg(u)=4 or deg(u)>=4.
         '''
         self._window = window
         self._graph_type = graph_type
@@ -72,9 +75,9 @@ class AlgRealEmbeddings(object):
             edges_set = Set([Set(e) for e in edges])
             for u in vertices:
                 neighbors_edges = Set([e for e in edges if u in e])
-                if len(neighbors_edges) == 4:
+                if len(neighbors_edges) == 4 or moreSamplingSubgraphs:
                     neighbors = Set([v for e in neighbors_edges for v in e if u!=v])
-                    for p in permutations(neighbors):
+                    for p in permutations(neighbors, 4):
                         v, w, p, c = p
                         if (Set([c, w]) in edges_set and Set([w, v]) in edges_set 
                             and Set([v, p]) in edges_set ) and p<w:
