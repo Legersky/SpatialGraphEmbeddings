@@ -80,7 +80,7 @@ class AlgRealEmbeddings(object):
                     for p in permutations(neighbors, 4):
                         v, w, p, c = p
                         if (Set([c, w]) in edges_set and Set([w, v]) in edges_set 
-                            and Set([v, p]) in edges_set ) and p<w:
+                            and Set([v, p]) in edges_set ):
                             self._combinations.append(tuple([u, v, w, p, c]))
             self._combinations = list(Set(self._combinations))
             print 'There are', len(self._combinations),  'subgraphs  suitable for sampling: ',  sorted(self._combinations)
