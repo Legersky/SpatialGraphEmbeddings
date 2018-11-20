@@ -34,7 +34,13 @@ class GraphEmbedding(object):
     '''
     This class implements the computation of spatial embeddings for a graph :math:`G` with edge lengths :math:`\\mathbb{d}`
 
-    Supported graphs:
+    Arbitrary minimally rigid graphs with vertices labeled by 1, ..., N are supported: 
+    
+    - use `graph_type='edges'`
+    - The edges are taken from the dict lengths. 
+    - The graph must contain the triangle 1,2,3.
+    
+    Predefined graphs:
     
     - :math:`G_{16}`
         - `graph_type='Max6vertices'`
@@ -63,7 +69,6 @@ class GraphEmbedding(object):
     - :math:`G_{128}`
         - `graph_type='Ring8vertices'`
         - edges: `{(1, 2), (2, 7), (5, 6), (1, 3), (6, 7), (6, 8), (4, 8), (4, 5), (2, 8), (7, 8), (1, 4), (3, 8), (1, 5), (1, 6), (1, 7), (2, 3), (3, 4), (5, 8)}`
-    - any graph with vertices labeled by 1, ..., N.  The edges are taken from the dict lengths. The graph must contain the triangle 1,2,3.
     '''
 #    .. image:: http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png
 #       :width: 70 %

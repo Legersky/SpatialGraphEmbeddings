@@ -9,9 +9,11 @@ of the 7-vertex minimally rigid graph with the maximal number of embeddings, G48
 
 The main functionality is provided by the package *graphEmbeddings3D*, see [Documentation](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/documentation/).
 
-The version used for the paper On the Maximal Number of Real Embeddings of Spatial Minimally Rigid Graphs accepted to ISSAC 2018:
+The version 1.0 was used for the paper On the Maximal Number of Real Embeddings of Spatial Minimally Rigid Graphs accepted to ISSAC 2018:
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1244023.svg)](https://doi.org/10.5281/zenodo.1244023)
+
+The current version 2.0 supports arbitrary minimally rigid graphs containing a triangle instead of only predefined ones.
 
 ## Requirements and installation
   * Python 2.7
@@ -21,7 +23,7 @@ The version used for the paper On the Maximal Number of Real Embeddings of Spati
   * For GUI application for plotting coupler curves of G48, `PyQt5` ([pypi.python.org/pypi/PyQt5](https://pypi.python.org/pypi/PyQt5)) and `matplotlib` ([matplotlib.org/](https://matplotlib.org/)) are needed.
   * For installation, just clone or download from [github.com/Legersky/SpatialGraphEmbeddings](https://github.com/Legersky/SpatialGraphEmbeddings).
 
-## Supported graphs
+## Predefined graphs
   * 6 vertices: octahedron/cyclohexane (the unique 6-vertex graph with the maximal number of embeddings)
   * 7 vertices: G16a, G16b, G24, G32a, G32b, G48 (all 7-vertex graphs requiring the last Henneberg step being H2,
   the number corresponds to the number of embeddings)
@@ -30,18 +32,12 @@ The version used for the paper On the Maximal Number of Real Embeddings of Spati
 ![graphs](http://jan.legersky.cz/public_files/spatialGraphEmbeddings/graphs_7and8vert.png "Supported graphs with 7 and 8 vertices")
 
 
-If you want to compute the number of embeddings for another minimally rigid graph,
-please, provide a method `constructEquations_YOUR_GRAPH` with sphere equations in *graphEmbeddings3D.graphEmbedding*, 
-and modify the constructor accordingly.
-For the sampling method, subgraphs suitable for sampling must be added to constructor of *graphEmbeddings3D.algRealEmbeddings*.
-We appreciate if you share your changes in the [GitHub repository](https://github.com/Legersky/SpatialGraphEmbeddings).
-
 ## Tests
 `python test_6vert.py` runs the sampling method for octahedron
 
 `python test_7vert.py` verifies that there are edge lengths for G16a, G16b, G24, G32a, G32b and G48 such that all embeddings are real
 
-`python test_8vert.py` verifies that there are edge lengths G128 and G160 have 128 real embeddings 
+`python test_8vert.py` verifies that there are edge lengths such that G128 and G160 have 128, resp. 132, real embeddings 
 
 ## Sampling
 The scripts in the folder `sampling_scripts` use the proposed method for various graphs and starting edge lengths.

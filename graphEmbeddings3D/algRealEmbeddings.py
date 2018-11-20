@@ -40,7 +40,10 @@ class AlgRealEmbeddings(object):
     def __init__(self, graph_type, num_phi=20, num_theta=20, factor_second=4, choice_from_clusters='center', 
                  window=None, name=None,  edges=None,  num_sols=None, allowedNumberOfMissing=0,  moreSamplingSubgraphs=False):
         '''
-        The supported graphs given by `graph_type` can be found in :py:mod:`graphEmbeddings3D.graphEmbedding.GraphEmbedding`. 
+        The predefined graphs given by `graph_type` can be found in :py:mod:`graphEmbeddings3D.graphEmbedding.GraphEmbedding`. 
+        Another option is to use `graph_type`='edges' and specify `edges` of the graph and the number of complex embeddings of the graph by `num_sols`.
+        The graph must contain the triangle 1,2,3.
+        In this case, the keys of a dictionary with edge lengths, when the function `findMoreEmbeddings` is called, must match edges.
         
         `num_phi` and `num_theta` determine the number of samples of :math:`\\varphi` and :math:`\\theta` in the first phase of sampling.
         In the second phase, `num_phi/factor_second` and `num_theta/factor_second` values are sampled around the ones from the first phase with the highest number of real embeddings.
@@ -54,8 +57,6 @@ class AlgRealEmbeddings(object):
         
         For implementing a new graph, `self._numAllSol` must be set in the constructor to the maximal number of complex embeddings of the graph, and
         `self._combinations` contains all subgraphs suitable for sampling.
-        Another option is to use `graph_type`='edges' and specify `edges` of the graph and the number of complex embeddings of the graph by `num_sols`.
-        In this case, the keys of a dictionary with edge lengths, when the function `findMoreEmbeddings` is called, must match edges.
         
         The parameter `allowedNumberOfMissing` indicates how many solutions can be lost in PHC computation without causing a recomputation.
         
